@@ -136,10 +136,10 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
         cursor = connection.cursor()
 
 
-        if action == 'definition':
-            cursor.execute(f"SELECT definition FROM devices WHERE name = '{device}'")
+        # if action == 'definition':
+        #     cursor.execute(f"SELECT definition FROM devices WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
-        elif action == 'types':
+        if action == 'types':
             cursor.execute(f"SELECT types FROM devices WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'structure':
