@@ -849,7 +849,7 @@ async def send_request(update:Update , context : ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    app = Application.builder().token('6596011959:AAFTc2mXlzHmyVQOqY_XH4MRbrQfOjxEJF4').build()
+    app = Application.builder().token('').build()
 
     start_handler = CommandHandler("start",start)
     Buttun_handler =MessageHandler(filters.TEXT & ~filters.COMMAND ,Button_click)
