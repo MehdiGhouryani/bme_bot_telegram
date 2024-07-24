@@ -1,5 +1,6 @@
 import sqlite3
 import os
+from dotenv import load_dotenv
 from func_db import *
 from keyboards_medical import KeyboardsManager
 from telegram import Update
@@ -8,6 +9,9 @@ from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from equipments import *
 from callback_map import callback_map
 
+
+load_dotenv()
+token=os.getenv('Token')
 
 
 class_callback_map = callback_map()
@@ -849,7 +853,7 @@ async def send_request(update:Update , context : ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    app = Application.builder().token('6596011959:AAFTc2mXlzHmyVQOqY_XH4MRbrQfOjxEJF4').build()
+    app = Application.builder().token(token).build()
 
     start_handler = CommandHandler("start",start)
     Buttun_handler =MessageHandler(filters.TEXT & ~filters.COMMAND ,Button_click)
