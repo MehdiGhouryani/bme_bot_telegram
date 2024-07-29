@@ -88,8 +88,8 @@ db_name="medical_device.db"
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     keyboard = [
-        [KeyboardButton("رویداد ها 🗓"),KeyboardButton("آموزش 📚"),]
-        ,[KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
+        [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
+        # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
         ]
     
     reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
@@ -141,33 +141,37 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
         if action == 'definition':
-            cursor.execute(f"SELECT definition,photo FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
-            data_caption ={'photo': device_info[1],'caption': device_info[0]}
+
+            cursor.execute(f"SELECT photo FROM information WHERE name = '{device}'")
+            device_photo = cursor.fetchone()[0]
+            
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=data_caption['caption'],photo=data_caption['photo'],reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت به لیست',callback_data=f'{device}')]]))
-        
-        
-        elif action == 'types':
-            cursor.execute(f"SELECT types FROM devices WHERE name = '{device}'")
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+        else :
+            print(" button not is definition")
+
+        if action == 'types':
+            cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'structure':
-            cursor.execute(f"SELECT structure FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'operation':
-            cursor.execute(f"SELECT operation FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'advantages_disadvantages':
-            cursor.execute(f"SELECT advantages_disadvantages FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'safety':
-            cursor.execute(f"SELECT safety FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'related_technologies':
-            cursor.execute(f"SELECT related_technologies FROM devices WHERE name = '{device}'")
+            cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
-    
-        await query.edit_message_text(text = device_info,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت به لیست',callback_data=f'{device}')]]))
+        await query.delete_message()
+        await context.bot.send_message(chat_id=chat_id,text = device_info,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
 
         # elif data in callback_map_therapeutic:
     #     await callback_map_therapeutic[data](data,update,context)
@@ -233,6 +237,8 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
        
         reply_markup = InlineKeyboardMarkup(keyboard_home_care_equipment)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
 
 
 
@@ -320,6 +326,13 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
+
+
+
+
 # therapeutic
 
     elif data == 'surgical_equipment':
@@ -357,6 +370,11 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
     
         reply_markup = InlineKeyboardMarkup(keyboard_other_therapeutic)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
 
 
 
@@ -421,6 +439,9 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
 # general
 
 
@@ -451,6 +472,11 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
+
+
 # rehabilitation
 
     elif data == 'rehabilitation_equipment':
@@ -465,6 +491,12 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
     
         reply_markup = InlineKeyboardMarkup(keyboard_patient_support)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
+
 
 
 
@@ -545,6 +577,11 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
+
+
 # home_care
 
 
@@ -565,6 +602,161 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
+
+
+    elif data == 'neurology_equipment':
+    
+        reply_markup = InlineKeyboardMarkup()
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
+
+
+
+    elif data == 'neurology_equipment':
+    
+        reply_markup = InlineKeyboardMarkup()
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
+
+
+
+    elif data == 'neurology_equipment':
+    
+        reply_markup = InlineKeyboardMarkup()
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
+
+    elif data == 'neurology_equipment':
+    
+        reply_markup = InlineKeyboardMarkup()
+        await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+
+
+
+
+
+    # elif data == 'intro_mri':
+    #     image_path=mri_data.get_pic()
+        
+    #     with open(image_path, 'rb') as f:
+    #         image_data = f.read()
+    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_mri)
+    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=mri_data.get_caption(),reply_markup=reply_markup)
+
+
+    # elif data == 'information_mri':
+
+    #     reply_markup = InlineKeyboardMarkup(keyboard_information_mri)
+    #     await context.bot.send_message(chat_id=chat_id,text=mri_data.get_txt(),reply_markup=reply_markup)
+        
+
+
+
+
+
+    # elif data == 'ct_scan':
+        
+    #     reply_markup = InlineKeyboardMarkup(keyboard_ct)
+    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+    # elif data == 'intro_ct': 
+    #     image_path = ct_data.get_pic()
+        
+    #     with open(image_path, 'rb') as f:
+    #         image_data = f.read()
+    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_ct)
+    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=ct_data.get_caption(),reply_markup=reply_markup)
+
+
+    # elif data == 'information_ct':
+    #     reply_markup = InlineKeyboardMarkup(keyboard_information_ct)
+    #     await context.bot.send_message(chat_id=chat_id,text=ct_data.get_txt(),reply_markup=reply_markup)
+
+
+
+
+
+
+
+
+    # elif data == 'sonography':
+        
+    #     reply_markup = InlineKeyboardMarkup(keyboard_sono)
+    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+
+    # elif data == 'intro_sono':
+         
+    #     image_path = sono_data.get_pic()
+        
+    #     with open(image_path, 'rb') as f:
+    #         image_data = f.read()
+    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_sono)
+    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=sono_data.get_caption(),reply_markup=reply_markup)
+
+
+
+    # elif data == 'information_sono':
+    #     reply_markup = InlineKeyboardMarkup(keyboard_information_sono)
+    #     await context.bot.send_message(chat_id=chat_id,text=sono_data.get_txt(),reply_markup=reply_markup)
+        
+
+
+
+
+
+
+    # elif data == 'xray':
+       
+
+    #     reply_markup = InlineKeyboardMarkup(keyboard_xray)
+    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
+
+
+    # elif data == 'intro_xray':
+         
+    #     image_path = xray_data.get_pic()
+        
+    #     with open(image_path, 'rb') as f:
+    #         image_data = f.read()
+    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_xray)    
+    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=xray_data.get_caption(),reply_markup=reply_markup)
+
+
+
+    # elif data == 'information_xray':
+    #     reply_markup = InlineKeyboardMarkup(keyboard_information_xray)
+    #     await context.bot.send_message(chat_id=chat_id,text=xray_data.get_txt(),reply_markup=reply_markup)
+
+
+
+
+
+
+
+
+
+
         
     else :
 
@@ -578,6 +770,67 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# async def getPhoto(update:Update,context:ContextTypes.DEFAULT_TYPE):
+#     chat_id = update.effective_chat.id
+
+#     print('is connetcting to Database ...')
+#     conn = sqlite3.connect(db_name)
+#     cursor = conn.cursor()    
+#     print('connected ..')
+
+#     image_path=cursor.execute('SELECT photo FROM devices WHERE name="mri"').fetchone()[0]
+#     print(f'pic :    {image_path}') 
+
+    
+#     with open(image_path, 'rb') as f:
+#         image_data = f.read()
+
+#     await context.bot.send_message(chat_id=chat_id, text="عکس ارسال شد")
+#     await context.bot.send_photo(chat_id=chat_id ,photo=image_data)
+
+
+#     conn.close()
 
 
 

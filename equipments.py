@@ -140,8 +140,8 @@ class diagnostic :
             cardiac_keys =[]
             for device in cardiac_devices:
                     cardiac_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     cardiac_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -174,8 +174,8 @@ class diagnostic :
             neurological_keys =[]
             for device in neurological_devices:
                     neurological_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     neurological_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -208,8 +208,8 @@ class diagnostic :
             pulmonary_keys =[]
             for device in pulmonary_devices:
                     pulmonary_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     pulmonary_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -247,8 +247,8 @@ class diagnostic :
             gastrointestinal_keys =[]
             for device in gastrointestinal_devices:
                     gastrointestinal_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     gastrointestinal_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -275,8 +275,8 @@ class diagnostic :
             ent_keys =[]
             for device in ent_diagnostic_devices:
                     ent_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     ent_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -314,8 +314,8 @@ class diagnostic :
             ophthalmic_keys =[]
             for device in ophthalmic_diagnostic_devices:
                     ophthalmic_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     ophthalmic_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -379,8 +379,8 @@ class therapeutic :
         surgical_keys = []
         for device in surgical_devices:
             surgical_keys.append([
+                InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                 InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
             ])
             surgical_keys.append([
                 InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -434,8 +434,8 @@ class therapeutic :
         orthopedic_keys = []
         for device in orthopedic_devices:
                 orthopedic_keys.append([
+                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                     InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                 ])
                 orthopedic_keys.append([
                     InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -473,8 +473,8 @@ class therapeutic :
             cardiovascular_keys =[]
             for device in cardiovascular_devices:
                     cardiovascular_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     cardiovascular_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -506,8 +506,8 @@ class therapeutic :
             respiratory_keys =[]
             for device in respiratory_devices:
                     respiratory_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     respiratory_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -539,8 +539,8 @@ class therapeutic :
             other_therapeutic_keys =[]
             for device in other_therapeutic_devices:
                     other_therapeutic_keys.append([
+                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                         InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                        InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                     ])
                     other_therapeutic_keys.append([
                         InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -588,8 +588,8 @@ class monitoring:
         cardiac_monitors_keys = []
         for device in cardiac_monitors_device:
             cardiac_monitors_keys.append([
+                InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                 InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
             ])
             cardiac_monitors_keys.append([
                 InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -625,8 +625,8 @@ class monitoring:
         pulse_oximeters_keys = []
         for device in pulse_oximeters_device:
                 pulse_oximeters_keys.append([
+                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                     InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                 ])
                 pulse_oximeters_keys.append([
                     InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -657,8 +657,8 @@ class monitoring:
         fetal_monitors_keys = []
         for device in fetal_monitors_device:
                 fetal_monitors_keys.append([
+                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                     InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                 ])
                 fetal_monitors_keys.append([
                     InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
@@ -689,8 +689,8 @@ class monitoring:
         blood_glucose_monitors_keys = []
         for device in blood_glucose_monitors_device:
                 blood_glucose_monitors_keys.append([
+                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                     InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')
                 ])
                 blood_glucose_monitors_keys.append([
                     InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
