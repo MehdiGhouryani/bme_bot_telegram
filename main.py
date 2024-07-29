@@ -140,10 +140,15 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
         cursor = connection.cursor()
 
 
-        # if action == 'definition':
-        #     cursor.execute(f"SELECT definition FROM devices WHERE name = '{device}'")
-        device_info = cursor.fetchone()[0]
-        if action == 'types':
+        if action == 'definition':
+            cursor.execute(f"SELECT definition,photo FROM devices WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+            data_caption ={'photo': device_info[1],'caption': device_info[0]}
+            await query.delete_message()
+            await context.bot.send_photo(chat_id=chat_id,caption=data_caption['caption'],photo=data_caption['photo'],reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت به لیست',callback_data=f'{device}')]]))
+        
+        
+        elif action == 'types':
             cursor.execute(f"SELECT types FROM devices WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'structure':
