@@ -8,6 +8,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes , MessageHand
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from equipments import *
 from callback_map import callback_map
+import logging
 
 
 load_dotenv()
@@ -85,32 +86,48 @@ db_name="medical_device.db"
 
 
 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
+
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
-    user_id =update.message.from_user.id')
-
-
+    user_id =update.message.from_user.id
+    print('start')
+    CHANNEL_USERNAME ='@studentsbme'
     try:
-        member =context.bot.get_chat_member(chat_id='@studentsbme',user_id=user_id)
+        member =await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME,user_id=user_id)
+        print(f"user {user_id} status in {CHANNEL_USERNAME} : {member.status}")
         if member.status not in ['member','administrator','creator']:
 
             keyboard= [
-                [InlineKeyboardButton('عضویت در کانال',url=f"https://t.me{studentsbme}")]
+                [InlineKeyboardButton('عضویت در کانال',url=f"https://t.me/{CHANNEL_USERNAME[1:]}")],
+                [[InlineKeyboardButton("عضو شدم ✅",callback_data='check_membership')]]
             ]
             reply_markup=InlineKeyboardMarkup(keyboard)
-            update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
+            await update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
         else:
-            update.message.reply_text('خوش آمدید ! ')
+            keyboard = [
+            [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
+            # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
+            ]
+    
+            reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
+            await update.message.reply_text(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
+
+
     except Exception as e:
-        update.message.reply_text('مشکلی بوجود اومده ! دوباره تلاش کن')
-    keyboard = [
-        [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
-        # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
-        ]
-    
-    reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
-    await update.message.reply_text(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
-    
+        print(f"Error cheking membership : {e}")
+        await update.message.reply_text('مشکلی بوجود اومده ! دوباره تلاش کن')
+   
+
+
+
+async def handle_chat_member_update(update:Update,context:ContextTypes.DEFAULT_TYPE):
+    if update.chat_member.new_chat_member.status =='left':
+        chat_id =update.effective_chat.id
+        user_id =update.chat_member.new_chat_member.user.id
+        async for message in context.bot.get_chat_administrators(chat_id):
+            if message.from_user.id == user_id:
+                await context.bot.delete_message(chat_id=chat_id,message_id=message.message_id)
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
@@ -137,130 +154,125 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
-
+    user_id =update.message.from_user.id
     chat_id=update.effective_chat.id
+
     query = update.callback_query
     data = query.data
   
+    CHANNEL_USERNAME ='@studentsbme'
     print('callback_handler is  started')
 
+    try:
+        member =await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME,user_id=user_id)
+        print(f"user(use in callback_data) {user_id} status in {CHANNEL_USERNAME} : {member.status}")
+        if member.status not in ['member','administrator','creator']:
+            await start(update,context)
+        else:
 
-    if data in combined_callback_map:
-        await combined_callback_map[data](data,update, context)
+            if data in combined_callback_map:
+                await combined_callback_map[data](data,update, context)
 
-    elif ':' in data:
-
-        device,action =data.split(':')
-
-        connection = sqlite3.connect(db_name)
-        cursor = connection.cursor()
-
-
-        if action == 'definition':
-            cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-
-            cursor.execute(f"SELECT photo FROM information WHERE name = '{device}'")
-            device_photo = cursor.fetchone()[0]
+            elif ':' in data:
             
-            await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
-        else :
-            print(" button not is definition")
+                device,action =data.split(':')
 
-        if action == 'types':
-            cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        elif action == 'structure':
-            cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        elif action == 'operation':
-            cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        elif action == 'advantages_disadvantages':
-            cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        elif action == 'safety':
-            cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        elif action == 'related_technologies':
-            cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
-            device_info = cursor.fetchone()[0]
-        await query.delete_message()
-        await context.bot.send_message(chat_id=chat_id,text = device_info,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+                connection = sqlite3.connect(db_name)
+                cursor = connection.cursor()
 
-        # elif data in callback_map_therapeutic:
-    #     await callback_map_therapeutic[data](data,update,context)
 
+                if action == 'definition':
+                    cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
 
-    # elif data in callback_map_monitoring:
-    #     await callback_map_monitoring[data](data,update,context)
+                    cursor.execute(f"SELECT photo FROM information WHERE name = '{device}'")
+                    device_photo = cursor.fetchone()[0]
 
-    elif data == 'back_to_main':
-        reply_markup = InlineKeyboardMarkup(main_keyboard)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
+                    await query.delete_message()
+                    await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+                else :
+                    print(" button not is definition")
 
+                if action == 'types':
+                    cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                elif action == 'structure':
+                    cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                elif action == 'operation':
+                    cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                elif action == 'advantages_disadvantages':
+                    cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                elif action == 'safety':
+                    cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                elif action == 'related_technologies':
+                    cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
+                    device_info = cursor.fetchone()[0]
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
 
 
 
+            elif data == 'back_to_main':
+                reply_markup = InlineKeyboardMarkup(main_keyboard)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-# main_categories
 
-    elif data in {'diagnostic_equipment' }:
-        
-        reply_markup = InlineKeyboardMarkup(keyboard_diagnostic)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    
 
-    elif data in {'therapeutic_equipment'} :
-        
-        reply_markup = InlineKeyboardMarkup(keyboard_therapeutic)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+        # main_categories
 
+            elif data in {'diagnostic_equipment' }:
 
-    elif data in {'monitoring_equipment'}:
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_monitoring)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-    
+                reply_markup = InlineKeyboardMarkup(keyboard_diagnostic)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data in {'general_medical_equipment'}:
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_general_medical)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data in {'therapeutic_equipment'} :
 
+                reply_markup = InlineKeyboardMarkup(keyboard_therapeutic)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data in {'support_rehabilitation_equipment'}:
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_rehabilitation_and_support)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+            elif data in {'monitoring_equipment'}:
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_monitoring)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data in {'specialized_equipment'}:
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_specialized_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+            elif data in {'general_medical_equipment'}:
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_general_medical)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data in {'home_care_equipment'}:
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_home_care_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+            elif data in {'support_rehabilitation_equipment'}:
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_rehabilitation_and_support)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
+            elif data in {'specialized_equipment'}:
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_specialized_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
+            elif data in {'home_care_equipment'}:
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_home_care_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
@@ -269,66 +281,66 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-# diagnostic
 
+        # diagnostic
 
-    elif data == 'medical_imaging':
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_medical_imaging)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'medical_imaging':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_medical_imaging)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'laboratory_equipment':
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_laboratory_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'laboratory_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_laboratory_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'cardiac_diagnostic_equipment':
-       
-        reply_markup = InlineKeyboardMarkup(keyboard_cardiac_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'cardiac_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_cardiac_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'neurological_diagnostic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_neurological_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'neurological_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_neurological_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'pulmonary_diagnostic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_pulmonary_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'pulmonary_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_pulmonary_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'gastrointestinal_diagnostic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_gastrointestinal_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'gastrointestinal_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_gastrointestinal_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'ent_diagnostic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_ent_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'ent_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_ent_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'ophthalmic_diagnostic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_ophthalmic_diagnostic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'ophthalmic_diagnostic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_ophthalmic_diagnostic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
@@ -341,106 +353,115 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+        # therapeutic
 
+            elif data == 'surgical_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_surgical)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
+            elif data == 'orthopedic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_orthopedic)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-# therapeutic
 
-    elif data == 'surgical_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_surgical)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
+            elif data == 'cardiovascular_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_cardiovascular)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
-    elif data == 'orthopedic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_orthopedic)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
+            elif data == 'respiratory_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_respiratory)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
+            elif data == 'other_therapeutic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_other_therapeutic)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'cardiovascular_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_cardiovascular)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
-    elif data == 'respiratory_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_respiratory)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'other_therapeutic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_other_therapeutic)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
+        # monitoring
 
+            elif data == 'vital_signs_monitors':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_vital_signs_monitors)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+            elif data == 'cardiac_monitors':
+                reply_markup = InlineKeyboardMarkup(keyboard_cardiac_monitors)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'pulse_oximeters':
+                reply_markup = InlineKeyboardMarkup(keyboard_pulse_oximeters)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
 
+            elif data == 'fetal_maternal_monitors':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_fetal_maternal_monitors)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'fetal_monitors':
+                reply_markup = InlineKeyboardMarkup(keyboard_fetal_monitors)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+            elif data == 'blood_glucose_monitors':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_blood_glucose_monitors)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
 
-# monitoring
 
-    elif data == 'vital_signs_monitors':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_vital_signs_monitors)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'cardiac_monitors':
-        reply_markup = InlineKeyboardMarkup(keyboard_cardiac_monitors)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'pulse_oximeters':
-        reply_markup = InlineKeyboardMarkup(keyboard_pulse_oximeters)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
+        # general
 
 
+            elif data == 'hospital_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_hospital_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'fetal_maternal_monitors':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_fetal_maternal_monitors)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    elif data == 'fetal_monitors':
-        reply_markup = InlineKeyboardMarkup(keyboard_fetal_monitors)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'blood_glucose_monitors':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_blood_glucose_monitors)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
+            elif data == 'emergency_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_emergency_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
@@ -453,65 +474,85 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+        # rehabilitation
 
+            elif data == 'rehabilitation_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_rehabilitation)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
-# general
+            elif data == 'patient_support':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_patient_support)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'hospital_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_hospital_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
-    elif data == 'emergency_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_emergency_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
 
 
+        # specialized
 
+            elif data == 'cardiovascular_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_cardiovascular_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
+            elif data == 'neurology_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_neurology_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
+            elif data == 'orthopedic_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_orthopedic_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
+            elif data == 'obstetrics_and_gynecology_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_obstetrics_and_gynecology_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-# rehabilitation
 
-    elif data == 'rehabilitation_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_rehabilitation)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'ent_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_ent_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'patient_support':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_patient_support)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'dental_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_dental_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
 
+            elif data == 'dermatology_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_dermatology_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
@@ -525,106 +566,34 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-# specialized
+        # home_care
 
-    elif data == 'cardiovascular_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_cardiovascular_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'daily_care_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_daily_care_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
-    elif data == 'neurology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_neurology_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
+            elif data == 'home_respiratory_equipment':
+            
+                reply_markup = InlineKeyboardMarkup(keyboard_home_respiratory_equipment)
+                await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-    elif data == 'orthopedic_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_orthopedic_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
+    except Exception as e:
+        print(f"Error cheking membership : {e}")
+        await update.message.reply_text('مشکلی بوجود اومده ! دوباره تلاش کن')
+   
 
-    elif data == 'obstetrics_and_gynecology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_obstetrics_and_gynecology_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-
-
-    elif data == 'ent_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_ent_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-    elif data == 'dental_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_dental_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-    elif data == 'dermatology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_dermatology_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# home_care
-
-
-    elif data == 'daily_care_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_daily_care_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-    elif data == 'home_respiratory_equipment':
-    
-        reply_markup = InlineKeyboardMarkup(keyboard_home_respiratory_equipment)
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-
-    else :
-
-        await context.bot.send_message(chat_id=chat_id,text='متوجه نشدم ! \n مثل اینکه هنوز این بخش آماده نیست!')
-
-
+   
 
 
 
