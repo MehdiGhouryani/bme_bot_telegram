@@ -87,6 +87,15 @@ db_name="medical_device.db"
 
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
+    user_id =update.message.from_user.id
+    try:
+        member =context.bot.get_chat_member(chat_id='@studentsbme',user_id=user_id)
+        if member.status not in ['member','administrator','creator']:
+            update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی .')
+        else:
+            update.message.reply_text('خوش آمدید ! ')
+    except Exception as e:
+        update.message.reply_text('مشکلی بوجود اومده ! دوباره تلاش کن')
     keyboard = [
         [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
         # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
@@ -604,163 +613,9 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-
-
-
-    elif data == 'neurology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup()
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-    elif data == 'neurology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup()
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-    elif data == 'neurology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup()
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-    elif data == 'neurology_equipment':
-    
-        reply_markup = InlineKeyboardMarkup()
-        await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-    # elif data == 'intro_mri':
-    #     image_path=mri_data.get_pic()
-        
-    #     with open(image_path, 'rb') as f:
-    #         image_data = f.read()
-    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_mri)
-    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=mri_data.get_caption(),reply_markup=reply_markup)
-
-
-    # elif data == 'information_mri':
-
-    #     reply_markup = InlineKeyboardMarkup(keyboard_information_mri)
-    #     await context.bot.send_message(chat_id=chat_id,text=mri_data.get_txt(),reply_markup=reply_markup)
-        
-
-
-
-
-
-    # elif data == 'ct_scan':
-        
-    #     reply_markup = InlineKeyboardMarkup(keyboard_ct)
-    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-    # elif data == 'intro_ct': 
-    #     image_path = ct_data.get_pic()
-        
-    #     with open(image_path, 'rb') as f:
-    #         image_data = f.read()
-    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_ct)
-    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=ct_data.get_caption(),reply_markup=reply_markup)
-
-
-    # elif data == 'information_ct':
-    #     reply_markup = InlineKeyboardMarkup(keyboard_information_ct)
-    #     await context.bot.send_message(chat_id=chat_id,text=ct_data.get_txt(),reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-    # elif data == 'sonography':
-        
-    #     reply_markup = InlineKeyboardMarkup(keyboard_sono)
-    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-
-    # elif data == 'intro_sono':
-         
-    #     image_path = sono_data.get_pic()
-        
-    #     with open(image_path, 'rb') as f:
-    #         image_data = f.read()
-    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_sono)
-    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=sono_data.get_caption(),reply_markup=reply_markup)
-
-
-
-    # elif data == 'information_sono':
-    #     reply_markup = InlineKeyboardMarkup(keyboard_information_sono)
-    #     await context.bot.send_message(chat_id=chat_id,text=sono_data.get_txt(),reply_markup=reply_markup)
-        
-
-
-
-
-
-
-    # elif data == 'xray':
-       
-
-    #     reply_markup = InlineKeyboardMarkup(keyboard_xray)
-    #     await query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-    # elif data == 'intro_xray':
-         
-    #     image_path = xray_data.get_pic()
-        
-    #     with open(image_path, 'rb') as f:
-    #         image_data = f.read()
-    #     reply_markup = InlineKeyboardMarkup(keyboard_intro_xray)    
-    #     await context.bot.send_photo(chat_id=chat_id ,photo=image_data,caption=xray_data.get_caption(),reply_markup=reply_markup)
-
-
-
-    # elif data == 'information_xray':
-    #     reply_markup = InlineKeyboardMarkup(keyboard_information_xray)
-    #     await context.bot.send_message(chat_id=chat_id,text=xray_data.get_txt(),reply_markup=reply_markup)
-
-
-
-
-
-
-
-
-
-
-        
     else :
 
-        await context.bot.send_message(chat_id=chat_id,text='متوجه نشدم ! \n مطمئن شو داری درست عمل میکنی !')
+        await context.bot.send_message(chat_id=chat_id,text='متوجه نشدم ! \n مثل اینکه هنوز این بخش آماده نیست!')
 
 
 
@@ -788,49 +643,6 @@ async def callback_handler(update: Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# async def getPhoto(update:Update,context:ContextTypes.DEFAULT_TYPE):
-#     chat_id = update.effective_chat.id
-
-#     print('is connetcting to Database ...')
-#     conn = sqlite3.connect(db_name)
-#     cursor = conn.cursor()    
-#     print('connected ..')
-
-#     image_path=cursor.execute('SELECT photo FROM devices WHERE name="mri"').fetchone()[0]
-#     print(f'pic :    {image_path}') 
-
-    
-#     with open(image_path, 'rb') as f:
-#         image_data = f.read()
-
-#     await context.bot.send_message(chat_id=chat_id, text="عکس ارسال شد")
-#     await context.bot.send_photo(chat_id=chat_id ,photo=image_data)
-
-
-#     conn.close()
 
 
 
@@ -867,7 +679,6 @@ def main():
     start_handler = CommandHandler("start",start)
     Buttun_handler =MessageHandler(filters.TEXT & ~filters.COMMAND ,Button_click)
 
-    # app.add_handler(CommandHandler('dawnload',getPhoto))
     app.add_handler(start_handler)
     app.add_handler(Buttun_handler)
     app.add_handler(CallbackQueryHandler(callback_handler))
