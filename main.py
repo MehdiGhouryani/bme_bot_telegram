@@ -87,11 +87,18 @@ db_name="medical_device.db"
 
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
-    user_id =update.message.from_user.id
+    user_id =update.message.from_user.id')
+
+
     try:
         member =context.bot.get_chat_member(chat_id='@studentsbme',user_id=user_id)
         if member.status not in ['member','administrator','creator']:
-            update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی .')
+
+            keyboard= [
+                [InlineKeyboardButton('عضویت در کانال',url=f"https://t.me{studentsbme}")]
+            ]
+            reply_markup=InlineKeyboardMarkup(keyboard)
+            update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
         else:
             update.message.reply_text('خوش آمدید ! ')
     except Exception as e:
