@@ -293,22 +293,31 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
-            cursor.close()
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+            
 
-        elif column:
-            async with aiosqlite.connect(db_name) as connection:
-                cursor = await connection.execute(f"SELECT {column} FROM information WHERE name = ?", (device,))
-                device_info = cursor.fetchone()[0]
-
-            await query.delete_message()
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=device_info,
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت', callback_data=device)]])
-            )
-
-            cursor.close()
+        
+        if action == 'types':
+            cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        elif action == 'structure':
+            cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        elif action == 'operation':
+            cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        elif action == 'advantages_disadvantages':
+            cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        elif action == 'safety':
+            cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        elif action == 'related_technologies':
+            cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
+            device_info = cursor.fetchone()[0]
+        await query.delete_message()
+        await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+        cursor.close()
 
 
     elif data == 'back_to_main':

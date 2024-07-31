@@ -98,7 +98,7 @@ class diagnostic :
 
     async def laboratory_equipment(self,data,update : Update , context:ContextTypes.DEFAULT_TYPE):
         labratory_keys = []
-        for device in imaging_devices:
+        for device in laboratory_devices:
                  labratory_keys.append([
                     InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
                     InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition')
