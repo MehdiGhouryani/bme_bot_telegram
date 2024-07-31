@@ -319,7 +319,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
         cursor.close()
 
-
+ 
+ 
     elif data == 'back_to_main':
         reply_markup = InlineKeyboardMarkup(main_keyboard)
         await query.edit_message_reply_markup(reply_markup=reply_markup)
