@@ -49,7 +49,7 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
         else:
             keyboard = [
-            [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
+                [KeyboardButton("آموزش 📚"),],[KeyboardButton("درخواست و پیشنهاد 📝")]
             # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
             ]
     
@@ -59,7 +59,7 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         print(f"Error cheking membership : {e}")
-        await update.message.reply_text('مشکلی بوجود اومده ! دوباره تلاش کن')
+        await update.message.reply_text(' مشکلی بوجود اومده ! دوباره تلاش کن')
    
 
 
@@ -76,7 +76,7 @@ async def save_user(user_id,username):
     connection.close()
 
 
-# Callback query handler function
+
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
@@ -97,7 +97,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         else:
             await query.answer("شما هنوز عضو کانال نشده‌اید.")
-            # await query.message.reply_text("برای استفاده از ربات باید عضو کانال شوید.")
+            
     except Exception as e:
         print(f"Error checking membership: {e}")
         await query.answer("خطا در بررسی عضویت.")
@@ -111,14 +111,44 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     text= update.message.text   
- 
+    user =update.message.from_user
+    user_message =update.message.text
+    username=user.username
+    user_id=user.id
+    full_name =user.full_name
+    ADMIN_CHAT_ID='1717599240'
  
     if text == "آموزش 📚":
-        await send_tutorials(update,context)
-        # await update.message.reply_text('.' ,reply_markup=ReplyKeyboardRemove())
+
+        reply_markup = InlineKeyboardMarkup(main_keyboard)
+        await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
+
 
     elif text == "درخواست و پیشنهاد 📝":
-        await send_request(update,context)
+        
+        context.user_data['awaiting_request'] = True
+        await update.message.reply_text('''
+سلام مهندس🙂
+ خوشحال می‌شیم پیشنهادات و ایده‌های خودت رو درباره ربات با ما به اشتراک بذارید.
+
+لطفاً پیشنهادات خودتون رو همین‌جا بنویسید و ارسال کنید :
+
+''')
+    elif context.user_data.get('awaiting_request'):
+        # ارسال پیام به ادمین
+        admin_message = (
+            f"پیشنهاد جدید از سمت {full_name} دریافت شد!\n"
+            f"نام کاربری: @{username}\n"
+            f"آیدی کاربر: {user_id}\n"
+            f"متن پیشنهاد: {user_message}"
+        )
+        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_message)
+
+        # ارسال پیام تایید به کاربر
+        await update.message.reply_text('ممنون از پیشنهادتون! ما اون رو بررسی خواهیم کرد.')
+
+        # غیرفعال کردن حالت انتظار
+        context.user_data['awaiting_request'] = False
 
 
 
@@ -258,22 +288,6 @@ info_map = {
    
 
 
-# async def fetch_and_send_info(action: str, device: str, query: Update.callback_query, context: ContextTypes.DEFAULT_TYPE, chat_id: int):
-#     column = info_map.get(action)
-#     if column:
-#         async with aiosqlite.connect(db_name) as connection:
-#             cursor = await connection.execute(f"SELECT {column} FROM information WHERE name = ?", (device,))
-#             device_info = cursor.fetchone()[0]
-
-#         await query.delete_message()
-#         await context.bot.send_message(
-#             chat_id=chat_id,
-#             text=device_info,
-#             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت', callback_data=device)]])
-#         )
-
-
-
 
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -350,38 +364,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-
-
-
-
-
-
-
-async def send_tutorials(update: Update, context: ContextTypes.DEFAULT_TYPE):
-   
-    reply_markup = InlineKeyboardMarkup(main_keyboard)
-   
-    await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
-    
-
-
-
-async def send_request(update:Update , context : ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id,text="درخواستی که داری رو بگو :",reply_to_message_id=update.effective_message.id)
-
-    if len(update.message.text)>12 :
-        user_id = update.message.from_user.id
-        user_request = update.message.text
-        #Forwarad to admin
-
-        await context.bot.send_message(chat_id='1717599240',text=f"new request from user {user_id}:{user_request}")
-
-
-
-
-# def send_job(update:Update , context : ContextTypes.DEFAULT_TYPE):
 
 
 
