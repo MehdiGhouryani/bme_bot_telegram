@@ -49,7 +49,7 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
         else:
             keyboard = [
-                [KeyboardButton("آموزش 📚"),],[KeyboardButton("درخواست و پیشنهاد 📝")]
+                [KeyboardButton("تجهیزات پزشکی  🩺"),],[KeyboardButton("درخواست و پیشنهاد 📝")]
             # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
             ]
     
@@ -89,7 +89,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("عضویت شما تایید شد.")
             await query.delete_message()
             keyboard = [
-            [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
+            [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("تجهیزات پزشکی  🩺"),]
             ]
     
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
@@ -118,7 +118,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     full_name =user.full_name
     ADMIN_CHAT_ID='1717599240'
  
-    if text == "آموزش 📚":
+    if text == "تجهیزات پزشکی  🩺":
 
         reply_markup = InlineKeyboardMarkup(main_keyboard)
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
@@ -272,24 +272,6 @@ keyboard_map = {
 
 
 
-# دیکشنری برای اطلاعات پایگاه داده
-info_map = {
-    # 'definition': 'definition',
-    'types': 'types',
-    'structure': 'structure',
-    'operation': 'operation',
-    'advantages_disadvantages': 'advantages_disadvantages',
-    'safety': 'safety',
-    'related_technologies': 'related_technologies'
-}
-
-
-
-   
-
-
-
-
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # user_id = update.message.from_user.id
     query = update.callback_query
@@ -313,8 +295,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         connection = sqlite3.connect(db_name)
         cursor = connection.cursor()
-
-        column = info_map.get(action)
     
         if action == 'definition':
             cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
@@ -359,7 +339,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'check_membership':
         await check_membership(update,context)
     else:
-        await query.answer("چک کن درست انجام داده باشی!")
+        await query.answer("مثل اینکه این بخش یه ایرادی داره هنوز ")
 
 
 
