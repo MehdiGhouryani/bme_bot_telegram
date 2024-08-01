@@ -29,9 +29,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=loggin
 
 
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id  
+    # chat_id = update.effective_chat.id  
     user_id =update.message.from_user.id
-    print('start')
+    username =update.effective_user.username
+
+    print(f'USER : {username}    ID : {user_id}')
+    await save_user(user_id,username)
     CHANNEL_USERNAME ='@studentsbme'
     try:
         member =await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME,user_id=user_id)
@@ -52,7 +55,7 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
     
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
             await update.message.reply_text(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
-
+            
 
     except Exception as e:
         print(f"Error cheking membership : {e}")
@@ -60,7 +63,17 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
    
 
 
+async def save_user(user_id,username):
+    connection = sqlite3.connect('users.db')
+    cursor = connection.cursor()
 
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users
+                      (user_id INTEGER PRIMARY KEY,
+                       username TEXT)''')
+    
+    cursor.execute('INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)', (user_id, username))
+    connection.commit()
+    connection.close()
 
 
 # Callback query handler function
@@ -74,7 +87,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if member.status in ['member', 'administrator', 'creator']:
             # Send a confirmation message to the user
             await query.answer("عضویت شما تایید شد.")
-            
+            await query.delete_message()
             keyboard = [
             [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("آموزش 📚"),]
             ]
@@ -84,7 +97,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         else:
             await query.answer("شما هنوز عضو کانال نشده‌اید.")
-            await query.message.reply_text("برای استفاده از ربات باید عضو کانال شوید.")
+            # await query.message.reply_text("برای استفاده از ربات باید عضو کانال شوید.")
     except Exception as e:
         print(f"Error checking membership: {e}")
         await query.answer("خطا در بررسی عضویت.")
@@ -98,16 +111,20 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     text= update.message.text   
-#     if text == 'رویداد ها 🗓':
-#         await send_event(update,context)   
-    
+ 
+ 
     if text == "آموزش 📚":
         await send_tutorials(update,context)
+        # await update.message.reply_text('.' ,reply_markup=ReplyKeyboardRemove())
 
-    
     elif text == "درخواست و پیشنهاد 📝":
         await send_request(update,context)
 
+
+
+#     if text == 'رویداد ها 🗓':
+#         await send_event(update,context)   
+    
     # elif text == "فرصت های شغلی 👨‍⚕":
     #     await send_job(update)
 
