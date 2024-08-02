@@ -196,8 +196,8 @@ categories = {
         'respiratory', 'other_therapeutic'
     ],
     'monitoring': [
-        'monitoring', 'vital_signs_monitors', 'cardiac_monitors',
-        'pulse_oximeters', 'fetal_maternal_monitors', 'fetal_monitors',
+        'monitoring','cardiac_monitors',
+        'fetal_maternal_monitors', 'fetal_monitors',
         'blood_glucose_monitors'
     ],
     'general_medical': [
@@ -249,9 +249,9 @@ keyboard_map = {
     'cardiovascular_equipment': keyboard_cardiovascular,
     'respiratory_equipment': keyboard_respiratory,
     'other_therapeutic_equipment': keyboard_other_therapeutic,
-    'vital_signs_monitors': keyboard_vital_signs_monitors,
+    'vital_signs_monitors': keyboard_cardiac_monitors,
     'cardiac_monitors': keyboard_cardiac_monitors,
-    'pulse_oximeters': keyboard_pulse_oximeters,
+   
     'fetal_maternal_monitors': keyboard_fetal_maternal_monitors,
     'fetal_monitors': keyboard_fetal_monitors,
     'blood_glucose_monitors': keyboard_blood_glucose_monitors,

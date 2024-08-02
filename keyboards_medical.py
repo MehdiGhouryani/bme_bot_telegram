@@ -9,7 +9,7 @@ class KeyboardsManager:
         return [
             [InlineKeyboardButton('تجهیزات تشخیصی', callback_data='diagnostic_equipment')],
             [InlineKeyboardButton('تجهیزات درمانی', callback_data='therapeutic_equipment')],
-            [InlineKeyboardButton('تجهیزات پایش', callback_data='monitoring_equipment')],
+            [InlineKeyboardButton('تجهیزات مانیتورینگ', callback_data='monitoring_equipment')],
             [InlineKeyboardButton('تجهیزات پزشکی عمومی', callback_data='general_medical_equipment')],
             [InlineKeyboardButton('تجهیزات پشتیبانی و توانبخشی', callback_data='support_rehabilitation_equipment')],
             [InlineKeyboardButton('تجهیزات تخصصی', callback_data='specialized_equipment')],
@@ -112,10 +112,6 @@ class KeyboardsManager:
 
 
 
-
-
-
-
 #دستگاه های درمانی 
 
 
@@ -181,26 +177,16 @@ class KeyboardsManager:
 
 
 
-
-
-
-
 #دستگاه های نظارتی
 
     def get_keyboard_monitoring(self):
         return [
-            [InlineKeyboardButton('مانیتورهای علائم حیاتی', callback_data='vital_signs_monitors')],
+            [InlineKeyboardButton('مانیتورهای علائم حیاتی', callback_data='cardiac_monitors')],
             [InlineKeyboardButton('مانیتورهای جنینی و مادر', callback_data='fetal_maternal_monitors')],
             [InlineKeyboardButton('مانیتورهای گلوکز خون', callback_data='blood_glucose_monitors')],
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='back_to_main')],
         ]
 
-    def get_keyboard_vital_signs_monitors(self):
-        return [
-            [InlineKeyboardButton('مانیتورهای قلبی', callback_data='cardiac_monitors')],
-            [InlineKeyboardButton('پالس اکسی‌مترها', callback_data='pulse_oximeters')],
-            [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='monitoring_equipment')],
-        ]
 
     def get_keyboard_cardiac_monitors(self):
         return [
@@ -210,12 +196,6 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='monitoring_equipment')],
         ]
 
-    def get_keyboard_pulse_oximeters(self):
-        return [
-            [InlineKeyboardButton('پالس اکسی‌مترهای انگشتی', callback_data='fingertip_pulse_oximeters')],
-            [InlineKeyboardButton('پالس اکسی‌مترهای بیمارستانی', callback_data='hospital_pulse_oximeters')],
-            [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='monitoring_equipment')],
-        ]
 
     def get_keyboard_fetal_maternal_monitors(self):
         return [
@@ -303,9 +283,6 @@ class KeyboardsManager:
         ]
 
     
-
-
-
 
 
 

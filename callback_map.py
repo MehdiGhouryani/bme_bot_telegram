@@ -5,6 +5,7 @@ from equipments import *
 diagnostic_class = diagnostic()
 therapeutic_class = therapeutic()
 monitoring_class = monitoring()
+
 class callback_map:
     def __init__(self):
         pass
@@ -103,16 +104,13 @@ class callback_map:
 
         callback_map ={}    
         cardiac_monitors_device = ['ecg_monitors','automatic_blood_pressure_monitors','manual_blood_pressure_monitors']
-        pulse_oximeters_device = ['fingertip_pulse_oximeters','hospital_pulse_oximeters']
+       
         fetal_monitors_device = ['neonatal_monitors','fetal_heart_rate_monitors']
         blood_glucose_monitors_device =['portable_blood_glucose_meters','continuous_blood_glucose_monitors']    
 
 
         for keys in cardiac_monitors_device:
             callback_map[keys] = monitoring_class.cardiac_monitors
-
-        for keys in pulse_oximeters_device:
-            callback_map[keys] =monitoring_class.pulse_oximeters
 
         for keys in fetal_monitors_device:
             callback_map[keys] =monitoring_class.fetal_monitors

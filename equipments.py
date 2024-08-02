@@ -572,7 +572,6 @@ class therapeutic :
 
 
 cardiac_monitors_device = ['ecg_monitors','automatic_blood_pressure_monitors','manual_blood_pressure_monitors']
-pulse_oximeters_device = ['fingertip_pulse_oximeters','hospital_pulse_oximeters']
 fetal_monitors_device = ['neonatal_monitors','fetal_heart_rate_monitors']
 blood_glucose_monitors_device =['portable_blood_glucose_meters','continuous_blood_glucose_monitors']    
 
@@ -619,38 +618,6 @@ class monitoring:
             await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
-
-
-    async def pulse_oximeters(self,data,update : Update , context:ContextTypes.DEFAULT_TYPE):
-        pulse_oximeters_keys = []
-        for device in pulse_oximeters_device:
-                pulse_oximeters_keys.append([
-                    InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),
-                    InlineKeyboardButton('تعریف دستگاه', callback_data=f'{device}:definition'),
-                ])
-                pulse_oximeters_keys.append([
-                    InlineKeyboardButton('ساختار و اجزا', callback_data=f'{device}:structure'),
-                    InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation')
-                ])
-                pulse_oximeters_keys.append([
-                    InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'),
-                    InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')
-                ])
-                pulse_oximeters_keys.append([InlineKeyboardButton('تکنولوژی‌های مرتبط', callback_data=f'{device}:related_technologies')])
-                pulse_oximeters_keys.append([InlineKeyboardButton('بازگشت به منوی قبل', callback_data='pulse_oximeters')])
-
-
-        if data == 'fingertip_pulse_oximeters':
-           reply_markup = InlineKeyboardMarkup(pulse_oximeters_keys[0:5])
-           await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
-
-
-        elif data == 'hospital_pulse_oximeters':
-               
-            reply_markup = InlineKeyboardMarkup(pulse_oximeters_keys[5:10])
-            await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
-
-    
 
 
     async def fetal_monitors(self,data,update : Update , context:ContextTypes.DEFAULT_TYPE):
