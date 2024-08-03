@@ -24,18 +24,18 @@ class KeyboardsManager:
 
     def get_keyboard_diagnostic(self):
         return [
-            [InlineKeyboardButton('تصویربرداری پزشکی', callback_data='medical_imaging')],
-            [InlineKeyboardButton('تجهیزات آزمایشگاهی', callback_data='laboratory_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی قلبی', callback_data='cardiac_diagnostic_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی نورولوژیکی', callback_data='neurological_diagnostic_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی ریوی', callback_data='pulmonary_diagnostic_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی گوارشی', callback_data='gastrointestinal_diagnostic_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی گوش، حلق و بینی', callback_data='ent_diagnostic_equipment')],
-            [InlineKeyboardButton('تجهیزات تشخیصی چشم‌پزشکی', callback_data='ophthalmic_diagnostic_equipment')],
+            [InlineKeyboardButton('تصویربرداری پزشکی', callback_data='imaging_devices')],
+            [InlineKeyboardButton('تجهیزات آزمایشگاهی', callback_data='laboratory_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی قلبی', callback_data='cardiac_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی نورولوژیکی', callback_data='neurological_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی ریوی', callback_data='pulmonary_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی گوارشی', callback_data='gastrointestinal_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی گوش، حلق و بینی', callback_data='ent_diagnostic_devices')],
+            [InlineKeyboardButton('تجهیزات تشخیصی چشم‌پزشکی', callback_data='ophthalmic_diagnostic_devices')],
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='back_to_main')],
         ]
 
-    def get_keyboard_medical_imaging(self):
+    def get_keyboard_imaging_devices(self):
         return [
             [InlineKeyboardButton('دستگاه‌های رادیوگرافی', callback_data='xray')],
             [InlineKeyboardButton('توموگرافی کامپیوتری', callback_data='ct_scan')],
@@ -47,7 +47,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_laboratory_equipment(self):
+    def get_keyboard_laboratory_devices(self):
         return [
             [InlineKeyboardButton('آنالایزرهای خون', callback_data='blood_analyzers')],
             [InlineKeyboardButton('اسپکتروفتومترها', callback_data='spectrophotometers')],
@@ -55,21 +55,21 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_cardiac_diagnostic_equipment(self):
+    def get_keyboard_cardiac_devices(self):
         return [
             [InlineKeyboardButton('الکتروکاردیوگراف', callback_data='ecg')],
             [InlineKeyboardButton('اکوکاردیوگرافی', callback_data='echocardiography')],
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_neurological_diagnostic_equipment(self):
+    def get_keyboard_neurological_devices(self):
         return [
             [InlineKeyboardButton('الکتروانسفالوگراف', callback_data='eeg')],
             [InlineKeyboardButton('الکترومیوگراف', callback_data='emg')],
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_pulmonary_diagnostic_equipment(self):
+    def get_keyboard_pulmonary_devices(self):
         return [
             [InlineKeyboardButton('اسپیرومتر', callback_data='spirometer')],
             [InlineKeyboardButton('پلی‌سومنوگرافی', callback_data='polysomnography')],
@@ -77,13 +77,13 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_gastrointestinal_diagnostic_equipment(self):
+    def get_keyboard_gastrointestinal_devices(self):
         return [
             [InlineKeyboardButton('اندوسکوپی', callback_data='endoscopy')],
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_ent_diagnostic_equipment(self):
+    def get_keyboard_ent_diagnostic_devices(self):
         return [
             [InlineKeyboardButton('اتوسکوپ', callback_data='otoscope')],
             [InlineKeyboardButton('آدیوگرام', callback_data='audiogram')],
@@ -91,7 +91,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به منوی قبل', callback_data='diagnostic_equipment')],
         ]
 
-    def get_keyboard_ophthalmic_diagnostic_equipment(self):
+    def get_keyboard_ophthalmic_diagnostic_devices(self):
         return [
             [InlineKeyboardButton('افتالموسکوپ', callback_data='ophthalmoscope')],
             [InlineKeyboardButton('تونومتر', callback_data='tonometer')],

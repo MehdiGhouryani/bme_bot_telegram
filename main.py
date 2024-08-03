@@ -8,7 +8,8 @@ from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from equipments import *
 from callback_map import callback_map
 import logging
-import aiosqlite
+from telegraph import Telegraph
+
 
 load_dotenv()
 token=os.getenv('Token')
@@ -21,7 +22,19 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=loggin
 
 
 
+# Initialize Telegraph API
+telegraph = Telegraph()
+telegraph.create_account(short_name='تجهیزات پزشکی')
 
+
+
+def create_telegraph_page(title, content):
+    response = telegraph.create_page(
+        title=title,
+        html_content=content
+
+    )
+    return 'https://telegra.ph/{}'.format(response['path'])
 
 
 
@@ -186,10 +199,10 @@ main_keyboard = keyboards_manager.get_keyboard_main_categories()
 # دسته‌بندی‌های مختلف
 categories = {
     'diagnostic': [
-        'diagnostic', 'medical_imaging', 'laboratory_equipment',
-        'cardiac_diagnostic_equipment', 'neurological_diagnostic_equipment',
-        'pulmonary_diagnostic_equipment', 'gastrointestinal_diagnostic_equipment',
-        'ent_diagnostic_equipment', 'ophthalmic_diagnostic_equipment'
+        'diagnostic', 'imaging_devices', 'laboratory_devices',
+        'cardiac_devices', 'neurological_devices',
+        'pulmonary_devices', 'gastrointestinal_devices',
+        'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
     ],
     'therapeutic': [
         'therapeutic', 'surgical', 'orthopedic', 'cardiovascular',
@@ -236,14 +249,14 @@ keyboard_map = {
     'specialized_equipment': keyboard_specialized_equipment,
     'home_care_equipment': keyboard_home_care_equipment,
 
-    'medical_imaging': keyboard_medical_imaging,
-    'laboratory_equipment': keyboard_laboratory_equipment,
-    'cardiac_diagnostic_equipment': keyboard_cardiac_diagnostic_equipment,
-    'neurological_diagnostic_equipment': keyboard_neurological_diagnostic_equipment,
-    'pulmonary_diagnostic_equipment': keyboard_pulmonary_diagnostic_equipment,
-    'gastrointestinal_diagnostic_equipment': keyboard_gastrointestinal_diagnostic_equipment,
-    'ent_diagnostic_equipment': keyboard_ent_diagnostic_equipment,
-    'ophthalmic_diagnostic_equipment': keyboard_ophthalmic_diagnostic_equipment,
+    'imaging_devices': keyboard_imaging_devices,
+    'laboratory_devices': keyboard_laboratory_devices,
+    'cardiac_devices': keyboard_cardiac_devices,
+    'neurological_devices': keyboard_neurological_devices,
+    'pulmonary_devices': keyboard_pulmonary_devices,
+    'gastrointestinal_devices': keyboard_gastrointestinal_devices,
+    'ent_diagnostic_devices': keyboard_ent_diagnostic_devices,
+    'ophthalmic_diagnostic_devices': keyboard_ophthalmic_diagnostic_devices,
     'surgical_equipment': keyboard_surgical,
     'orthopedic_equipment': keyboard_orthopedic,
     'cardiovascular_equipment': keyboard_cardiovascular,
@@ -255,6 +268,7 @@ keyboard_map = {
     'fetal_maternal_monitors': keyboard_fetal_maternal_monitors,
     'fetal_monitors': keyboard_fetal_monitors,
     'blood_glucose_monitors': keyboard_blood_glucose_monitors,
+    
     'hospital_equipment': keyboard_hospital_equipment,
     'emergency_equipment': keyboard_emergency_equipment,
     'rehabilitation_equipment': keyboard_rehabilitation,
@@ -278,6 +292,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
     chat_id = update.effective_chat.id
 
+    connection = sqlite3.connect(db_name)
+    cursor = connection.cursor()
+
+
     if data in combined_callback_map:
       await combined_callback_map[data](data,update, context)
 
@@ -287,15 +305,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
     elif ':' in data:
         device, action = data.split(':')
 
-        
-        connection = sqlite3.connect(db_name)
-        cursor = connection.cursor()
-    
         if action == 'definition':
             cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
@@ -329,8 +341,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.delete_message()
         await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
         cursor.close()
-
- 
+        
  
     elif data == 'back_to_main':
         reply_markup = InlineKeyboardMarkup(main_keyboard)

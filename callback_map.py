@@ -2,9 +2,9 @@
 from equipments import *
 
 
-diagnostic_class = diagnostic()
-therapeutic_class = therapeutic()
-monitoring_class = monitoring()
+diagnostic_class = Diagnostic()
+therapeutic_class = Therapeutic()
+monitoring_class = Monitoring()
 
 class callback_map:
     def __init__(self):
@@ -16,7 +16,7 @@ class callback_map:
 
         callback_map = {}
 
-        medical_imaging_keys = [
+        imaging_devices_keys = [
         'xray','ct_scan','mri','ultrasound','mammography','fluoroscopy',
         'pet_scan'
         ]
@@ -37,29 +37,29 @@ class callback_map:
         ophthalmic_diagnostic = ['ophthalmoscope','tonometer','slit_lamp']
 
 
-        for keys in medical_imaging_keys:
-            callback_map[keys] = diagnostic_class.medical_imaging
+        for keys in imaging_devices_keys:
+            callback_map[keys] = diagnostic_class.imaging_devices
 
         for keys in laboratory_keys:
-            callback_map[keys] = diagnostic_class.laboratory_equipment
+            callback_map[keys] = diagnostic_class.laboratory_devices
 
         for keys in cardiac_keys:
-            callback_map[keys] = diagnostic_class.cardiac_diagnostic_equipment
+            callback_map[keys] = diagnostic_class.cardiac_devices
 
         for keys in neurological_keys:
-            callback_map[keys] =diagnostic_class.neurological_diagnostic_equipment 
+            callback_map[keys] =diagnostic_class.neurological_devices 
 
         for keys in pulmonary_keys:
-            callback_map[keys] =diagnostic_class.pulmonary_diagnostic_equipment
+            callback_map[keys] =diagnostic_class.pulmonary_devices
 
         for keys in gastrointestinal_keys:
-            callback_map[keys] = diagnostic_class.gastrointestinal_diagnostic_equipment
+            callback_map[keys] = diagnostic_class.gastrointestinal_devices
 
         for keys in ent_diagnostic_keys:
-            callback_map[keys] = diagnostic_class.ent_diagnostic_equipment
+            callback_map[keys] = diagnostic_class.ent_diagnostic_devices
     
         for keys in ophthalmic_diagnostic:
-            callback_map[keys] = diagnostic_class.ophthalmic_diagnostic_equipment
+            callback_map[keys] = diagnostic_class.ophthalmic_diagnostic_devices
 
         return callback_map
 
@@ -104,7 +104,7 @@ class callback_map:
 
         callback_map ={}    
         cardiac_monitors_device = ['ecg_monitors','automatic_blood_pressure_monitors','manual_blood_pressure_monitors']
-       
+        fetal_maternal_monitors=['maternal_monitors']
         fetal_monitors_device = ['neonatal_monitors','fetal_heart_rate_monitors']
         blood_glucose_monitors_device =['portable_blood_glucose_meters','continuous_blood_glucose_monitors']    
 
@@ -112,6 +112,8 @@ class callback_map:
         for keys in cardiac_monitors_device:
             callback_map[keys] = monitoring_class.cardiac_monitors
 
+        for keys in fetal_maternal_monitors:
+             callback_map[keys] =monitoring_class.fetal_maternal_monitors
         for keys in fetal_monitors_device:
             callback_map[keys] =monitoring_class.fetal_monitors
             
