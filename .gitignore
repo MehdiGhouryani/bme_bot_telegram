@@ -2,3 +2,4 @@ test.py
 images/
 myvenv/
 .env
+optimize.py

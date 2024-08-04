@@ -332,7 +332,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
 
         
-        if action == 'types':
+        elif action == 'types':
             cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
         elif action == 'structure':
