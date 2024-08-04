@@ -306,8 +306,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
-
-
+    
     if data in combined_callback_map:
       await combined_callback_map[data](data,update, context)
 
@@ -319,6 +318,28 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif ':' in data:
         device, action = data.split(':')
+        keyboard_menu =([
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+        ])
+        reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
+
+        
+        keyboard_definition =([
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+        ])
+        reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
+
+
+        
+
 
         if action == 'definition':
             cursor.execute(f"SELECT definition FROM information WHERE name = '{device}'")
@@ -328,31 +349,68 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
-            
-
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode='Markdown',reply_markup=reply_markup_definition)
         
         elif action == 'types':
             cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
+            
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+        
         elif action == 'structure':
             cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
+            
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+        
         elif action == 'operation':
             cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
+            
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+        
         elif action == 'advantages_disadvantages':
             cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
+            
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+        
         elif action == 'safety':
             cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
+            
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+        
         elif action == 'related_technologies':
             cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
-        await query.delete_message()
-        await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+            try:
+                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+            except:    
+                await query.delete_message()
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
         cursor.close()
+
         
  
     elif data == 'back_to_main':
