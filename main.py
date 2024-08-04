@@ -350,8 +350,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif action == 'related_technologies':
             cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
-        # await query.delete_message()
-        await query.edit_message_caption(caption=device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
+        await query.delete_message()
+        await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('بازگشت  ',callback_data=f'{device}')]]))
         cursor.close()
         
  
@@ -362,7 +362,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'check_membership':
         await check_membership(update,context)
     else:
-        await query.answer("مثل اینکه این بخش یه ایرادی داره هنوز ")
+        await query.answer("مثل اینکه این بخش اماده نشده هنوز  ")
 
 
 
