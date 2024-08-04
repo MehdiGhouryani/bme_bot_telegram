@@ -3,3 +3,4 @@ images/
 myvenv/
 .env
 optimize.py
+users.db
