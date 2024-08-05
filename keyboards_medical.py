@@ -37,9 +37,9 @@ class KeyboardsManager:
 
     def get_keyboard_imaging_devices(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های رادیوگرافی', callback_data='xray')],
-            [InlineKeyboardButton('توموگرافی کامپیوتری', callback_data='ct_scan')],
-            [InlineKeyboardButton('تصویربرداری رزونانس مغناطیسی', callback_data='mri')],
+            [InlineKeyboardButton('Xray', callback_data='xray')],
+            [InlineKeyboardButton(' CT SCAN', callback_data='ct_scan')],
+            [InlineKeyboardButton(' (MRI) تصویربرداری مغناطیسی', callback_data='mri')],
             [InlineKeyboardButton('سونوگرافی', callback_data='ultrasound')],
             [InlineKeyboardButton('ماموگرافی', callback_data='mammography')],
             [InlineKeyboardButton('فلوروسکوپی', callback_data='fluoroscopy')],
@@ -57,15 +57,15 @@ class KeyboardsManager:
 
     def get_keyboard_cardiac_devices(self):
         return [
-            [InlineKeyboardButton('الکتروکاردیوگراف', callback_data='ecg')],
+            [InlineKeyboardButton(' (ECG) الکتروکاردیوگراف', callback_data='ecg')],
             [InlineKeyboardButton('اکوکاردیوگرافی', callback_data='echocardiography')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='diagnostic_equipment')],
         ]
 
     def get_keyboard_neurological_devices(self):
         return [
-            [InlineKeyboardButton('الکتروانسفالوگراف', callback_data='eeg')],
-            [InlineKeyboardButton('الکترومیوگراف', callback_data='emg')],
+            [InlineKeyboardButton('(EEG) الکتروانسفالوگراف', callback_data='eeg')],
+            [InlineKeyboardButton('(EMG) الکترومیوگراف', callback_data='emg')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='diagnostic_equipment')],
         ]
 
@@ -86,7 +86,7 @@ class KeyboardsManager:
     def get_keyboard_ent_diagnostic_devices(self):
         return [
             [InlineKeyboardButton('اتوسکوپ', callback_data='otoscope')],
-            [InlineKeyboardButton('آدیوگرام', callback_data='audiogram')],
+            [InlineKeyboardButton('دستگاه شنوایی سنجی', callback_data='audiogram')],
             [InlineKeyboardButton('لارنگوسکوپ', callback_data='laryngoscope')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='diagnostic_equipment')],
         ]
@@ -146,8 +146,8 @@ class KeyboardsManager:
 
     def get_keyboard_cardiovascular_therapeutic_equipment(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های پیس‌سی‌آر', callback_data='pacemakers')],
-            [InlineKeyboardButton('دستگاه‌های دفیبریلاتور', callback_data='defibrillators')],
+            [InlineKeyboardButton('(PCR) پی سی آر ', callback_data='pacemakers')],
+            [InlineKeyboardButton(' دفیبریلاتور', callback_data='defibrillators')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
