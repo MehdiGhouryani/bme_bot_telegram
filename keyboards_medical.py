@@ -118,8 +118,8 @@ class KeyboardsManager:
     def get_keyboard_therapeutic(self):
         return [
             [InlineKeyboardButton('تجهیزات جراحی', callback_data='surgical_equipment')],
-            [InlineKeyboardButton('تجهیزات ارتوپدی', callback_data='orthopedic_equipment')],
-            [InlineKeyboardButton('تجهیزات قلبی و عروقی', callback_data='cardiovascular_equipment')],
+            [InlineKeyboardButton('تجهیزات ارتوپدی', callback_data='orthopedic_therapeutic_equipment')],
+            [InlineKeyboardButton('تجهیزات قلبی و عروقی', callback_data='cardiovascular_therapeutic_equipment')],
             [InlineKeyboardButton('تجهیزات تنفسی', callback_data='respiratory_equipment')],
             [InlineKeyboardButton('تجهیزات دیگر درمانی', callback_data='other_therapeutic_equipment')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back_to_main')],
@@ -136,7 +136,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
-    def get_keyboard_orthopedic(self):
+    def get_keyboard_orthopedic_therapeutic_equipment(self):
         return [
             [InlineKeyboardButton('پروتزها و ارتزها', callback_data='prosthetics_orthotics')],
             [InlineKeyboardButton('دستگاه‌های فیزیوتراپی', callback_data='physical_therapy_equipment')],
@@ -144,7 +144,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
-    def get_keyboard_cardiovascular(self):
+    def get_keyboard_cardiovascular_therapeutic_equipment(self):
         return [
             [InlineKeyboardButton('دستگاه‌های پیس‌سی‌آر', callback_data='pacemakers')],
             [InlineKeyboardButton('دستگاه‌های دفیبریلاتور', callback_data='defibrillators')],

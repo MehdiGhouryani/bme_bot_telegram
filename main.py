@@ -217,7 +217,7 @@ categories = {
         'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
     ],
     'therapeutic': [
-        'therapeutic', 'surgical', 'orthopedic', 'cardiovascular',
+        'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
         'respiratory', 'other_therapeutic'
     ],
     'monitoring': [
@@ -407,7 +407,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             except:    
                 await query.delete_message()
                 await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
-                
+
         cursor.close()
 
         
