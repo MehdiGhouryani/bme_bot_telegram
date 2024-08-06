@@ -24,12 +24,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=loggin
 
 
 async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
-    # chat_id = update.effective_chat.id  
+    chat_id = update.effective_chat.id  
     user_id =update.message.from_user.id
     username =update.effective_user.username
 
     print(f'USER : {username}    ID : {user_id}')
-    await save_user(user_id,username)
+    await save_user(user_id,username,chat_id)
     CHANNEL_USERNAME ='@studentsbme'
     try:
         member =await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME,user_id=user_id)
@@ -61,15 +61,17 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
    
 
 
-async def save_user(user_id,username):
+async def save_user(user_id,username,chat_id):
     connection = sqlite3.connect('users.db')
     cursor = connection.cursor()
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS users
                       (user_id INTEGER PRIMARY KEY,
-                       username TEXT)''')
+                       username TEXT
+                       chat_id TEXT
+                    )''')
     
-    cursor.execute('INSERT OR REPLACE INTO users (user_id, username) VALUES (?, ?)', (user_id, username))
+    cursor.execute('INSERT OR REPLACE INTO users (user_id, username,chat_id) VALUES (?, ?)', (user_id, username,chat_id))
     connection.commit()
     connection.close()
 
