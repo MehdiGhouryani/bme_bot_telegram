@@ -67,7 +67,7 @@ async def save_user(user_id,username,chat_id):
 
     cursor.execute('''CREATE TABLE IF NOT EXISTS users
                       (user_id INTEGER PRIMARY KEY,
-                       username TEXT
+                       username TEXT,
                        chat_id TEXT
                     )''')
     
