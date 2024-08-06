@@ -68,10 +68,9 @@ async def save_user(user_id,username,chat_id):
     cursor.execute('''CREATE TABLE IF NOT EXISTS users
                       (user_id INTEGER PRIMARY KEY,
                        username TEXT,
-                       chat_id TEXT
-                    )''')
+                       chat_id TEXT)''')
     
-    cursor.execute('INSERT OR REPLACE INTO users (user_id, username,chat_id) VALUES (?, ?)', (user_id, username,chat_id))
+    cursor.execute('INSERT OR REPLACE INTO users (user_id, username,chat_id) VALUES (?, ?,?)', (user_id, username,chat_id))
     connection.commit()
     connection.close()
 
