@@ -169,7 +169,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         ]
         
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
-        await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',chat_id=chat_id,reply_markup=reply_markup)
+        await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
     
     elif text == "سنسور ها":
 
