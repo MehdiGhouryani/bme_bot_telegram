@@ -189,9 +189,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         reply_markup = InlineKeyboardMarkup(buttons)
 
         # ارسال پیام
-        await context.bot.send_message(chat_id=chat_id, text='سنسورها:', reply_markup=reply_markup)
 
-
+        await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
     # elif text == "قطعات الکترونیکی":
     #     buttons = [
     #     [InlineKeyboardButton("", url=pages[""])],
