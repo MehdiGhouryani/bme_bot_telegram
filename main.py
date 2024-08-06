@@ -7,7 +7,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes , MessageHand
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from callback_map import *
 import logging
-from telegraph import Telegraph
+# from telegraph import Telegraph
 
 
 load_dotenv()
@@ -17,23 +17,6 @@ db_name="medical_device.db"
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 
-
-
-
-
-# Initialize Telegraph API
-telegraph = Telegraph()
-telegraph.create_account(short_name='تجهیزات پزشکی')
-
-
-
-def create_telegraph_page(title, content):
-    response = telegraph.create_page(
-        title=title,
-        html_content=content
-
-    )
-    return 'https://telegra.ph/{}'.format(response['path'])
 
 
 
@@ -61,8 +44,11 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
         else:
             keyboard = [
-                [KeyboardButton("تجهیزات پزشکی  🩺"),],[KeyboardButton("درخواست و پیشنهاد 📝")]
-            # ,[KeyboardButton("رویداد ها 🗓"),KeyboardButton("فرصت های شغلی 👨‍⚕")]
+                [KeyboardButton("تجهیزات پزشکی  🩺"),]
+                ,[KeyboardButton("سنسور ها و قطعات")]
+                ,[KeyboardButton("درخواست و پیشنهاد 📝")]
+            
+            # ,KeyboardButton("فرصت های شغلی 👨‍⚕")]
             ]
     
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
@@ -120,6 +106,19 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+pages = {
+    "Temperature_Sensor": "https://telegra.ph/سنسور-دما---Temperature-Sensor-08-06-3",
+    "Pressure_Sensor": "https://telegra.ph/سنسور-فشار---Pressure-Sensor-08-06-2",
+    "HeartRate_Sensor": "https://telegra.ph/سنسور-ضربان-قلب---Heart-Rate-Sensor-08-06-2",
+    "Oxygen_Sensor": "https://telegra.ph/سنسور-اکسیژن---Oxygen-Sensor-08-06",
+    "Motion_Sensor":"https://telegra.ph/سنسور-حرکتی---Motion-Sensor-08-06",
+    "ECG_Sensor":"https://telegra.ph/سنسور-نوار-قلب---ECG-Sensor-08-06",
+    "Humidity":"https://telegra.ph/سنسور-دما-و-رطوبت---Temperature-and-Humidity-Sensor-08-06",
+    "Level_Sensor":"https://telegra.ph/سنسور-سطح---Level-Sensor-08-06",
+    "Gas_Sensor":"https://telegra.ph/سنسور-گاز---Gas-Sensor-08-06",
+    "Optical_Sensor":"https://telegra.ph/سنسور-نوری---Optical-Sensor-08-06",   
+    }
+
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     text= update.message.text   
@@ -128,6 +127,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     username=user.username
     user_id=user.id
     full_name =user.full_name
+    chat_id=update.effective_message.id
+
     ADMIN_CHAT_ID='1717599240'
  
     if text == "تجهیزات پزشکی  🩺":
@@ -162,8 +163,40 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         # غیرفعال کردن حالت انتظار
         context.user_data['awaiting_request'] = False
 
+    elif text == "سنسور ها و قطعات":
+        buttons=[
+            KeyboardButton("سنسورها"),KeyboardButton("قطعات الکترونیکی")
+        ]
+        
+        reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
+    
+    elif text == "سنسور ها":
+
+        buttons = [
+        [InlineKeyboardButton("سنسور دما", url=pages["Temperature_Sensor"])],
+        [InlineKeyboardButton("سنسور فشار", url=pages["Pressure_Sensor"])],
+        [InlineKeyboardButton("سنسور ضربان قلب", url=pages["HeartRate_Sensor"])],
+        [InlineKeyboardButton("سنسور اکسیژن", url=pages["Oxygen_Sensor"])],
+        [InlineKeyboardButton("سنسور حرکتی", url=pages["Motion_Sensor"])],
+        [InlineKeyboardButton("سنسور نوار قلب", url=pages["ECG_Sensor"])],
+        [InlineKeyboardButton("سنسور دما و رطوبت", url=pages["Humidity"])],
+        [InlineKeyboardButton("سنسور سطح", url=pages["Level_Sensor"])],  
+        [InlineKeyboardButton("سنسور گاز", url=pages["Gas_Sensor"])],
+        [InlineKeyboardButton("سنسور نوری", url=pages["Optical_Sensor"])],
+        ]
+
+        reply_markup = InlineKeyboardMarkup(buttons)
+
+        # ارسال پیام
+        context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
 
 
+    # elif text == "قطعات الکترونیکی":
+    #     buttons = [
+    #     [InlineKeyboardButton("", url=pages[""])],
+
+
+    #     ]
 
 
     elif text =='تعداد کاربران فعال':
@@ -177,7 +210,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-#     if text == 'رویداد ها 🗓':
+#     if text == 'سنسور ها و قطعات':
 #         await send_event(update,context)   
     
     # elif text == "فرصت های شغلی 👨‍⚕":
@@ -295,6 +328,14 @@ keyboard_map = {
     'daily_care_equipment': keyboard_daily_care_equipment,
     'home_respiratory_equipment': keyboard_home_respiratory_equipment,
 }
+
+
+
+
+
+
+
+
 
 
 
