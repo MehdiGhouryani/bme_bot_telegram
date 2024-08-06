@@ -169,7 +169,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         ]
         
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
-        await context.bot.edit_message_reply_markup(chat_id=chat_id,message_id=message_id,reply_markup=reply_markup)
+        await context.bot.edit_message_reply_markup(chat_id=chat_id,reply_markup=reply_markup)
     
     elif text == "سنسور ها":
 
