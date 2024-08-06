@@ -165,7 +165,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text == "سنسور ها و قطعات":
         buttons=[
-            [KeyboardButton("سنسورها"),KeyboardButton("قطعات الکترونیکی")]
+            [KeyboardButton("سنسورها"),KeyboardButton("قطعات الکترونیکی")],
+            [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
         ]
         
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
@@ -197,7 +198,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
     #     ]
-
+    elif text=='بازگشت به صفحه قبل ⬅️':
+        await start(update,context)
 
     elif text =='تعداد کاربران فعال':
 
