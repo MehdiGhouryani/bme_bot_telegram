@@ -171,7 +171,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
         await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
     
-    elif text == "سنسور ها":
+    elif text == "سنسورها":
 
         buttons = [
         [InlineKeyboardButton("سنسور دما", url=pages["Temperature_Sensor"])],
