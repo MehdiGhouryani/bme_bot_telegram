@@ -189,7 +189,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         reply_markup = InlineKeyboardMarkup(buttons)
 
         # ارسال پیام
-        context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
+        await context.bot.send_message(chat_id=chat_id, text='سنسورها:', reply_markup=reply_markup)
 
 
     # elif text == "قطعات الکترونیکی":
