@@ -128,7 +128,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     user_id=user.id
     full_name =user.full_name
     chat_id=update.effective_message.id
-
+    message_id=update.message.message_id
     ADMIN_CHAT_ID='1717599240'
  
     if text == "تجهیزات پزشکی  🩺":
@@ -169,6 +169,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         ]
         
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
+        await context.bot.edit_message_reply_markup(chat_id=chat_id,message_id=message_id,reply_markup=reply_markup)
     
     elif text == "سنسور ها":
 
