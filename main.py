@@ -38,7 +38,8 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
                 [InlineKeyboardButton("عضو شدم ✅",callback_data='check_membership')]
             ]
             reply_markup=InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('برای استفاده از ربات باید عضو کانال باشی',reply_markup=reply_markup)
+            await update.message.reply_text('''برای استفاده از ربات باید عضو کانال باشی
+                                            اگه عضو شدی دوباره /start کن .''',reply_markup=reply_markup)
         else:
             keyboard = [
                 [KeyboardButton("تجهیزات پزشکی  🩺"),]
@@ -118,17 +119,17 @@ pages_sensors = {
     }
 
 pages_components={
-"Microcontroller":"https://telegra.ph/میکروکنترلر-Microcontroller-08-07",  
-"Amplifier": "https://telegra.ph/آی‌سی-تقویت‌کننده-Operational-Amplifier-08-07",
-"ADC": "https://telegra.ph/آی‌سی-آنالوگ-به-دیجیتال-ADC-08-07",
-"DAC": "https://telegra.ph/آی‌سی-دیجیتال-به-آنالوگ-DAC-08-07",
-"Transistor": "https://telegra.ph/ترانزیستور-Transistor-08-07",
-"Diode": "https://telegra.ph/دیود-Diode-08-07",
-"Resistor": "https://telegra.ph/مقاومت-Resistor-08-07",
-"Capacitor": "https://telegra.ph/خازن-Capacitor-08-07",
-"Potentiometer": "https://telegra.ph/پتانسیومتر-Potentiometer-08-07",
-"Voltage-Regulator": "https://telegra.ph/مبدل-ولتاژ-Voltage-Regulator-08-07",
-}
+    "Microcontroller":"https://telegra.ph/میکروکنترلر-Microcontroller-08-07",  
+    "Amplifier": "https://telegra.ph/آی‌سی-تقویت‌کننده-Operational-Amplifier-08-07",
+    "ADC": "https://telegra.ph/آی‌سی-آنالوگ-به-دیجیتال-ADC-08-07",
+    "DAC": "https://telegra.ph/آی‌سی-دیجیتال-به-آنالوگ-DAC-08-07",
+    "Transistor": "https://telegra.ph/ترانزیستور-Transistor-08-07",
+    "Diode": "https://telegra.ph/دیود-Diode-08-07",
+    "Resistor": "https://telegra.ph/مقاومت-Resistor-08-07",
+    "Capacitor": "https://telegra.ph/خازن-Capacitor-08-07",
+    "Potentiometer": "https://telegra.ph/پتانسیومتر-Potentiometer-08-07",
+    "Voltage-Regulator": "https://telegra.ph/مبدل-ولتاژ-Voltage-Regulator-08-07",
+    }
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
@@ -206,11 +207,11 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text == "قطعات الکترونیکی":
         buttons = [
-        [InlineKeyboardButton("میکروکنترلر", url=pages_sensors["Microcontroller"]),InlineKeyboardButton("تقویت‌کننده", url=pages_sensors["Amplifier"])],
-        [InlineKeyboardButton("ADC", url=pages_sensors["ADC"]),InlineKeyboardButton("DAC", url=pages_sensors["DAC"])],
-        [InlineKeyboardButton("ترانزیستور", url=pages_sensors["Transistor"]),InlineKeyboardButton("مقاومت", url=pages_sensors["Resistor"])],
-        [InlineKeyboardButton("دیود", url=pages_sensors["Diode"]),InlineKeyboardButton("خازن", url=pages_sensors["Capacitor"])],
-        [InlineKeyboardButton("پتانسیومتر", url=pages_sensors["Potentiometer"]),InlineKeyboardButton("مبدل-ولتاژ-", url=pages_sensors["Voltage-Regulator"])],
+        [InlineKeyboardButton("میکروکنترلر", url=pages_components["Microcontroller"]),InlineKeyboardButton("تقویت‌کننده", url=pages_components["Amplifier"])],
+        [InlineKeyboardButton("ADC", url=pages_components["ADC"]),InlineKeyboardButton("DAC", url=pages_components["DAC"])],
+        [InlineKeyboardButton("ترانزیستور", url=pages_components["Transistor"]),InlineKeyboardButton("مقاومت", url=pages_components["Resistor"])],
+        [InlineKeyboardButton("دیود", url=pages_components["Diode"]),InlineKeyboardButton("خازن", url=pages_components["Capacitor"])],
+        [InlineKeyboardButton("پتانسیومتر", url=pages_components["Potentiometer"]),InlineKeyboardButton("مبدل-ولتاژ-", url=pages_components["Voltage-Regulator"])],
         ]
 
         reply_markup = InlineKeyboardMarkup(buttons)
