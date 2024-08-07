@@ -107,7 +107,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-pages = {
+pages_sensors = {
     "Temperature_Sensor": "https://telegra.ph/سنسور-دما---Temperature-Sensor-08-06-3",
     "Pressure_Sensor": "https://telegra.ph/سنسور-فشار---Pressure-Sensor-08-06-2",
     "HeartRate_Sensor": "https://telegra.ph/سنسور-ضربان-قلب---Heart-Rate-Sensor-08-06-2",
@@ -119,6 +119,19 @@ pages = {
     "Gas_Sensor":"https://telegra.ph/سنسور-گاز---Gas-Sensor-08-06",
     "Optical_Sensor":"https://telegra.ph/سنسور-نوری---Optical-Sensor-08-06",   
     }
+
+pages_components={
+"Microcontroller":"https://telegra.ph/میکروکنترلر-Microcontroller-08-07",  
+"Amplifier": "https://telegra.ph/آی‌سی-تقویت‌کننده-Operational-Amplifier-08-07",
+"ADC": "https://telegra.ph/آی‌سی-آنالوگ-به-دیجیتال-ADC-08-07",
+"DAC": "https://telegra.ph/آی‌سی-دیجیتال-به-آنالوگ-DAC-08-07",
+"Transistor": "https://telegra.ph/ترانزیستور-Transistor-08-07",
+"Diode": "https://telegra.ph/دیود-Diode-08-07",
+"Resistor": "https://telegra.ph/مقاومت-Resistor-08-07",
+"Capacitor": "https://telegra.ph/خازن-Capacitor-08-07",
+"Potentiometer": "https://telegra.ph/پتانسیومتر-Potentiometer-08-07",
+"Voltage-Regulator": "https://telegra.ph/مبدل-ولتاژ-Voltage-Regulator-08-07",
+}
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
@@ -176,16 +189,16 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "سنسورها":
 
         buttons = [
-        [InlineKeyboardButton("سنسور دما", url=pages["Temperature_Sensor"])],
-        [InlineKeyboardButton("سنسور فشار", url=pages["Pressure_Sensor"])],
-        [InlineKeyboardButton("سنسور ضربان قلب", url=pages["HeartRate_Sensor"])],
-        [InlineKeyboardButton("سنسور اکسیژن", url=pages["Oxygen_Sensor"])],
-        [InlineKeyboardButton("سنسور حرکتی", url=pages["Motion_Sensor"])],
-        [InlineKeyboardButton("سنسور نوار قلب", url=pages["ECG_Sensor"])],
-        [InlineKeyboardButton("سنسور دما و رطوبت", url=pages["Humidity"])],
-        [InlineKeyboardButton("سنسور سطح", url=pages["Level_Sensor"])],  
-        [InlineKeyboardButton("سنسور گاز", url=pages["Gas_Sensor"])],
-        [InlineKeyboardButton("سنسور نوری", url=pages["Optical_Sensor"])],
+        [InlineKeyboardButton("سنسور دما", url=pages_sensors["Temperature_Sensor"])],
+        [InlineKeyboardButton("سنسور فشار", url=pages_sensors["Pressure_Sensor"])],
+        [InlineKeyboardButton("سنسور ضربان قلب", url=pages_sensors["HeartRate_Sensor"])],
+        [InlineKeyboardButton("سنسور اکسیژن", url=pages_sensors["Oxygen_Sensor"])],
+        [InlineKeyboardButton("سنسور حرکتی", url=pages_sensors["Motion_Sensor"])],
+        [InlineKeyboardButton("سنسور نوار قلب", url=pages_sensors["ECG_Sensor"])],
+        [InlineKeyboardButton("سنسور دما و رطوبت", url=pages_sensors["Humidity"])],
+        [InlineKeyboardButton("سنسور سطح", url=pages_sensors["Level_Sensor"])],  
+        [InlineKeyboardButton("سنسور گاز", url=pages_sensors["Gas_Sensor"])],
+        [InlineKeyboardButton("سنسور نوری", url=pages_sensors["Optical_Sensor"])],
         ]
 
         reply_markup = InlineKeyboardMarkup(buttons)
@@ -193,10 +206,22 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         # ارسال پیام
 
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
-    # elif text == "قطعات الکترونیکی":
-    #     buttons = [
-    #     [InlineKeyboardButton("", url=pages[""])],
 
+    elif text == "قطعات الکترونیکی":
+        buttons = [
+        [InlineKeyboardButton("میکروکنترلر", url=pages_sensors["Microcontroller"]),InlineKeyboardButton("تقویت‌کننده", url=pages_sensors["Amplifier"])],
+        [InlineKeyboardButton("ADC", url=pages_sensors["ADC"]),InlineKeyboardButton("DAC", url=pages_sensors["DAC"])],
+        [InlineKeyboardButton("ترانزیستور", url=pages_sensors["Transistor"]),InlineKeyboardButton("مقاومت", url=pages_sensors["Resistor"])],
+        [InlineKeyboardButton("دیود", url=pages_sensors["Diode"]),InlineKeyboardButton("خازن", url=pages_sensors["Capacitor"])],
+        [InlineKeyboardButton("پتانسیومتر", url=pages_sensors["Potentiometer"]),InlineKeyboardButton("مبدل-ولتاژ-", url=pages_sensors["Voltage-Regulator"])],
+        ]
+
+        reply_markup = InlineKeyboardMarkup(buttons)
+
+        # ارسال پیام
+
+        await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
+    
 
     #     ]
     elif text=='بازگشت به صفحه قبل ⬅️':
