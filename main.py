@@ -237,7 +237,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         conn.close()
 
     elif text=="ارسال پست به تمام کاربران":
-        user_id = update.message.from_user.id
+        user_id = update.effective_message.id
         if user_id != ADMIN_CHAT_ID:
             await update.message.reply_text('شما مجوز ارسال پست را ندارید.')
             return
