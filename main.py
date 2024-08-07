@@ -13,13 +13,10 @@ import logging
 load_dotenv()
 token=os.getenv('Token')
 db_name="medical_device.db"
-
+ADMIN_CHAT_ID='1717599240'
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
-
-
-
-
+logger = logging.getLogger(__name__)
 
 
 
@@ -236,15 +233,47 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text(f'تعداد کاربران ربات تا به این لحظه : {count} نفر')
         conn.close()
 
+    elif text=="ارسال پست به تمام کاربران":
+        user_id = update.message.from_user.id
+        if user_id != ADMIN_CHAT_ID:
+            update.message.reply_text('شما مجوز ارسال پست را ندارید.')
+            return
 
+        update.message.reply_text('لطفا عکس و کپشن را ارسال کنید.')
 
-#     if text == 'سنسور ها و قطعات':
-#         await send_event(update,context)   
-    
+        # تغییر وضعیت به دریافت عکس و کپشن
+        context.user_data['waiting_for_photo'] = True
+
     # elif text == "فرصت های شغلی 👨‍⚕":
     #     await send_job(update)
 
 
+def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
+        photo = update.message.photo[-1].file_id
+        caption = update.message.caption if update.message.caption else ''
+
+        conn=sqlite3.connect('users.db')
+        cursor=conn.cursor()
+        cursor.execute("SELECT chat_id FROM users")
+        user_ids =[row[0]for row in cursor.fetchall()]
+        conn.close()
+
+        # ذخیره‌ی اطلاعات برای ارسال به کاربران
+        context.user_data['photo_id'] = photo
+        context.user_data['caption'] = caption
+        context.user_data['waiting_for_photo'] = False
+
+        update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
+
+        # ارسال عکس به تمام کاربران
+        for user_id in user_ids:
+            try:
+                context.bot.send_photo(chat_id=user_id, photo=photo, caption=caption)
+            except Exception as e:
+                logger.error(f"Error sending photo to user {user_id}: {e}")
+
+        update.message.reply_text('پست به تمام کاربران ارسال شد.')
 
 
 
