@@ -248,11 +248,10 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         # تغییر وضعیت به دریافت عکس و کپشن
         context.user_data['waiting_for_photo'] = True
         await handle_photo(update,context)
-    # elif text == "فرصت های شغلی 👨‍⚕":
-    #     await send_job(update)
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("handle photo")
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
         photo = update.message.photo[-1].file_id
         caption = update.message.caption if update.message.caption else ''
@@ -262,7 +261,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         cursor.execute("SELECT chat_id FROM users")
         user_ids =[row[0]for row in cursor.fetchall()]
         conn.close()
-
+        print("database is close")
         # ذخیره‌ی اطلاعات برای ارسال به کاربران
         context.user_data['photo_id'] = photo
         context.user_data['caption'] = caption
