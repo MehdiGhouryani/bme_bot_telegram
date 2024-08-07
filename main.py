@@ -245,8 +245,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text('لطفا عکس و کپشن را ارسال کنید.')
 
         # تغییر وضعیت به دریافت عکس و کپشن
-        await context.user_data['waiting_for_photo'] = True
-
+        context.user_data['waiting_for_photo'] = True
+        await handle_photo(update,context)
     # elif text == "فرصت های شغلی 👨‍⚕":
     #     await send_job(update)
 
@@ -263,9 +263,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.close()
 
         # ذخیره‌ی اطلاعات برای ارسال به کاربران
-        await context.user_data['photo_id'] = photo
-        await context.user_data['caption'] = caption
-        await context.user_data['waiting_for_photo'] = False
+        context.user_data['photo_id'] = photo
+        context.user_data['caption'] = caption
+        context.user_data['waiting_for_photo'] = False
 
         await update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
 
