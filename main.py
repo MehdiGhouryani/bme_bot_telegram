@@ -253,32 +253,35 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("handle photo")
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
-        photo = update.message.photo[-1].file_id
-        caption = update.message.caption if update.message.caption else ''
+        if update.message.photo:
+            photo = update.message.photo[-1].file_id
+            caption = update.message.caption if update.message.caption else ''
 
-        conn=sqlite3.connect('users.db')
-        cursor=conn.cursor()
-        cursor.execute("SELECT chat_id FROM users")
-        user_ids =[row[0]for row in cursor.fetchall()]
-        conn.close()
-        print("database is close")
-        # ذخیره‌ی اطلاعات برای ارسال به کاربران
-        context.user_data['photo_id'] = photo
-        context.user_data['caption'] = caption
-        context.user_data['waiting_for_photo'] = False
+            # اتصال به دیتابیس و خواندن chat_idها
+            conn = sqlite3.connect('users.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT chat_id FROM users")
+            user_ids = [row[0] for row in cursor.fetchall()]
+            conn.close()
+            print("database is close")
 
-        await update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
+            # ذخیره‌ی اطلاعات برای ارسال به کاربران
+            context.user_data['photo_id'] = photo
+            context.user_data['caption'] = caption
+            context.user_data['waiting_for_photo'] = False
 
-        # ارسال عکس به تمام کاربران
-        for user_id in user_ids:
-            try:
-                context.bot.send_photo(chat_id=user_id, photo=photo, caption=caption)
-            except Exception as e:
-                logger.error(f"Error sending photo to user {user_id}: {e}")
+            await update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
+            print('post recived')
+            # ارسال عکس به تمام کاربران
+            for user_id in user_ids:
+                try:
+                    await context.bot.send_photo(chat_id=user_id, photo=photo, caption=caption)
+                except Exception as e:
+                    logger.error(f"Error sending photo to user {user_id}: {e}")
 
-        update.message.reply_text('پست به تمام کاربران ارسال شد.')
-
-
+            await update.message.reply_text('پست به تمام کاربران ارسال شد.')
+        else:
+            await update.message.reply_text('لطفا یک عکس ارسال کنید.')
 
 
 
