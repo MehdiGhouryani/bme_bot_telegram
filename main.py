@@ -239,19 +239,19 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text=="ارسال پست به تمام کاربران":
         user_id = update.message.from_user.id
         if user_id != ADMIN_CHAT_ID:
-            update.message.reply_text('شما مجوز ارسال پست را ندارید.')
+            await update.message.reply_text('شما مجوز ارسال پست را ندارید.')
             return
 
-        update.message.reply_text('لطفا عکس و کپشن را ارسال کنید.')
+        await update.message.reply_text('لطفا عکس و کپشن را ارسال کنید.')
 
         # تغییر وضعیت به دریافت عکس و کپشن
-        context.user_data['waiting_for_photo'] = True
+        await context.user_data['waiting_for_photo'] = True
 
     # elif text == "فرصت های شغلی 👨‍⚕":
     #     await send_job(update)
 
 
-def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
         photo = update.message.photo[-1].file_id
         caption = update.message.caption if update.message.caption else ''
@@ -263,11 +263,11 @@ def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         conn.close()
 
         # ذخیره‌ی اطلاعات برای ارسال به کاربران
-        context.user_data['photo_id'] = photo
-        context.user_data['caption'] = caption
-        context.user_data['waiting_for_photo'] = False
+        await context.user_data['photo_id'] = photo
+        await context.user_data['caption'] = caption
+        await context.user_data['waiting_for_photo'] = False
 
-        update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
+        await update.message.reply_text('عکس با کپشن دریافت شد. در حال ارسال به تمام کاربران...')
 
         # ارسال عکس به تمام کاربران
         for user_id in user_ids:
