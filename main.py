@@ -247,7 +247,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
         # تغییر وضعیت به دریافت عکس و کپشن
         context.user_data['waiting_for_photo'] = True
-        await handle_photo(update,context)
+        
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -541,6 +541,7 @@ def main():
     app.add_handler(start_handler)
     app.add_handler(Buttun_handler)
     app.add_handler(CallbackQueryHandler(callback_handler))
+    app.add_handler(MessageHandler(filters.PHOTO,handle_photo))
 
     app.run_polling()
 
