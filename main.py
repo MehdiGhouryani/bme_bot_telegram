@@ -38,8 +38,10 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
                 [InlineKeyboardButton("عضو شدم ✅",callback_data='check_membership')]
             ]
             reply_markup=InlineKeyboardMarkup(keyboard)
-            await update.message.reply_text('''برای استفاده از ربات باید عضو کانال باشی
-                                            اگه عضو شدی دوباره /start کن .''',reply_markup=reply_markup)
+            await update.message.reply_text('''
+برای استفاده از ربات باید عضو کانال باشی
+اگه عضو شدی دوباره /start کن .
+''',reply_markup=reply_markup)
         else:
             keyboard = [
                 [KeyboardButton("تجهیزات پزشکی  🩺"),]
