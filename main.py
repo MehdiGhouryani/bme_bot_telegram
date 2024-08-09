@@ -265,7 +265,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 "[10. چه دانشگاه‌ها و مراکز آموزشی در ایران رشته مهندسی پزشکی ارائه می‌دهند؟]()\n\n"
 
 )
-        await update.message.reply_text(questions,parse_mode=ParseMode.MARKDOWN_V2)
+        await update.message.reply_text(questions,parse_mode=ParseMode.MARKDOWN)
 
 
 
@@ -504,7 +504,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode='Markdown',reply_markup=reply_markup_definition)
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_definition)
         else:
             print('----------')
 
@@ -513,55 +513,55 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cursor.execute(f"SELECT types FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         elif action == 'structure':
             cursor.execute(f"SELECT structure FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         elif action == 'operation':
             cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         elif action == 'advantages_disadvantages':
             cursor.execute(f"SELECT advantages_disadvantages FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         elif action == 'safety':
             cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         elif action == 'related_technologies':
             cursor.execute(f"SELECT related_technologies FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
-                await query.edit_message_text(text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
-                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode='Markdown',reply_markup=reply_markup_menu)
+                await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
         cursor.close()
 
