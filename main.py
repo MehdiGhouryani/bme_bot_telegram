@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from callback_map import *
@@ -264,7 +265,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 "[10. چه دانشگاه‌ها و مراکز آموزشی در ایران رشته مهندسی پزشکی ارائه می‌دهند؟]()\n\n"
 
 )
-        await update.message.reply_text(questions,parse_mode='Markdawn')
+        await update.message.reply_text(questions,parse_mode=ParseMode.MARKDOWN_V2)
 
 
 
