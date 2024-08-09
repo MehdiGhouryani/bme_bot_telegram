@@ -264,7 +264,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 "[10. چه دانشگاه‌ها و مراکز آموزشی در ایران رشته مهندسی پزشکی ارائه می‌دهند؟]()\n\n"
 
 )
-        await update.message.reply_text(questions,parse_mode='MarkdawnV2')
+        await update.message.reply_text(questions,parse_mode='Markdawn')
 
 
 
