@@ -295,7 +295,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     
     elif text == "سوالات متداول":
-        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')],))
+        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
 
 
 
@@ -604,11 +604,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await check_membership(update,context)
 
     elif data == 'next_question':
-        await update.message.reply_text(text=question_page2,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([InlineKeyboardButton('⬅️ برو به صفحه قبل ',callback_data='previous_question')],))
+        await update.message.reply_text(text=question_page2,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه قبل ',callback_data='previous_question')]]))
 
     
     elif data == 'previous_question':
-        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardButton([InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')],))
+        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardButton([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
 
 
 
