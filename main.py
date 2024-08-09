@@ -46,9 +46,9 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
             keyboard = [
                 [KeyboardButton("تجهیزات پزشکی  🩺"),]
                 ,[KeyboardButton("سنسور ها و قطعات")]
+                ,[KeyboardButton("سوالات متداول")]
                 ,[KeyboardButton("درخواست و پیشنهاد 📝")]
-            
-            # ,KeyboardButton("فرصت های شغلی 👨‍⚕")]
+                
             ]
     
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
@@ -88,9 +88,13 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("عضویت شما تایید شد.")
             await query.delete_message()
             keyboard = [
-            [KeyboardButton("درخواست و پیشنهاد 📝"),KeyboardButton("تجهیزات پزشکی  🩺"),]
+            [KeyboardButton("تجهیزات پزشکی  🩺"),]
+            ,[KeyboardButton("سنسور ها و قطعات")]
+            ,[KeyboardButton("سوالات متداول")]
+            ,[KeyboardButton("درخواست و پیشنهاد 📝")]
+                
             ]
-    
+
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
             await context.bot.send_message(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
 
@@ -150,32 +154,6 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         reply_markup = InlineKeyboardMarkup(main_keyboard)
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
 
-
-    elif text == "درخواست و پیشنهاد 📝":
-        
-        context.user_data['awaiting_request'] = True
-        await update.message.reply_text('''
-سلام مهندس🙂
- خوشحال می‌شیم پیشنهادات و ایده‌های خودت رو درباره ربات با ما به اشتراک بذارید.
-
-لطفاً پیشنهادات خودتون رو همین‌جا بنویسید و ارسال کنید :
-
-''')
-    elif context.user_data.get('awaiting_request'):
-        # ارسال پیام به ادمین
-        admin_message = (
-            f"پیشنهاد جدید از سمت {full_name} دریافت شد!\n"
-            f"نام کاربری: @{username}\n"
-            f"آیدی کاربر: {user_id}\n"
-            f"متن پیشنهاد: {user_message}"
-        )
-        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_message)
-
-        # ارسال پیام تایید به کاربر
-        await update.message.reply_text('ممنون از پیشنهادتون! ما اون رو بررسی خواهیم کرد.')
-
-        # غیرفعال کردن حالت انتظار
-        context.user_data['awaiting_request'] = False
 
     elif text == "سنسور ها و قطعات":
         buttons=[
@@ -247,7 +225,79 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
         # تغییر وضعیت به دریافت عکس و کپشن
         context.user_data['waiting_for_photo'] = True
+
+    
+    elif text == "سوالات متداول":
+        questions=(
+
+"[1. مهندسی پزشکی چیست؟](https://t.me/Airdrop_Bitalarm)\n"
+"(تعریف جامع و مختصر مهندسی پزشکی)\n\n"
+
+
+"[2. چه گرایش‌هایی در رشته مهندسی پزشکی وجود دارد؟]()\n"
+"(معرفی هر گرایش و تفاوت‌های آن‌ها)\n\n"
+
+
+"[3. مهندسی پزشکی چه ارتباطی با رشته‌های دیگر مثل پزشکی، بیولوژی، کامپیوتر، و ... دارد؟]()\n\n"
+
+
+"[4. مهندسی پزشکی چه نقشی در ارتقا سلامت جامعه ایفا می‌کند؟]()\n\n"
+
+
+"[5. مهارت‌های اصلی مورد نیاز برای یک مهندس پزشکی چیست؟]()\n"
+"(مهارت‌های فنی، نرم، و غیره)\n\n"
+
+
+"[6. چه مشاغلی در رشته مهندسی پزشکی وجود دارد؟]()\n"
+"(معرفی مشاغل مختلف و طیف وسیع فعالیت در این رشته)\n\n"
+
+
+"[7. در کدام گرایش‌های مهندسی پزشکی (بیوالکتریک، بیومکانیک، بیومتریال) تقاضای بیشتری در بازار کار وجود دارد؟]()\n\n" 
+
+
+"[8.با بررسی بازار کار، محیط کاری در خارج یا داخل کشور بیشتر و بهتر است؟چرا؟]()\n\n"
+
+
+"[9. برای ورود به رشته مهندسی پزشکی چه مهارت هایی مهم‌تر هستند؟]()\n\n"
+
+
+"[10. چه دانشگاه‌ها و مراکز آموزشی در ایران رشته مهندسی پزشکی ارائه می‌دهند؟]()\n\n"
+
+)
+        await update.message.reply_text(questions,parse_mode='MarkdawnV2')
+
+
+
+
+    elif text == "درخواست و پیشنهاد 📝":
         
+        context.user_data['awaiting_request'] = True
+        await update.message.reply_text('''
+سلام مهندس🙂
+ خوشحال می‌شیم پیشنهادات و ایده‌های خودت رو درباره ربات با ما به اشتراک بذارید.
+
+لطفاً پیشنهادات خودتون رو همین‌جا بنویسید و ارسال کنید :
+
+''')
+    elif context.user_data.get('awaiting_request'):
+        # ارسال پیام به ادمین
+        admin_message = (
+            f"پیشنهاد جدید از سمت {full_name} دریافت شد!\n"
+            f"نام کاربری: @{username}\n"
+            f"آیدی کاربر: {user_id}\n"
+            f"متن پیشنهاد: {user_message}"
+        )
+        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_message)
+
+        # ارسال پیام تایید به کاربر
+        await update.message.reply_text('ممنون از پیشنهادتون! ما اون رو بررسی خواهیم کرد.')
+
+        # غیرفعال کردن حالت انتظار
+        context.user_data['awaiting_request'] = False
+
+        
+
+
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
