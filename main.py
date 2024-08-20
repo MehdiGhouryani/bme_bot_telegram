@@ -294,7 +294,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     
     elif text == "سوالات متداول":
-        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
+        await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('➡️ برو به صفحه بعد ',callback_data='next_question')]]))
 
 
 
