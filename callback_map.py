@@ -54,7 +54,7 @@ specialized_equipment_devices = {
 
 # لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
 rehabilitation_and_support_devices = {
-    'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
+    # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
     'rehabilitation':['tens_units','ems_units'],
     'patient_support_equipment': ['pressure_relief_mattresses','patient_lifts']
 }
@@ -473,7 +473,7 @@ class callback_map:
     
         for device in rehabilitation_and_support_devices['rehabilitation']:
             callback_map[device] = rehabilitation_class.rehabilitation
-            
+
         for device in rehabilitation_and_support_devices['patient_support_equipment']:
             callback_map[device] = rehabilitation_class.patient_support_equipment
     

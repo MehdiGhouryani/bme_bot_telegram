@@ -467,7 +467,7 @@ keyboard_map = {
     'hospital_equipment': keyboard_hospital_equipment,
     'emergency_equipment': keyboard_emergency_equipment,
 
-    'rehabilitation_equipment': keyboard_rehabilitation,
+    'rehabilitation': keyboard_rehabilitation,
     'patient_support': keyboard_patient_support_equipment,
 
     'cardiovascular_equipment': keyboard_cardiovascular_equipment,
@@ -477,7 +477,7 @@ keyboard_map = {
     'ent_equipment': keyboard_ent_equipment,
     'dental_equipment': keyboard_dental_equipment,
     'dermatology_equipment': keyboard_dermatology_equipment,
-    
+
     'daily_care_equipment': keyboard_daily_care_equipment,
     'home_respiratory_equipment': keyboard_home_respiratory_equipment,
 }
