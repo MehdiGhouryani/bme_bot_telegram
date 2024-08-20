@@ -52,45 +52,19 @@ general_equipment_devices = {
 
 # لیست دستگاه‌های تجهیزات تخصصی
 specialized_equipment_devices = {
-    'cardiovascular_equipment': [
-        'cardiac_catheters',
-        'stents',
-        'pacemakers',
-        'implantable_defibrillators'
-    ],
-    'neurology_equipment': [
-        'eeg_machines',
-        'transcranial_magnetic_stimulation'
-    ],
-    'orthopedic_equipment': [
-        'external_fixators',
-        'orthopedic_prosthetics'
-    ],
-    'obstetrics_gynecology_equipment': [
-        'ob_gyn_ultrasound_machines',
-        'fetal_monitoring_systems'
-    ],
-    'ent_equipment': [
-        'ear_endoscopes',
-        'audiometry_equipment'
-    ],
-    'dental_equipment': [
-        'dental_units',
-        'panoramic_xray_machines',
-        'dental_lasers'
-    ],
-    'dermatology_equipment': [
-        'dermatoscopes',
-        'dermatological_lasers'
-    ]
+    'cardiovascular_equipment': ['cardiac_catheters','stents','pacemakers','implantable_defibrillators'],
+    'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
+    'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
+    'obstetrics_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
+    'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
+    'dental_equipment': ['dental_units','panoramic_xray_machines','dental_lasers'],
+    'dermatology_equipment': ['dermatoscopes','dermatological_lasers']
 }
 
 
 # لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
 rehabilitation_and_support_devices = {
-    'rehabilitation_equipment': [
-        'electric_wheelchairs',
-        'electrotherapy_devices',
+    'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices',
         ['tens_units', 'ems_units']
     ],
     'patient_support_equipment': [
