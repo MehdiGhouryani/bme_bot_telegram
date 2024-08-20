@@ -370,12 +370,20 @@ class_callback_map = callback_map()
 callback_map_diagnostic = class_callback_map.callback_map_diagnostic()
 callback_map_therapeutic = class_callback_map.callback_map_therapeutic()
 callback_map_monitoring = class_callback_map.callback_map_monitoring()
+callback_map_general = class_callback_map.callback_map_general_equipment()
+callback_map_specialized = class_callback_map.callback_map_specialized_equipment()
+callback_map_rehabilitation = class_callback_map.callback_map_rehabilitation_and_support()
+callback_map_homecare = class_callback_map.callback_map_home_care_equipment()
+
 
 combined_callback_map = {}
 combined_callback_map.update(callback_map_diagnostic)
 combined_callback_map.update(callback_map_therapeutic)
 combined_callback_map.update(callback_map_monitoring)
-
+combined_callback_map.update(callback_map_general)
+combined_callback_map.update(callback_map_specialized)
+combined_callback_map.update(callback_map_rehabilitation)
+combined_callback_map.update(callback_map_homecare)
 
 
 keyboards_manager = KeyboardsManager()
