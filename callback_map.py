@@ -484,83 +484,84 @@ class callback_map:
 
 
 
-def callback_map_general_equipment(self):
-    callback_map = {}
-
-    for device in general_equipment_devices['hospital_equipment']:
-        if isinstance(device, list):
-            for sub_device in device:
-                callback_map[sub_device] = general_class.hospital_equipment
-        else:
-            callback_map[device] = general_class.hospital_equipment
-
-    for device in general_equipment_devices['emergency_equipment']:
-        if isinstance(device, list):
-            for sub_device in device:
-                callback_map[sub_device] = general_class.emergency_equipment
-        else:
-            callback_map[device] = general_class.emergency_equipment
-
-    return callback_map
-
-def callback_map_specialized_equipment(self):
-    callback_map = {}
-
-    for device in specialized_equipment_devices['cardiovascular_equipment']:
-        callback_map[device] = specialized_class.cardiovascular_equipment
-
-    for device in specialized_equipment_devices['neurology_equipment']:
-        callback_map[device] = specialized_class.neurology_equipment
-
-    for device in specialized_equipment_devices['orthopedic_equipment']:
-        callback_map[device] = specialized_class.orthopedic_equipment
-
-    for device in specialized_equipment_devices['obstetrics_gynecology_equipment']:
-        callback_map[device] = specialized_class.obstetrics_gynecology_equipment
-
-    for device in specialized_equipment_devices['ent_equipment']:
-        callback_map[device] = specialized_class.ent_equipment
-
-    for device in specialized_equipment_devices['dental_equipment']:
-        callback_map[device] = specialized_class.dental_equipment
-
-    for device in specialized_equipment_devices['dermatology_equipment']:
-        callback_map[device] = specialized_class.dermatology_equipment
-
-    return callback_map
-
-
-def callback_map_rehabilitation_and_support(self):
-    callback_map = {}
-
-    for device in rehabilitation_and_support_devices['rehabilitation_equipment']:
-        if isinstance(device, list):
-            for sub_device in device:
-                callback_map[sub_device] = rehabilitation_class.rehabilitation_equipment
-        else:
-            callback_map[device] = rehabilitation_class.rehabilitation_equipment
-
-    for device in rehabilitation_and_support_devices['patient_support_equipment']:
-        if isinstance(device, list):
-            for sub_device in device:
-                callback_map[sub_device] = rehabilitation_class.patient_support_equipment
-        else:
-            callback_map[device] = rehabilitation_class.patient_support_equipment
-
-    return callback_map
-
-def callback_map_home_care_equipment(self):
-    callback_map = {}
-
-    for device in home_care_equipment_devices['home_care_equipment']:
-        if isinstance(device, list):
-            for sub_device in device:
-                callback_map[sub_device] = homecare_class.home_care_equipment
-        else:
-            callback_map[device] = homecare_class.home_care_equipment
-
-    return callback_map
-
-
-
-
+    def callback_map_general_equipment(self):
+        callback_map = {}
+    
+        for device in general_equipment_devices['hospital_equipment']:
+            if isinstance(device, list):
+                for sub_device in device:
+                    callback_map[sub_device] = general_class.hospital_equipment
+            else:
+                callback_map[device] = general_class.hospital_equipment
+    
+        for device in general_equipment_devices['emergency_equipment']:
+            if isinstance(device, list):
+                for sub_device in device:
+                    callback_map[sub_device] = general_class.emergency_equipment
+            else:
+                callback_map[device] = general_class.emergency_equipment
+    
+        return callback_map
+    
+    def callback_map_specialized_equipment(self):
+        callback_map = {}
+    
+        for device in specialized_equipment_devices['cardiovascular_equipment']:
+            callback_map[device] = specialized_class.cardiovascular_equipment
+    
+        for device in specialized_equipment_devices['neurology_equipment']:
+            callback_map[device] = specialized_class.neurology_equipment
+    
+        for device in specialized_equipment_devices['orthopedic_equipment']:
+            callback_map[device] = specialized_class.orthopedic_equipment
+    
+        for device in specialized_equipment_devices['obstetrics_gynecology_equipment']:
+            callback_map[device] = specialized_class.obstetrics_gynecology_equipment
+    
+        for device in specialized_equipment_devices['ent_equipment']:
+            callback_map[device] = specialized_class.ent_equipment
+    
+        for device in specialized_equipment_devices['dental_equipment']:
+            callback_map[device] = specialized_class.dental_equipment
+    
+        for device in specialized_equipment_devices['dermatology_equipment']:
+            callback_map[device] = specialized_class.dermatology_equipment
+    
+        return callback_map
+    
+    
+    def callback_map_rehabilitation_and_support(self):
+        callback_map = {}
+    
+        for device in rehabilitation_and_support_devices['rehabilitation_equipment']:
+            if isinstance(device, list):
+                for sub_device in device:
+                    callback_map[sub_device] = rehabilitation_class.rehabilitation_equipment
+            else:
+                callback_map[device] = rehabilitation_class.rehabilitation_equipment
+    
+        for device in rehabilitation_and_support_devices['patient_support_equipment']:
+            if isinstance(device, list):
+                for sub_device in device:
+                    callback_map[sub_device] = rehabilitation_class.patient_support_equipment
+            else:
+                callback_map[device] = rehabilitation_class.patient_support_equipment
+    
+        return callback_map
+    
+    def callback_map_home_care_equipment(self):
+        callback_map = {}
+    
+        for device in home_care_equipment_devices['home_care_equipment']:
+            if isinstance(device, list):
+                for sub_device in device:
+                    callback_map[sub_device] = homecare_class.home_care_equipment
+            else:
+                callback_map[device] = homecare_class.home_care_equipment
+    
+        return callback_map
+    
+    
+    
+    
+    
