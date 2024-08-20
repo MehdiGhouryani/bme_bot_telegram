@@ -64,7 +64,7 @@ rehabilitation_and_support_devices = {
 
 # لیست دستگاه‌های تجهیزات مراقبت در منزل
 home_care_equipment_devices = {
-        'daily_care_equipment':['home_blood_pressure_monitors', 'home_blood_glucose_meters'],
+        'daily_care_equipment':['home_blood_pressure_monitors','home_blood_glucose_meters'],
         'home_respiratory_equipment':['oxygen_concentrators']
 
 }

@@ -398,7 +398,7 @@ class KeyboardsManager:
     def get_keyboard_daily_care_equipment(self):
         return [
             [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون خانگی', callback_data='home_blood_pressure_monitors')],
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون خانگی', callback_data='home_blood_glucose_monitors')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون خانگی', callback_data='home_blood_glucose_meters')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='home_care_equipment')],
         ]
 
