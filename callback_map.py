@@ -56,7 +56,7 @@ specialized_equipment_devices = {
 rehabilitation_and_support_devices = {
     # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
     'rehabilitation':['tens_units','ems_units'],
-    'patient_support_equipment': ['pressure_relief_mattresses','patient_lifts']
+    'patient_support': ['pressure_relief_mattresses','patient_lifts']
 }
 
 
@@ -284,8 +284,8 @@ class RehabilitationAndSupport:
     async def rehabilitation(self,data,update:Update,context:ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data,update,context,'rehabilitation')
 
-    async def patient_support_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'patient_support_equipment')
+    async def patient_support(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'patient_support')
 
 
 
@@ -475,7 +475,7 @@ class callback_map:
             callback_map[device] = rehabilitation_class.rehabilitation
 
         for device in rehabilitation_and_support_devices['patient_support_equipment']:
-            callback_map[device] = rehabilitation_class.patient_support_equipment
+            callback_map[device] = rehabilitation_class.patient_support
     
         return callback_map
     
