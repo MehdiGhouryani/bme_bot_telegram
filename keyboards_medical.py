@@ -248,30 +248,6 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='general_medical_equipment')],
         ]
 
-    def get_keyboard_hospital_beds(self):
-        return [
-            [InlineKeyboardButton('تخت‌های مکانیکی', callback_data='mechanical_beds')],
-            [InlineKeyboardButton('تخت‌های الکتریکی', callback_data='electric_beds')],
-            [InlineKeyboardButton('تخت‌های ویژه مراقبت‌های ویژه', callback_data='icu_beds')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back')],
-        ]
-
-    def get_keyboard_sterilizers(self):
-        return [
-            [InlineKeyboardButton('اتوکلاوها', callback_data='autoclaves')],
-            [InlineKeyboardButton('استریلیزاتورهای خشک', callback_data='dry_heat_sterilizers')],
-            [InlineKeyboardButton('استریلیزاتورهای شیمیایی', callback_data='chemical_sterilizers')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back')],
-        ]
-
-    def get_keyboard_medical_trolleys(self):
-        return [
-            [InlineKeyboardButton('ترالی‌های عمومی', callback_data='general_trolleys')],
-            [InlineKeyboardButton('ترالی‌های اورژانس', callback_data='emergency_trolleys')],
-            [InlineKeyboardButton('ترالی‌های دارویی', callback_data='medication_trolleys')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back')],
-        ]
-    
 
     def get_keyboard_emergency_equipment(self):
         return [
@@ -298,7 +274,7 @@ class KeyboardsManager:
 
     def get_keyboard_rehabilitation_and_support(self):
         return [
-            [InlineKeyboardButton('تجهیزات توانبخشی', callback_data='rehabilitation_equipment')],
+            [InlineKeyboardButton('تجهیزات توانبخشی', callback_data='rehabilitation')],
             [InlineKeyboardButton('تجهیزات پشتیبانی بیمار', callback_data='patient_support')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back_to_main')],
         ]
