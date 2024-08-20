@@ -468,8 +468,8 @@ class callback_map:
     def callback_map_rehabilitation_and_support(self):
         callback_map = {}
     
-        for device in rehabilitation_and_support_devices['rehabilitation_equipment']:
-            callback_map[device] = rehabilitation_class.rehabilitation_equipment
+        # for device in rehabilitation_and_support_devices['rehabilitation_equipment']:
+        #     callback_map[device] = rehabilitation_class.rehabilitation_equipment
     
         for device in rehabilitation_and_support_devices['rehabilitation']:
             callback_map[device] = rehabilitation_class.rehabilitation
