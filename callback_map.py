@@ -33,19 +33,8 @@ monitoring_devices = {
 
 # لیست دستگاه‌های تجهیزات عمومی
 general_equipment_devices = {
-    'hospital_equipment': [
-        'hospital_beds',
-        ['mechanical_beds', 'electric_beds', 'icu_beds'],
-        'sterilizers',
-        ['autoclaves', 'dry_heat_sterilizers', 'chemical_sterilizers'],
-        'medical_trolleys',
-        ['general_trolleys', 'emergency_trolleys', 'medication_trolleys']
-    ],
-    'emergency_equipment': [
-        'resuscitation_devices',
-        ['ambu_bags', 'cpr_devices'],
-        'defibrillators'
-    ]
+    'hospital_equipment': ['hospital_beds','sterilizers','medical_trolleys',],
+    'emergency_equipment': ['resuscitation_devices','ambu_bags', 'cpr_devices','defibrillators']
 }
 
 
@@ -64,15 +53,8 @@ specialized_equipment_devices = {
 
 # لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
 rehabilitation_and_support_devices = {
-    'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices',
-        ['tens_units', 'ems_units']
-    ],
-    'patient_support_equipment': [
-        'pressure_relief_mattresses',
-        ['air_mattresses', 'foam_mattresses'],
-        'patient_lifts',
-        ['hydraulic_lifts', 'electric_lifts']
-    ]
+    'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
+    'patient_support_equipment': ['pressure_relief_mattresses','patient_lifts']
 }
 
 
@@ -80,12 +62,9 @@ rehabilitation_and_support_devices = {
 
 # لیست دستگاه‌های تجهیزات مراقبت در منزل
 home_care_equipment_devices = {
-    'home_care_equipment': [
-        'daily_care_equipment',
-        ['home_blood_pressure_monitors', 'home_blood_glucose_meters'],
-        'home_respiratory_equipment',
-        ['oxygen_concentrators']
-    ]
+        'daily_care_equipment':['home_blood_pressure_monitors', 'home_blood_glucose_meters'],
+        'home_respiratory_equipment':['oxygen_concentrators']
+
 }
 
 
@@ -224,16 +203,9 @@ class GeneralEquipment:
         if not device_list:
             return
         
+
         keys = generate_keys(device_list, category)
-        index = 0
-        for i, device in enumerate(device_list):
-            if isinstance(device, list):
-                if data in device:
-                    index = i
-                    break
-            elif data == device:
-                index = i
-                break
+        index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
@@ -298,16 +270,9 @@ class RehabilitationAndSupport:
         if not device_list:
             return
         
+
         keys = generate_keys(device_list, category)
-        index = 0
-        for i, device in enumerate(device_list):
-            if isinstance(device, list):
-                if data in device:
-                    index = i
-                    break
-            elif data == device:
-                index = i
-                break
+        index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
@@ -331,21 +296,16 @@ class HomeCareEquipment:
             return
         
         keys = generate_keys(device_list, category)
-        index = 0
-        for i, device in enumerate(device_list):
-            if isinstance(device, list):
-                if data in device:
-                    index = i
-                    break
-            elif data == device:
-                index = i
-                break
+        index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    async def home_care_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'home_care_equipment')
-
+    async def daily_care_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'daily_care_equipment')
+    
+    async def home_respiratory_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'home_respiratory_equipment')
+    
 
 
 
@@ -462,21 +422,17 @@ class callback_map:
         callback_map = {}
     
         for device in general_equipment_devices['hospital_equipment']:
-            if isinstance(device, list):
-                for sub_device in device:
-                    callback_map[sub_device] = general_class.hospital_equipment
-            else:
-                callback_map[device] = general_class.hospital_equipment
+            callback_map[device] = general_class.hospital_equipment
     
         for device in general_equipment_devices['emergency_equipment']:
-            if isinstance(device, list):
-                for sub_device in device:
-                    callback_map[sub_device] = general_class.emergency_equipment
-            else:
-                callback_map[device] = general_class.emergency_equipment
-    
+            callback_map[device] = general_class.emergency_equipment
+
         return callback_map
     
+
+
+
+
     def callback_map_specialized_equipment(self):
         callback_map = {}
     
@@ -508,30 +464,22 @@ class callback_map:
         callback_map = {}
     
         for device in rehabilitation_and_support_devices['rehabilitation_equipment']:
-            if isinstance(device, list):
-                for sub_device in device:
-                    callback_map[sub_device] = rehabilitation_class.rehabilitation_equipment
-            else:
-                callback_map[device] = rehabilitation_class.rehabilitation_equipment
+            callback_map[device] = rehabilitation_class.rehabilitation_equipment
     
         for device in rehabilitation_and_support_devices['patient_support_equipment']:
-            if isinstance(device, list):
-                for sub_device in device:
-                    callback_map[sub_device] = rehabilitation_class.patient_support_equipment
-            else:
-                callback_map[device] = rehabilitation_class.patient_support_equipment
+            callback_map[device] = rehabilitation_class.patient_support_equipment
     
         return callback_map
     
+
     def callback_map_home_care_equipment(self):
         callback_map = {}
     
-        for device in home_care_equipment_devices['home_care_equipment']:
-            if isinstance(device, list):
-                for sub_device in device:
-                    callback_map[sub_device] = homecare_class.home_care_equipment
-            else:
-                callback_map[device] = homecare_class.home_care_equipment
+        for device in home_care_equipment_devices['daily_care_equipment']:
+            callback_map[device] = homecare_class.daily_care_equipment
+
+        for device in home_care_equipment_devices['home_respiratory_equipment']:   
+            callback_map[device] = homecare_class.home_respiratory_equipment
     
         return callback_map
     
