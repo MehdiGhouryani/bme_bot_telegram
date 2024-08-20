@@ -409,8 +409,7 @@ categories = {
         'blood_glucose_monitors'
     ],
     'general_medical': [
-        'general_medical', 'hospital_equipment', 'hospital_beds', 'sterilizers',
-        'medical_trolleys', 'emergency_equipment'
+        'general_medical', 'hospital_equipment','emergency_equipment'
     ],
     'rehabilitation_and_support': [
         'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
@@ -452,22 +451,25 @@ keyboard_map = {
     'gastrointestinal_devices': keyboard_gastrointestinal_devices,
     'ent_diagnostic_devices': keyboard_ent_diagnostic_devices,
     'ophthalmic_diagnostic_devices': keyboard_ophthalmic_diagnostic_devices,
+
     'surgical_equipment': keyboard_surgical,
     'orthopedic_therapeutic_equipment': keyboard_orthopedic_therapeutic_equipment,
     'cardiovascular_therapeutic_equipment': keyboard_cardiovascular_therapeutic_equipment,
     'respiratory_equipment': keyboard_respiratory,
     'other_therapeutic_equipment': keyboard_other_therapeutic,
-    'vital_signs_monitors': keyboard_cardiac_monitors,
+
+
     'cardiac_monitors': keyboard_cardiac_monitors,
-   
     'fetal_maternal_monitors': keyboard_fetal_maternal_monitors,
     'fetal_monitors': keyboard_fetal_monitors,
     'blood_glucose_monitors': keyboard_blood_glucose_monitors,
     
     'hospital_equipment': keyboard_hospital_equipment,
     'emergency_equipment': keyboard_emergency_equipment,
+
     'rehabilitation_equipment': keyboard_rehabilitation,
     'patient_support': keyboard_patient_support_equipment,
+
     'cardiovascular_equipment': keyboard_cardiovascular_equipment,
     'neurology_equipment': keyboard_neurology_equipment,
     'orthopedic_equipment': keyboard_orthopedic_equipment,
@@ -475,6 +477,7 @@ keyboard_map = {
     'ent_equipment': keyboard_ent_equipment,
     'dental_equipment': keyboard_dental_equipment,
     'dermatology_equipment': keyboard_dermatology_equipment,
+    
     'daily_care_equipment': keyboard_daily_care_equipment,
     'home_respiratory_equipment': keyboard_home_respiratory_equipment,
 }
