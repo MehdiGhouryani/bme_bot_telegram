@@ -14,7 +14,7 @@ import logging
 load_dotenv()
 token=os.getenv('Token')
 db_name="medical_device.db"
-ADMIN_CHAT_ID='1717599240'
+ADMIN_CHAT_ID=['1717599240','686724429']
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -209,7 +209,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     full_name =user.full_name
     chat_id=update.effective_message.id
     message_id=update.message.message_id
-    ADMIN_CHAT_ID='1717599240'
+    ADMIN_CHAT_ID=['1717599240','686724429']
  
     if text == "تجهیزات پزشکی  🩺":
 
@@ -278,7 +278,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text=="ارسال پست به تمام کاربران":
         user_id =update.message.from_user.id
-        if user_id != int(ADMIN_CHAT_ID):
+        if str(user_id) not in ADMIN_CHAT_ID:
             # print(user_id,ADMIN)
             await update.message.reply_text('شما مجوز ارسال پست را ندارید.')
             return
@@ -312,7 +312,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             f"آیدی کاربر: {user_id}\n"
             f"متن پیشنهاد: {user_message}"
         )
-        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_message)
+        for ids in ADMIN_CHAT_ID:
+            await context.bot.send_message(chat_id=ids, text=admin_message)
 
         # ارسال پیام تایید به کاربر
         await update.message.reply_text('ممنون از پیشنهادتون! ما اون رو بررسی خواهیم کرد.')
