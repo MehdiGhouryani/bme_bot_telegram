@@ -201,7 +201,8 @@ pages_components={
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
-    text= update.message.text   
+    text= update.message.text 
+    
     user =update.message.from_user
     user_message =update.message.text
     username=user.username
@@ -287,11 +288,12 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = 'derivative'
 
     elif context.user_data.get('operation') == 'derivative':
+        text = text.replace('  ',' ')  
         x = symbols('x')
         try:
             function = sympify(text) 
             derivative = diff(function, x)
-            await update.message.reply_text(f"مشتق تابع:\n\n {derivative}",ParseMode.MARKDOWN)
+            await update.message.reply_text(f"مشتق تابع:\n\n {derivative}")
             print('-- MOSHTAGH --')
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه مشتق. لطفاً تابع را به درستی وارد کنید.")
@@ -314,11 +316,12 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = 'definite_integral'
 
     elif context.user_data.get('operation') == 'indefinite_integral':
+        text = text.replace('  ',' ')  
         x = symbols('x')
         try:
             function = sympify(text)
             indefinite_integral = integrate(function, x)
-            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n {indefinite_integral}+ C",ParseMode.MARKDOWN)
+            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n {indefinite_integral}+ C")
             print('-- ANTEGRAL 1 --')
 
         except Exception as e:
@@ -326,18 +329,20 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = None
 
     elif context.user_data.get('operation') == 'definite_integral':
+        text = text.replace('  ',' ')  
         context.user_data['function'] = text
         context.user_data['operation'] = 'enter_limits'
         await update.message.reply_text("لطفاً حدود انتگرال را به صورت a, b وارد کنید:")
 
     elif context.user_data.get('operation') == 'enter_limits':
+        text = text.replace('  ',' ')  
         try:
             x = symbols('x')
             limits = list(map(float, text.split(',')))
             function = sympify(context.user_data.get('function'))
             definite_integral = integrate(function, (x, limits[0], limits[1]))
             print('-- ANTEGRAL 2 --')
-            await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}:\n\n {definite_integral}",ParseMode.MARKDOWN)
+            await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}:\n\n {definite_integral}")
 
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال معین. لطفاً تابع و حدود را به درستی وارد کنید.")
