@@ -210,8 +210,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     chat_id=update.effective_message.id
     message_id=update.message.message_id
     ADMIN_CHAT_ID=['1717599240','686724429']
-    query = update.callback_query
-    query.answer()
+
+
 
     if text =='آموزش':
         buttons=[
