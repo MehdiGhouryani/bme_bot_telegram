@@ -8,7 +8,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes , MessageHand
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from callback_map import *
 import logging
-# from telegraph import Telegraph
+from sympy import symbols, diff, integrate
 
 
 load_dotenv()
@@ -278,28 +278,72 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text == "حل مسأله ریاضیات":
        keyboard = [
-           [KeyboardButton("مشتق‌گیری")],
-           [KeyboardButton("انتگرال‌گیری")]
+           [KeyboardButton("مشتق‌گیری 📈")],
+           [KeyboardButton("انتگرال‌گیری ∫")]
        ]
        reply_markup = ReplyKeyboardMarkup(keyboard)
-       update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
+       await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
     
 
-    elif text == "مشتق‌گیری":
-        query.edit_message_text(text="تابع خود را برای مشتق‌گیری وارد کنید:")
+    elif text == "مشتق‌گیری 📈":
+        await update.message.reply_text("لطفاً تابع خود را برای مشتق‌گیری وارد کنید:")
         context.user_data['operation'] = 'derivative'
 
 
+    elif context.user_data.get('operation') == 'derivative':
+        x = symbols('x')
+        try:
+            function = eval(text)
+            derivative = diff(function, x)
+            await update.message.reply_text(f"مشتق تابع: {derivative}")
+        except Exception as e:
+            await update.message.reply_text("خطا در محاسبه مشتق. لطفاً تابع را به درستی وارد کنید.")
+        context.user_data['operation'] = None
 
-    elif text == "انتگرال‌گیری":
-        keyboard=[
-                [InlineKeyboardButton("انتگرال معین", callback_data='definite')],
-                [InlineKeyboardButton("انتگرال نامعین", callback_data='indefinite')]
-            ]
-        reply_markup=InlineKeyboardMarkup(keyboard)
 
-        update.message.reply_text(text="آیا می‌خواهید انتگرال معین یا نامعین محاسبه کنید؟",reply_markup=reply_markup)
-                               
+    elif text == "انتگرال‌گیری ∫":
+        buttons = [
+            [KeyboardButton("انتگرال نامعین"), KeyboardButton("انتگرال معین")],
+            [KeyboardButton("بازگشت به منوی اصلی ⬅️")]
+        ]
+        reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
+        await update.message.reply_text("لطفاً نوع انتگرال را انتخاب کنید:", reply_markup=reply_markup)
+
+    elif text == "انتگرال نامعین":
+        await update.message.reply_text("لطفاً تابع خود را برای انتگرال نامعین وارد کنید:")
+        context.user_data['operation'] = 'indefinite_integral'
+
+    elif text == "انتگرال معین":
+        await update.message.reply_text("لطفاً تابع خود را برای انتگرال معین وارد کنید:")
+        context.user_data['operation'] = 'definite_integral'
+        
+
+    elif context.user_data.get('operation') == 'indefinite_integral':
+        x = symbols('x')
+        try:
+            function = eval(text)
+            indefinite_integral = integrate(function, x)
+            await update.message.reply_text(f"انتگرال نامعین تابع: {indefinite_integral} + C")
+        except Exception as e:
+            await update.message.reply_text("خطا در محاسبه انتگرال. لطفاً تابع را به درستی وارد کنید.")
+        context.user_data['operation'] = None
+
+    elif context.user_data.get('operation') == 'definite_integral':
+        context.user_data['function'] = text
+        context.user_data['operation'] ='enter_limits'
+        await update.message.reply_text("لطفاً حدود انتگرال را به صورت a, b وارد کنید:")
+
+    elif context.user_data.get('operation') == 'enter_limits':
+        try:
+            x = symbols('x')
+            limits = list(map(float, text.split(',')))
+            function = eval(context.user_data.get('function'))
+            definite_integral = integrate(function, (x, limits[0], limits[1]))
+            await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}: {definite_integral}")
+        except Exception as e:
+            await update.message.reply_text("خطا در محاسبه انتگرال معین. لطفاً تابع و حدود را به درستی وارد کنید.")
+        context.user_data['operation'] = None
+                       
       
     
 
@@ -658,6 +702,21 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
 
     
+
+    
+    # انتخاب مشتق‌گیری
+    elif data == 'derivative':
+        query.edit_message_text(text="تابع خود را برای مشتق‌گیری وارد کنید:")
+        context.user_data['operation'] = 'derivative'
+    # انتخاب انتگرال‌گیری
+    elif data == 'integral':
+        query.edit_message_text(text="آیا می‌خواهید انتگرال معین یا نامعین محاسبه کنید؟",
+                                reply_markup=InlineKeyboardMarkup([
+                                    [InlineKeyboardButton("انتگرال معین", callback_data='definite')],
+                                    [InlineKeyboardButton("انتگرال نامعین", callback_data='indefinite')]
+                                ]))
+
+
    
     
     else:
