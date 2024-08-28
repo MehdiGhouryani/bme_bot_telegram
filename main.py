@@ -357,7 +357,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif context.user_data.get('operation') == 'enter_limits':
         text = (
             text.replace('√', 'sqrt') 
-                .replace('π', 'pi')   
+                .replace('π', sp.sympify('pi'))
+                .replace('-π', sp.sympify('-pi'))   
                 .replace('^', '')   
                 .replace(' ', '')     
                 .lower()          
