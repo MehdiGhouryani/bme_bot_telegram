@@ -216,7 +216,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     if text =='آموزش':
         buttons=[
         [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
-        [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
+        [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
         ]
     
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
@@ -345,6 +345,17 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         
     elif text=='بازگشت به صفحه قبل ⬅️':
         await start(update,context)
+
+
+    elif text =='بازگشت به صفحه قبل  ⬅️':
+        buttons=[
+        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
+        [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
+        ]
+    
+        reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
+        await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
+    
 
     elif text == "برو به صفحه قبل⬅️":
         keyboard = [
