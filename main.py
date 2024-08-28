@@ -291,7 +291,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         try:
             function = sympify(text)  # استفاده از sympify برای ارزیابی ایمن‌تر
             derivative = diff(function, x)
-            await update.message.reply_text(f"مشتق تابع:\n\n '{derivative}'",ParseMode.MARKDOWN_V2)
+            await update.message.reply_text(f"مشتق تابع:\n\n {derivative}",ParseMode.MARKDOWN)
+            print('-- MOSHTAGH --')
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه مشتق. لطفاً تابع را به درستی وارد کنید.")
         context.user_data['operation'] = None
@@ -317,7 +318,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         try:
             function = sympify(text)
             indefinite_integral = integrate(function, x)
-            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n '{indefinite_integral}' + C",ParseMode.MARKDOWN_V2)
+            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n {indefinite_integral}+ C",ParseMode.MARKDOWN)
+            print('-- ANTEGRAL 1 --')
 
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال. لطفاً تابع را به درستی وارد کنید.")
@@ -334,7 +336,9 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             limits = list(map(float, text.split(',')))
             function = sympify(context.user_data.get('function'))
             definite_integral = integrate(function, (x, limits[0], limits[1]))
-            await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}:\n\n '{definite_integral}'",ParseMode.MARKDOWN_V2)
+            print('-- ANTEGRAL 2')
+            await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}:\n\n {definite_integral}",ParseMode.MARKDOWN)
+
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال معین. لطفاً تابع و حدود را به درستی وارد کنید.")
         context.user_data['operation'] = None
