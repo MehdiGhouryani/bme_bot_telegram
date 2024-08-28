@@ -316,7 +316,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = 'definite_integral'
 
     elif context.user_data.get('operation') == 'indefinite_integral':
-        text = text.replace('  ',' '). 
+        text = text.replace('  ',' ').lower() 
         x = symbols('x')
         try:
             function = sympify(text)
@@ -329,13 +329,13 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = None
 
     elif context.user_data.get('operation') == 'definite_integral':
-        text = text.replace('  ',' '). 
+        text = text.replace('  ',' ').lower 
         context.user_data['function'] = text
         context.user_data['operation'] = 'enter_limits'
         await update.message.reply_text("لطفاً حدود انتگرال را به صورت a, b وارد کنید:")
 
     elif context.user_data.get('operation') == 'enter_limits':
-        text = text.replace('  ',' '). 
+        text = text.replace('  ',' ').lower 
         try:
             x = symbols('x')
             limits = list(map(float, text.split(',')))
