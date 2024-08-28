@@ -299,7 +299,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "انتگرال‌گیری ∫":
         buttons = [
             [KeyboardButton("انتگرال نامعین"), KeyboardButton("انتگرال معین")],
-            [KeyboardButton("بازگشت به منوی اصلی ⬅️")]
+            [KeyboardButton("برو به صفحه قبل⬅️")]
         ]
         reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
         await update.message.reply_text("لطفاً نوع انتگرال را انتخاب کنید:", reply_markup=reply_markup)
@@ -340,6 +340,15 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         
     elif text=='بازگشت به صفحه قبل ⬅️':
         await start(update,context)
+
+    elif text == "برو به صفحه قبل⬅️":
+        keyboard = [
+            [KeyboardButton("مشتق‌گیری 📈")],
+            [KeyboardButton("انتگرال‌گیری ∫")]
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
+
 
     elif text =='تعداد کاربران فعال':
 
@@ -691,23 +700,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'previous_question':
         await query.edit_message_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
 
-    
-
-    
-    # انتخاب مشتق‌گیری
-    elif data == 'derivative':
-        query.edit_message_text(text="تابع خود را برای مشتق‌گیری وارد کنید:")
-        context.user_data['operation'] = 'derivative'
-    # انتخاب انتگرال‌گیری
-    elif data == 'integral':
-        query.edit_message_text(text="آیا می‌خواهید انتگرال معین یا نامعین محاسبه کنید؟",
-                                reply_markup=InlineKeyboardMarkup([
-                                    [InlineKeyboardButton("انتگرال معین", callback_data='definite')],
-                                    [InlineKeyboardButton("انتگرال نامعین", callback_data='indefinite')]
-                                ]))
-
-
-   
     
     else:
         await query.answer("مثل اینکه این بخش اماده نشده هنوز  ")
