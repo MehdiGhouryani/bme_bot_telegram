@@ -317,7 +317,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         try:
             function = sympify(text)
             indefinite_integral = integrate(function, x)
-            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n '{indefinite_integral}' + C",ParseMode.MARKDOWN_V2')
+            await update.message.reply_text(f"انتگرال نامعین تابع:\n\n '{indefinite_integral}' + C",ParseMode.MARKDOWN_V2)
+
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال. لطفاً تابع را به درستی وارد کنید.")
         context.user_data['operation'] = None
