@@ -275,7 +275,6 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     
 
 
-
     elif text == "حل مسأله ریاضیات":
        keyboard = [
            [KeyboardButton("مشتق‌گیری 📈")],
@@ -290,7 +289,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = 'derivative'
 
 
-    elif context.user_data.get('operation') == 'derivative':
+    elif context.user_data.get('operation') == 'derivative' and text != "مشتق‌گیری 📈":
         x = symbols('x')
         try:
             function = eval(text)
@@ -298,7 +297,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             await update.message.reply_text(f"مشتق تابع: {derivative}")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه مشتق. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data['operation'] = None
+        context.user_data.clear()
 
 
     elif text == "انتگرال‌گیری ∫":
@@ -318,7 +317,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = 'definite_integral'
         
 
-    elif context.user_data.get('operation') == 'indefinite_integral':
+    elif context.user_data.get('operation') == 'indefinite_integral' and text != "انتگرال نامعین":
         x = symbols('x')
         try:
             function = eval(text)
@@ -326,14 +325,14 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             await update.message.reply_text(f"انتگرال نامعین تابع: {indefinite_integral} + C")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data['operation'] = None
+        context.user_data.clear()
 
-    elif context.user_data.get('operation') == 'definite_integral':
+    elif context.user_data.get('operation') == 'definite_integral' and text != "انتگرال معین":
         context.user_data['function'] = text
         context.user_data['operation'] ='enter_limits'
         await update.message.reply_text("لطفاً حدود انتگرال را به صورت a, b وارد کنید:")
 
-    elif context.user_data.get('operation') == 'enter_limits':
+    elif context.user_data.get('operation') == 'enter_limits' and text != "انتگرال معین":
         try:
             x = symbols('x')
             limits = list(map(float, text.split(',')))
@@ -342,10 +341,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}: {definite_integral}")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال معین. لطفاً تابع و حدود را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-                       
-      
-    
+        context.user_data.clear()
 
 
     elif text=='بازگشت به صفحه قبل ⬅️':
