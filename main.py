@@ -8,7 +8,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes , MessageHand
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup
 from callback_map import *
 import logging
-from sympy import symbols, diff, integrate
+from sympy import symbols, diff, integrate,sympify
 
 
 load_dotenv()
@@ -272,33 +272,29 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         # ارسال پیام
 
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
-    
 
 
-    elif text == "حل مسأله ریاضیات":
-       keyboard = [
-           [KeyboardButton("مشتق‌گیری 📈")],
-           [KeyboardButton("انتگرال‌گیری ∫")]
-       ]
-       reply_markup = ReplyKeyboardMarkup(keyboard)
-       await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
-    
+    elif text == "حل مسأله ریاضیات":  # if برای شروع اولین شرط
+        keyboard = [
+            [KeyboardButton("مشتق‌گیری 📈")],
+            [KeyboardButton("انتگرال‌گیری ∫")]
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard)
+        await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
 
     elif text == "مشتق‌گیری 📈":
         await update.message.reply_text("لطفاً تابع خود را برای مشتق‌گیری وارد کنید:")
         context.user_data['operation'] = 'derivative'
 
-
-    elif context.user_data.get('operation') == 'derivative' and text != "مشتق‌گیری 📈":
+    elif context.user_data.get('operation') == 'derivative':
         x = symbols('x')
         try:
-            function = eval(text)
+            function = sympify(text)  # استفاده از sympify برای ارزیابی ایمن‌تر
             derivative = diff(function, x)
             await update.message.reply_text(f"مشتق تابع: {derivative}")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه مشتق. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data.clear()
-
+        context.user_data['operation'] = None
 
     elif text == "انتگرال‌گیری ∫":
         buttons = [
@@ -315,35 +311,33 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "انتگرال معین":
         await update.message.reply_text("لطفاً تابع خود را برای انتگرال معین وارد کنید:")
         context.user_data['operation'] = 'definite_integral'
-        
 
-    elif context.user_data.get('operation') == 'indefinite_integral' and text != "انتگرال نامعین":
+    elif context.user_data.get('operation') == 'indefinite_integral':
         x = symbols('x')
         try:
-            function = eval(text)
+            function = sympify(text)
             indefinite_integral = integrate(function, x)
             await update.message.reply_text(f"انتگرال نامعین تابع: {indefinite_integral} + C")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data.clear()
+        context.user_data['operation'] = None
 
-    elif context.user_data.get('operation') == 'definite_integral' and text != "انتگرال معین":
+    elif context.user_data.get('operation') == 'definite_integral':
         context.user_data['function'] = text
-        context.user_data['operation'] ='enter_limits'
+        context.user_data['operation'] = 'enter_limits'
         await update.message.reply_text("لطفاً حدود انتگرال را به صورت a, b وارد کنید:")
 
-    elif context.user_data.get('operation') == 'enter_limits' and text != "انتگرال معین":
+    elif context.user_data.get('operation') == 'enter_limits':
         try:
             x = symbols('x')
             limits = list(map(float, text.split(',')))
-            function = eval(context.user_data.get('function'))
+            function = sympify(context.user_data.get('function'))
             definite_integral = integrate(function, (x, limits[0], limits[1]))
             await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}: {definite_integral}")
         except Exception as e:
             await update.message.reply_text("خطا در محاسبه انتگرال معین. لطفاً تابع و حدود را به درستی وارد کنید.")
-        context.user_data.clear()
-
-
+        context.user_data['operation'] = None
+        
     elif text=='بازگشت به صفحه قبل ⬅️':
         await start(update,context)
 
