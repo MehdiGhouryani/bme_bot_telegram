@@ -336,7 +336,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             limits = list(map(float, text.split(',')))
             function = sympify(context.user_data.get('function'))
             definite_integral = integrate(function, (x, limits[0], limits[1]))
-            print('-- ANTEGRAL 2')
+            print('-- ANTEGRAL 2 --')
             await update.message.reply_text(f"انتگرال معین تابع بین {limits[0]} و {limits[1]}:\n\n {definite_integral}",ParseMode.MARKDOWN)
 
         except Exception as e:
