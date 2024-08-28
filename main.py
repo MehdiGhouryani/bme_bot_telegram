@@ -280,9 +280,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"), KeyboardButton("انتگرال‌گیری ∫")],
             [KeyboardButton("مشتقات جزئی ∂"), KeyboardButton("انتگرال چندگانه ∬")],
-            [KeyboardButton("معادلات جبری 𝑓(x) = 0"), KeyboardButton("دیفرانسیل 𝑑/𝑑𝑥")],
-            [KeyboardButton("حد lim"), KeyboardButton("لاپلاس ℒ و فوریه ℱ")],
-            [KeyboardButton("ماتریس 𝐴")],
+
             [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
@@ -432,153 +430,6 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['operation'] = None
 
 
-    elif text == "معادلات جبری 𝑓(x) = 0":
-        await update.message.reply_text("لطفاً معادله جبری خود را وارد کنید:")
-        context.user_data['operation'] = 'algebraic_equation'
-
-    elif context.user_data.get('operation') == 'algebraic_equation':
-        text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
-                .replace(' ', '')   
-                .lower()             
-        )
-
-        x = symbols('x')
-        try:
-            equation = sympify(text)
-            solutions = solve(equation, x)
-            await update.message.reply_text(f"ریشه‌های معادله جبری:\n\n {solutions}")
-            print('-- ALGEBRAIC EQUATION --')
-        except Exception as e:
-            await update.message.reply_text("خطا در حل معادله جبری. لطفاً معادله را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-
-
-
-    elif text == "دیفرانسیل 𝑑/𝑑𝑥":
-        await update.message.reply_text("لطفاً معادله دیفرانسیل خود را وارد کنید:")
-        context.user_data['operation'] = 'differential_equation'
-
-    elif context.user_data.get('operation') == 'differential_equation':
-        text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
-                .replace(' ', '')   
-                .lower()             
-        )
-        x = symbols('x')
-        try:
-            equation = sympify(text)
-            solution = dsolve(equation, x)
-            await update.message.reply_text(f"حل معادله دیفرانسیل:\n\n {solution}")
-            print('-- DIFFERENTIAL EQUATION --')
-        except Exception as e:
-            await update.message.reply_text("خطا در حل معادله دیفرانسیل. لطفاً معادله را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-        
-
-
-    elif text == "حد lim":
-        await update.message.reply_text("لطفاً تابع خود را برای محاسبه حد وارد کنید:")
-        context.user_data['operation'] = 'limit'
-
-    elif context.user_data.get('operation') == 'limit':
-        text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
-                .replace(' ', '')   
-                .lower()             
-        )
-
-        x = symbols('x')
-        try:
-            function = sympify(text)
-            limit_result = limit(function, x, 0)  # اینجا فرض بر محاسبه حد در نقطه 0 است
-            await update.message.reply_text(f"حد تابع:\n\n {limit_result}")
-            print('-- LIMIT --')
-        except Exception as e:
-            await update.message.reply_text("خطا در محاسبه حد. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-
-
-
-    elif text == "لاپلاس ℒ و فوریه ℱ":
-        buttons = [
-            [KeyboardButton("تبدیل لاپلاس ℒ"), KeyboardButton("تبدیل فوریه ℱ")],
-            [KeyboardButton("برو به صفحه قبل⬅️")]
-        ]
-        reply_markup = ReplyKeyboardMarkup(buttons, resize_keyboard=True)
-        await update.message.reply_text("لطفاً نوع تبدیل را انتخاب کنید:", reply_markup=reply_markup)
-
-    elif text == "تبدیل لاپلاس ℒ":
-        await update.message.reply_text("لطفاً تابع خود را برای تبدیل لاپلاس وارد کنید:")
-        context.user_data['operation'] = 'laplace_transform'
-
-    elif text == "تبدیل فوریه ℱ":
-        await update.message.reply_text("لطفاً تابع خود را برای تبدیل فوریه وارد کنید:")
-        context.user_data['operation'] = 'fourier_transform'
-
-    elif context.user_data.get('operation') == 'laplace_transform':
-        text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
-                .replace(' ', '')   
-                .lower()             
-        )
-
-        t, s = symbols('t s')
-        try:
-            function = sympify(text)
-            laplace = laplace_transform(function, t, s)
-            await update.message.reply_text(f"تبدیل لاپلاس تابع:\n\n {laplace}")
-            print('-- LAPLACE TRANSFORM --')
-        except Exception as e:
-            await update.message.reply_text("خطا در محاسبه تبدیل لاپلاس. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-
-    elif context.user_data.get('operation') == 'fourier_transform':
-        text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
-                .replace(' ', '')   
-                .lower()             
-        )
-
-        x, k = symbols('x k')
-        try:
-            function = sympify(text)
-            fourier = fourier_transform(function, x, k)
-            await update.message.reply_text(f"تبدیل فوریه تابع:\n\n {fourier}")
-            print('-- FOURIER TRANSFORM --')
-        except Exception as e:
-            await update.message.reply_text("خطا در محاسبه تبدیل فوریه. لطفاً تابع را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-
-
-    elif text == "ماتریس 𝐴":
-        await update.message.reply_text("لطفاً عناصر ماتریس را به صورت یک لیست دوبعدی وارد کنید:")
-        context.user_data['operation'] = 'matrix_operations'
-
-    elif context.user_data.get('operation') == 'matrix_operations':
-        try:
-            matrix = sympify(text)
-            determinant = matrix.det()
-            inverse = matrix.inv() if matrix.det() != 0 else "ماتریس معکوس ندارد"
-
-
-            await update.message.reply_text(f"دترمینان ماتریس:\n\n {determinant}\n\nمعکوس ماتریس:\n\n {inverse}")
-            print('-- MATRIX OPERATIONS --')
-        except Exception as e:
-            await update.message.reply_text("خطا در محاسبه عملیات ماتریسی. لطفاً ماتریس را به درستی وارد کنید.")
-        context.user_data['operation'] = None
-    
-
 
     
     elif text=='بازگشت به صفحه قبل ⬅️':
@@ -600,9 +451,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"), KeyboardButton("انتگرال‌گیری ∫")],
             [KeyboardButton("مشتقات جزئی ∂"), KeyboardButton("انتگرال چندگانه ∬")],
-            [KeyboardButton("معادلات جبری 𝑓(x) = 0"), KeyboardButton("دیفرانسیل 𝑑/𝑑𝑥")],
-            [KeyboardButton("حد lim"), KeyboardButton("لاپلاس ℒ و فوریه ℱ")],
-            [KeyboardButton("ماتریس 𝐴")],
+
             [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
