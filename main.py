@@ -357,8 +357,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif context.user_data.get('operation') == 'enter_limits':
         text = (
             text.replace('√', 'sqrt') 
-                .replace('π', sympify('pi'))
-                .replace('-π',sympify('-pi'))   
+                .replace('π', 'pi')
+                .replace('-π','-pi')   
                 .replace('^', '')   
                 .replace(' ', '')     
                 .lower()          
@@ -366,7 +366,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
         try:
             x = symbols('x')
-            limits = list(map(float, text.split(',')))
+            limits = list(map(lambda limit:sympify(limit), text.split(',')))
             function = sympify(context.user_data.get('function'))
             definite_integral = integrate(function, (x, limits[0], limits[1]))
             print('-- ANTEGRAL 2 --')
