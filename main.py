@@ -277,7 +277,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "حل مسأله ریاضیات":  # if برای شروع اولین شرط
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"),KeyboardButton("انتگرال‌گیری ∫")],
-            [KeyboardButton("بازگشت ⬅️ ")]
+            [KeyboardButton("بازگشت به صفحه قبل ⬅️")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True)
         await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
@@ -344,10 +344,11 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "برو به صفحه قبل⬅️":
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"),KeyboardButton("انتگرال‌گیری ∫")],
-            [KeyboardButton("بازگشت ⬅️ ")]
+            [KeyboardButton("بازگشت به صفحه قبل ⬅️")]
         ]
         reply_markup = ReplyKeyboardMarkup(keyboard,resize_keyboard=True)
         await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
+
 
 
     elif text =='تعداد کاربران فعال':
