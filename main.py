@@ -45,8 +45,8 @@ async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
 ''',reply_markup=reply_markup)
         else:
             keyboard = [
-                [KeyboardButton("تجهیزات پزشکی  🩺"),]
-                ,[KeyboardButton("سنسور ها و قطعات")]
+                [KeyboardButton("آموزش"),]
+                ,[KeyboardButton("حل مسأله ریاضیات")]
                 ,[KeyboardButton("سوالات متداول")]
                 ,[KeyboardButton("درخواست و پیشنهاد 📝")]
                 
@@ -89,13 +89,13 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("عضویت شما تایید شد.")
             await query.delete_message()
             keyboard = [
-            [KeyboardButton("تجهیزات پزشکی  🩺"),]
-            ,[KeyboardButton("سنسور ها و قطعات")]
-            ,[KeyboardButton("سوالات متداول")]
-            ,[KeyboardButton("درخواست و پیشنهاد 📝")]
+                [KeyboardButton("آموزش"),]
+                ,[KeyboardButton("حل مسأله ریاضیات")]
+                ,[KeyboardButton("سوالات متداول")]
+                ,[KeyboardButton("درخواست و پیشنهاد 📝")]
                 
             ]
-
+    
             reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
             await context.bot.send_message(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
 
@@ -210,8 +210,19 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     chat_id=update.effective_message.id
     message_id=update.message.message_id
     ADMIN_CHAT_ID=['1717599240','686724429']
- 
-    if text == "تجهیزات پزشکی  🩺":
+    query = update.callback_query
+    query.answer()
+
+    if text =='آموزش':
+        buttons=[
+        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
+        [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
+        ]
+    
+        reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
+        await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
+
+    elif text == "تجهیزات پزشکی  🩺":
 
         reply_markup = InlineKeyboardMarkup(main_keyboard)
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
@@ -263,7 +274,36 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
     
 
-    #     ]
+
+
+    elif text == "حل مسأله ریاضیات":
+       keyboard = [
+           [KeyboardButton("مشتق‌گیری")],
+           [KeyboardButton("انتگرال‌گیری")]
+       ]
+       reply_markup = ReplyKeyboardMarkup(keyboard)
+       update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
+    
+
+    elif text == "مشتق‌گیری":
+        query.edit_message_text(text="تابع خود را برای مشتق‌گیری وارد کنید:")
+        context.user_data['operation'] = 'derivative'
+
+
+
+    elif text == "انتگرال‌گیری":
+        keyboard=[
+                [InlineKeyboardButton("انتگرال معین", callback_data='definite')],
+                [InlineKeyboardButton("انتگرال نامعین", callback_data='indefinite')]
+            ]
+        reply_markup=InlineKeyboardMarkup(keyboard)
+
+        update.message.reply_text(text="آیا می‌خواهید انتگرال معین یا نامعین محاسبه کنید؟",reply_markup=reply_markup)
+                               
+      
+    
+
+
     elif text=='بازگشت به صفحه قبل ⬅️':
         await start(update,context)
 
@@ -617,8 +657,8 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif data == 'previous_question':
         await query.edit_message_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ برو به صفحه بعد ',callback_data='next_question')]]))
 
-
-
+    
+   
     
     else:
         await query.answer("مثل اینکه این بخش اماده نشده هنوز  ")
