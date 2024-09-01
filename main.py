@@ -599,7 +599,7 @@ categories = {
         'general_medical', 'hospital_equipment','emergency_equipment'
     ],
     'rehabilitation_and_support': [
-        'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
+        'rehabilitation_and_support', 'rehabilitation', 'patient_support'
     ],
     'specialized_equipment': [
         'specialized_equipment', 'cardiovascular_equipment', 'neurology_equipment',
@@ -655,7 +655,7 @@ keyboard_map = {
     'emergency_equipment': keyboard_emergency_equipment,
 
     'rehabilitation': keyboard_rehabilitation,
-    'patient_support': keyboard_patient_support_equipment,
+    'patient_support': keyboard_patient_support,
 
     'cardiovascular_equipment': keyboard_cardiovascular_equipment,
     'neurology_equipment': keyboard_neurology_equipment,

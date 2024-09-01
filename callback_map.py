@@ -480,7 +480,7 @@ class callback_map:
         for device in rehabilitation_and_support_devices['rehabilitation']:
             callback_map[device] = rehabilitation_class.rehabilitation
 
-        for device in rehabilitation_and_support_devices['patient_support_equipment']:
+        for device in rehabilitation_and_support_devices['patient_support']:
             callback_map[device] = rehabilitation_class.patient_support_equipment
     
         return callback_map

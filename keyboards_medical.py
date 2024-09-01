@@ -285,7 +285,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='support_rehabilitation_equipment')],
         ]
 
-    def get_keyboard_patient_support_equipment(self):
+    def get_keyboard_patient_support(self):
         return [
             [InlineKeyboardButton('تشک‌های فشارمتغیر', callback_data='pressure_relief')],
             [InlineKeyboardButton('دستگاه‌های بالابر بیمار', callback_data='patient_lifts')],
