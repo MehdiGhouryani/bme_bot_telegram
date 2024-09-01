@@ -643,7 +643,7 @@ keyboard_map = {
     'orthopedic_therapeutic_equipment': keyboard_orthopedic_therapeutic_equipment,
     'cardiovascular_therapeutic_equipment': keyboard_cardiovascular_therapeutic_equipment,
     'respiratory_equipment': keyboard_respiratory_equipment,
-    'other_therapeutic_equipment': other_therapeutic_equipment,
+    'other_therapeutic_equipment': keyboard_other_therapeutic_equipment,
 
 
     'cardiac_monitors': keyboard_cardiac_monitors,
