@@ -1,6 +1,6 @@
 test.py
 images/
-myvenv/
+venv/
 .env
 optimize.py
 users.db

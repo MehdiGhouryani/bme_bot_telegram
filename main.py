@@ -672,76 +672,6 @@ keyboard_map = {
 
 
 
-# لیست دستگاه‌های تشخیصی
-Diagnostic_devices = {
-    'imaging_devices': ['xray', 'ct_scan', 'mri', 'ultrasound', 'mammography', 'fluoroscopy', 'pet_scan', 'blood_analyzers'],
-    'laboratory_devices': ['blood_analyzers', 'electrophoresis_equipment', 'spectrophotometers'],
-    'cardiac_devices': ['ecg', 'echocardiography'],
-    'neurological_devices': ['eeg', 'emg'],
-    'pulmonary_devices': ['spirometer', 'polysomnography', 'pulse_oximetry'],
-    'gastrointestinal_devices': ['endoscopy'],
-    'ent_diagnostic_devices': ['otoscope', 'audiogram', 'laryngoscope'],
-    'ophthalmic_diagnostic_devices': ['ophthalmoscope', 'tonometer', 'slit_lamp']
-}
-
-# لیست دستگاه‌های درمانی
-therapeutic_devices = {
-    'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
-    'orthopedic_equipment_therapeutic': ['prosthetics_orthotics', 'physical_therapy_equipment', 'electrotherapy_devices'],
-    'cardiovascular_equipment_therapeutic': ['pacemakers', 'defibrillators'],
-    'respiratory_equipment': ['ventilators', 'nebulizers'],
-    'other_therapeutic_equipment': ['therapeutic_laser_machines', 'dialysis_machines']
-}
-
-# لیست دستگاه‌های مانیتورینگ
-monitoring_devices = {
-    'cardiac_monitors': ['ecg_monitors', 'automatic_blood_pressure_monitors', 'manual_blood_pressure_monitors'],
-    'fetal_maternal_monitors':['maternal_monitors'],
-    'fetal_monitors': ['neonatal_monitors', 'fetal_heart_rate_monitors'],
-    'blood_glucose_monitors': ['portable_blood_glucose_meters', 'continuous_blood_glucose_monitors']
-}
-
-
-# لیست دستگاه‌های تجهیزات عمومی
-general_equipment_devices = {
-    'hospital_equipment': ['hospital_beds','sterilizers','medical_trolleys',],
-    
-    'emergency_equipment': ['resuscitation','ambu_bags', 'cpr','defibrillators']
-}
-
-
-
-# لیست دستگاه‌های تجهیزات تخصصی
-specialized_equipment_devices = {
-    'cardiovascular_equipment': ['cardiac_catheters','stents','pacemakers','implantable_defibrillators'],
-    'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
-    'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
-    'obstetrics_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
-    'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
-    'dental_equipment': ['dental_units','panoramic_xray_machines','dental_lasers'],
-    'dermatology_equipment': ['dermatoscopes','dermatological_lasers']
-}
-
-
-# لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
-rehabilitation_and_support_devices = {
-    # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
-    'rehabilitation':['tens_units','ems_units'],
-    'patient_support': ['pressure_relief_mattresses','patient_lifts']
-}
-
-
-
-
-# لیست دستگاه‌های تجهیزات مراقبت در منزل
-home_care_equipment_devices = {
-        'daily_care_equipment':['home_blood_pressure_monitors','home_blood_glucose_meters'],
-        'home_respiratory_equipment':['oxygen_concentrators']
-
-}
-
-
-
 
 
 
@@ -785,15 +715,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
 
-        
-        keyboard_definition =([
-            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')],
-            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
-            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
-        ])
-        reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
 
         print(f" ---- in the action  {line}----")
 
@@ -808,7 +729,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_definition)
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=keyboard_menu)
         else:
             print('----------')
 
