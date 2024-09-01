@@ -151,7 +151,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
-    def get_keyboard_respiratory(self):
+    def get_keyboard_respiratory_equipment(self):
         return [
             [InlineKeyboardButton('ونتیلاتورها', callback_data='ventilators')],
             [InlineKeyboardButton('نبولایزرها', callback_data='nebulizers')],
