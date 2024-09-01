@@ -17,7 +17,7 @@ Diagnostic_devices = {
 # لیست دستگاه‌های درمانی
 therapeutic_devices = {
     'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
-    'orthopedic_therapeutic': ['prosthetics_orthotics', 'physical_therapy', 'electrotherapy'],
+    'orthopedic_therapeutic': ['prosthetics_or', 'physical_therapy', 'electrotherapy'],
     'cardiovascular_therapeutic_equipment': ['PCR', 'defibr'],
     'respiratory_equipment': ['ventilators', 'nebulizers'],
     'other_therapeutic_equipment': [ 'dialysis','therapeutic_laser']

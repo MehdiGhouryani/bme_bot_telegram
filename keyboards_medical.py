@@ -138,7 +138,7 @@ class KeyboardsManager:
 
     def get_keyboard_orthopedic_therapeutic(self):
         return [
-            [InlineKeyboardButton('پروتزها و ارتزها', callback_data='prosthetics_orthotics')],
+            [InlineKeyboardButton('پروتزها و ارتزها', callback_data='prosthetics_or')],
             [InlineKeyboardButton('دستگاه‌های فیزیوتراپی', callback_data='physical_therapy')],
             [InlineKeyboardButton('دستگاه‌های الکتروتراپی', callback_data='electrotherapy')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
