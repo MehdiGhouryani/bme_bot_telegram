@@ -125,7 +125,7 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='back_to_main')],
         ]
 
-    def get_keyboard_surgical(self):
+    def get_keyboard_surgical_equipment(self):
         return [
             [InlineKeyboardButton('ابزارهای جراحی', callback_data='surgical_instruments')],
             [InlineKeyboardButton('الکتروکوتر', callback_data='electrocautery')],
