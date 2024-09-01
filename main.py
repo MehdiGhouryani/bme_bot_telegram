@@ -689,15 +689,18 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cursor = connection.cursor()
     
     if data in combined_callback_map:
+      print("----- in the combined -----")
       await combined_callback_map[data](data,update, context)
 
     elif data in keyboard_map:
+        print("---- in the keyboard_map ----")
         reply_markup = InlineKeyboardMarkup(keyboard_map[data])
         await query.edit_message_reply_markup(reply_markup=reply_markup)
 
 
 
     elif ':' in data:
+        print(" ---- in the action  ----")
         device, action = data.split(':')
         keyboard_menu =([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
@@ -710,7 +713,17 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
 
-    
+        
+        keyboard_definition =([
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+        ])
+        reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
+
+
         
 
 
@@ -722,7 +735,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=keyboard_menu)
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_definition)
         else:
             print('----------')
 
