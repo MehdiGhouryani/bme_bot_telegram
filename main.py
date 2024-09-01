@@ -700,7 +700,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     elif ':' in data:
-        print(" ---- in the action  ----")
+        
         device, action = data.split(':')
         keyboard_menu =([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
@@ -723,6 +723,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
         reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
 
+        print(f" ---- in the action  {category}----")
 
         
 
