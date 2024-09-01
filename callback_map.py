@@ -17,8 +17,8 @@ Diagnostic_devices = {
 # لیست دستگاه‌های درمانی
 therapeutic_devices = {
     'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
-    'orthopedic_equipment_therapeutic': ['prosthetics_orthotics', 'physical_therapy_equipment', 'electrotherapy_devices'],
-    'cardiovascular_equipment_therapeutic': ['pacemakers', 'defibrillators'],
+    'orthopedic_therapeutic_equipment': ['prosthetics_orthotics', 'physical_therapy_equipment', 'electrotherapy_devices'],
+    'cardiovascular_therapeutic_equipment': ['pacemakers', 'defibrillators'],
     'respiratory_equipment': ['ventilators', 'nebulizers'],
     'other_therapeutic_equipment': ['therapeutic_laser_machines', 'dialysis_machines']
 }
@@ -46,7 +46,7 @@ specialized_equipment_devices = {
     'cardiovascular_equipment': ['cardiac_catheters','stents','pacemakers','implantable_defibrillators'],
     'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
     'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
-    'obstetrics_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
+    'obstetrics_and_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
     'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
     'dental_equipment': ['dental_units','panoramic_xray_machines','dental_lasers'],
     'dermatology_equipment': ['dermatoscopes','dermatological_lasers']
@@ -152,11 +152,11 @@ class Therapeutic:
     async def surgical_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'surgical_equipment')
 
-    async def orthopedic_equipment_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'orthopedic_equipment_therapeutic')
+    async def orthopedic_therapeutic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'orthopedic_therapeutic_equipment')
 
-    async def cardiovascular_equipment_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'cardiovascular_equipment_therapeutic')
+    async def cardiovascular_therapeutic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiovascular_therapeutic_equipment')
 
     async def respiratory_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'respiratory_equipment')
@@ -252,8 +252,8 @@ class SpecializedEquipment:
     async def orthopedic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'orthopedic_equipment')
 
-    async def obstetrics_gynecology_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'obstetrics_gynecology_equipment')
+    async def obstetrics_and_gynecology_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'obstetrics_and_gynecology_equipment')
 
     async def ent_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'ent_equipment')
@@ -388,11 +388,11 @@ class callback_map:
         for keys in therapeutic_devices['surgical_equipment']:
             callback_map[keys] =therapeutic_class.surgical_equipment
 
-        for keys in therapeutic_devices['orthopedic_equipment_therapeutic']:
-            callback_map[keys] =therapeutic_class.orthopedic_equipment_therapeutic
+        for keys in therapeutic_devices['orthopedic_therapeutic_equipment']:
+            callback_map[keys] =therapeutic_class.orthopedic_therapeutic_equipment
 
-        for keys in therapeutic_devices['cardiovascular_equipment_therapeutic']:
-            callback_map[keys] =therapeutic_class.cardiovascular_equipment_therapeutic
+        for keys in therapeutic_devices['cardiovascular_therapeutic_equipment']:
+            callback_map[keys] =therapeutic_class.cardiovascular_therapeutic_equipment
 
         for keys in therapeutic_devices['respiratory_equipment']:
             callback_map[keys] =therapeutic_class.respiratory_equipment
@@ -456,8 +456,8 @@ class callback_map:
         for device in specialized_equipment_devices['orthopedic_equipment']:
             callback_map[device] = specialized_class.orthopedic_equipment
     
-        for device in specialized_equipment_devices['obstetrics_gynecology_equipment']:
-            callback_map[device] = specialized_class.obstetrics_gynecology_equipment
+        for device in specialized_equipment_devices['obstetrics_and_gynecology_equipment']:
+            callback_map[device] = specialized_class.obstetrics_and_gynecology_equipment
     
         for device in specialized_equipment_devices['ent_equipment']:
             callback_map[device] = specialized_class.ent_equipment
