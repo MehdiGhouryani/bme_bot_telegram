@@ -155,8 +155,8 @@ class Therapeutic:
     async def orthopedic_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context,'orthopedic_therapeutic')
 
-    async def cardiovascular_therapeutic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'cardiovascular_therapeutic_equipment')
+    async def cardiovascular_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiovascular_therapeutic')
 
     async def respiratory_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'respiratory_equipment')
@@ -391,8 +391,8 @@ class callback_map:
         for keys in therapeutic_devices['orthopedic_therapeutic']:
             callback_map[keys] =therapeutic_class.orthopedic_therapeutic
 
-        for keys in therapeutic_devices['cardiovascular_therapeutic_equipment']:
-            callback_map[keys] =therapeutic_class.cardiovascular_therapeutic_equipment
+        for keys in therapeutic_devices['cardiovascular_therapeutic']:
+            callback_map[keys] =therapeutic_class.cardiovascular_therapeutic
 
         for keys in therapeutic_devices['respiratory_equipment']:
             callback_map[keys] =therapeutic_class.respiratory_equipment
