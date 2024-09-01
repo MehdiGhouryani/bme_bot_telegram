@@ -516,6 +516,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
+
+
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print("handle photo")
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
@@ -553,6 +555,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+
 class_callback_map = callback_map()
 callback_map_diagnostic = class_callback_map.callback_map_diagnostic()
 callback_map_therapeutic = class_callback_map.callback_map_therapeutic()
@@ -562,6 +565,7 @@ callback_map_specialized = class_callback_map.callback_map_specialized_equipment
 callback_map_rehabilitation = class_callback_map.callback_map_rehabilitation_and_support()
 callback_map_homecare = class_callback_map.callback_map_home_care_equipment()
 
+keyboard_inline =generate_keys()
 
 combined_callback_map = {}
 combined_callback_map.update(callback_map_diagnostic)
@@ -578,43 +582,43 @@ keyboards_manager = KeyboardsManager()
 # دسته‌بندی‌های اصلی
 main_keyboard = keyboards_manager.get_keyboard_main_categories()
 
-# دسته‌بندی‌های مختلف
-categories = {
-    'diagnostic': [
-        'diagnostic', 'imaging_devices', 'laboratory_devices',
-        'cardiac_devices', 'neurological_devices',
-        'pulmonary_devices', 'gastrointestinal_devices',
-        'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
-    ],
-    'therapeutic': [
-        'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
-        'respiratory', 'other_therapeutic'
-    ],
-    'monitoring': [
-        'monitoring','cardiac_monitors',
-        'fetal_maternal_monitors', 'fetal_monitors',
-        'blood_glucose_monitors'
-    ],
-    'general_medical': [
-        'general_medical', 'hospital_equipment','emergency_equipment'
-    ],
-    'rehabilitation_and_support': [
-        'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
-    ],
-    'specialized_equipment': [
-        'specialized_equipment', 'cardiovascular_equipment', 'neurology_equipment',
-        'orthopedic_equipment', 'obstetrics_and_gynecology_equipment',
-        'ent_equipment', 'dental_equipment', 'dermatology_equipment'
-    ],
-    'home_care_equipment': [
-        'home_care_equipment', 'daily_care_equipment', 'home_respiratory_equipment'
-    ]
-}
+# # دسته‌بندی‌های مختلف
+# categories = {
+#     'diagnostic': [
+#         'diagnostic', 'imaging_devices', 'laboratory_devices',
+#         'cardiac_devices', 'neurological_devices',
+#         'pulmonary_devices', 'gastrointestinal_devices',
+#         'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
+#     ],
+#     'therapeutic': [
+#         'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
+#         'respiratory', 'other_therapeutic'
+#     ],
+#     'monitoring': [
+#         'monitoring','cardiac_monitors',
+#         'fetal_maternal_monitors', 'fetal_monitors',
+#         'blood_glucose_monitors'
+#     ],
+#     'general_medical': [
+#         'general_medical', 'hospital_equipment','emergency_equipment'
+#     ],
+#     'rehabilitation_and_support': [
+#         'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
+#     ],
+#     'specialized_equipment': [
+#         'specialized_equipment', 'cardiovascular_equipment', 'neurology_equipment',
+#         'orthopedic_equipment', 'obstetrics_and_gynecology_equipment',
+#         'ent_equipment', 'dental_equipment', 'dermatology_equipment'
+#     ],
+#     'home_care_equipment': [
+#         'home_care_equipment', 'daily_care_equipment', 'home_respiratory_equipment'
+#     ]
+# }
 
-# ایجاد کیبوردها برای هر دسته‌بندی
-for category, subcategories in categories.items():
-    for subcategory in subcategories:
-        globals()[f"keyboard_{subcategory}"] = getattr(keyboards_manager, f"get_keyboard_{subcategory}")()
+# # ایجاد کیبوردها برای هر دسته‌بندی
+# for category, subcategories in categories.items():
+#     for subcategory in subcategories:
+#         globals()[f"keyboard_{subcategory}"] = getattr(keyboards_manager, f"get_keyboard_{subcategory}")()
         
 
 
@@ -698,25 +702,30 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     elif ':' in data:
-        device, action = data.split(':')
-        keyboard_menu =([
-            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
-            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
-            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
-        ])
-        reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
+        # device, action = data.split(':')
+        # keyboard_menu =([
+        #     [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
+        #      InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
+        #     [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+        #     [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
+        #      InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+        #     [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), 
+        #      InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+        #     [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+        # ])
+        reply_markup_menu =InlineKeyboardMarkup(keyboard_inline)
 
         
-        keyboard_definition =([
-            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')],
-            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
-            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
-        ])
-        reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
+        # keyboard_definition =([
+        #     [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types')],
+        #     [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+        #     [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
+        #      InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+        #     [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), 
+        #      InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+        #     [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+        # ])
+        reply_markup_definition =InlineKeyboardMarkup(keyboard_inline)
 
 
         
