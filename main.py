@@ -757,7 +757,7 @@ def generate_keys(device_list,line):
              InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies:{line}')],
             [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages:{line}'), 
              InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety:{line}')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=f"bach:back:{line}")],
         ])
     return keys
 
