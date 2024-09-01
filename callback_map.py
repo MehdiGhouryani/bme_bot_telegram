@@ -83,7 +83,7 @@ def generate_keys(device_list,category):
             [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
             [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
             [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ', callback_data=category)],
         ])
     return keys
 
