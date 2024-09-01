@@ -693,7 +693,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
       await combined_callback_map[data](data,update, context)
 
     elif data in keyboard_map:
-        print("---- in the keyboard_map ----")
+        print(f"---- in the keyboard_map ----{data} --------}")
         reply_markup = InlineKeyboardMarkup(keyboard_map[data])
         await query.edit_message_reply_markup(reply_markup=reply_markup)
 
