@@ -5,22 +5,22 @@ from telegram.ext import ContextTypes
 # لیست دستگاه‌های تشخیصی
 Diagnostic_devices = {
     'imaging_devices': ['xray', 'ct_scan', 'mri', 'ultrasound', 'mammography', 'fluoroscopy', 'pet_scan', 'blood_analyzers'],
-    'laboratory_devices': ['blood_analyzers', 'electrophoresis_equipment', 'spectrophotometers'],
+    'laboratory_devices': ['blood_analyzers', 'electrophoresis', 'spectrophotometers'],
     'cardiac_devices': ['ecg', 'echocardiography'],
     'neurological_devices': ['eeg', 'emg'],
     'pulmonary_devices': ['spirometer', 'polysomnography', 'pulse_oximetry'],
     'gastrointestinal_devices': ['endoscopy'],
     'ent_diagnostic_devices': ['otoscope', 'audiogram', 'laryngoscope'],
-    'ophthalmic_diagnostic_devices': ['ophthalmoscope', 'tonometer', 'slit_lamp']
+    'ophthalmic_diagnostic': ['ophthalmoscope', 'tonometer', 'slit_lamp']
 }
 
 # لیست دستگاه‌های درمانی
 therapeutic_devices = {
-    'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
+    'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robo_surgical'],
     'orthopedic_therapeutic': ['prosthes', 'physical_therapy', 'electrotherapy'],
-    'cardiovascular_therapeutic_equipment': ['PCR', 'defibr'],
+    'cardiovascular_therapeutic': ['PCR', 'defibr'],
     'respiratory_equipment': ['ventilators', 'nebulizers'],
-    'other_therapeutic_equipment': [ 'dialysis','therapeutic_laser']
+    'other_therapeutic_equipment': [ 'dialysis','therapy_laser']
 }
 
 # لیست دستگاه‌های مانیتورینگ
@@ -28,7 +28,7 @@ monitoring_devices = {
     'cardiac_monitors': ['ecg_monitors', 'automatic_pressure', 'manual_pressure'],
     'fetal_maternal_monitors':['maternal'],
     'fetal_monitors': ['neonatal_monitors', 'fetal_heart_rate'],
-    'blood_glucose_monitors': ['portable_glucose', 'continuous_glucose']
+    'blood_glucose_monitors': ['portable_glucose', 'contine_glucose']
 }
 
 
@@ -46,7 +46,7 @@ specialized_equipment_devices = {
     'cardiovascular_equipment': ['catheters','stents','implantable'],
     'neurology_equipment': ['eeg_machines','tms_machines'],
     'orthopedic_equipment': ['external_fixators','prosthetics'],
-    'obstetrics_and_gynecology_equipment': ['obgyn_ultrasound','fetal_sys'],
+    'obstetrics_and_gynecology_equipment': ['obgyn','fetals'],
     'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
     'dental_equipment': ['dental_units','panoramic','dental_lasers'],
     'dermatology_equipment': ['dermatoscopes','derma_laser']
@@ -129,8 +129,8 @@ class Diagnostic:
     async def ent_diagnostic_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'ent_diagnostic_devices')
 
-    async def ophthalmic_diagnostic_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'ophthalmic_diagnostic_devices')
+    async def ophthalmic_diagnostic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'ophthalmic_diagnostic')
 
 
 
@@ -370,8 +370,8 @@ class callback_map:
         for keys in Diagnostic_devices['ent_diagnostic_devices']:
             callback_map[keys] = diagnostic_class.ent_diagnostic_devices
     
-        for keys in Diagnostic_devices['ophthalmic_diagnostic_devices']:
-            callback_map[keys] = diagnostic_class.ophthalmic_diagnostic_devices
+        for keys in Diagnostic_devices['ophthalmic_diagnostic']:
+            callback_map[keys] = diagnostic_class.ophthalmic_diagnostic
 
         return callback_map
 

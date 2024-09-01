@@ -584,10 +584,10 @@ categories = {
         'diagnostic', 'imaging_devices', 'laboratory_devices',
         'cardiac_devices', 'neurological_devices',
         'pulmonary_devices', 'gastrointestinal_devices',
-        'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
+        'ent_diagnostic_devices', 'ophthalmic_diagnostic'
     ],
     'therapeutic': [
-        'therapeutic', 'surgical_equipment', 'orthopedic_therapeutic', 'cardiovascular_therapeutic_equipment',
+        'therapeutic', 'surgical_equipment', 'orthopedic_therapeutic', 'cardiovascular_therapeutic',
         'respiratory_equipment', 'other_therapeutic_equipment'
     ],
     'monitoring': [
@@ -637,11 +637,11 @@ keyboard_map = {
     'pulmonary_devices': keyboard_pulmonary_devices,
     'gastrointestinal_devices': keyboard_gastrointestinal_devices,
     'ent_diagnostic_devices': keyboard_ent_diagnostic_devices,
-    'ophthalmic_diagnostic_devices': keyboard_ophthalmic_diagnostic_devices,
+    'ophthalmic_diagnostic': keyboard_ophthalmic_diagnostic,
 
     'surgical_equipment': keyboard_surgical_equipment,
     'orthopedic_therapeutic': keyboard_orthopedic_therapeutic,
-    'cardiovascular_therapeutic_equipment': keyboard_cardiovascular_therapeutic_equipment,
+    'cardiovascular_therapeutic': keyboard_cardiovascular_therapeutic,
     'respiratory_equipment': keyboard_respiratory_equipment,
     'other_therapeutic_equipment': keyboard_other_therapeutic_equipment,
 
