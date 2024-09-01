@@ -587,8 +587,8 @@ categories = {
         'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
     ],
     'therapeutic': [
-        'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
-        'respiratory', 'other_therapeutic'
+        'therapeutic', 'surgical_equipment', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
+        'respiratory_equipment', 'other_therapeutic_equipment'
     ],
     'monitoring': [
         'monitoring','cardiac_monitors',
