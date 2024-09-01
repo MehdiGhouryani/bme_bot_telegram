@@ -382,10 +382,10 @@ class callback_map:
         for keys in therapeutic_devices['surgical_equipment']:
             callback_map[keys] =therapeutic_class.surgical_equipment
 
-        for keys in therapeutic_devices['orthopedic_equipment']:
+        for keys in therapeutic_devices['orthopedic_equipment_therapeutic']:
             callback_map[keys] =therapeutic_class.orthopedic_equipment_therapeutic
 
-        for keys in therapeutic_devices['cardiovascular_equipment']:
+        for keys in therapeutic_devices['cardiovascular_equipment_therapeutic']:
             callback_map[keys] =therapeutic_class.cardiovascular_equipment_therapeutic
 
         for keys in therapeutic_devices['respiratory_equipment']:
