@@ -151,14 +151,14 @@ class KeyboardsManager:
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
-    def get_keyboard_respiratory(self):
+    def get_keyboard_respiratory_equipment(self):
         return [
             [InlineKeyboardButton('ونتیلاتورها', callback_data='ventilators')],
             [InlineKeyboardButton('نبولایزرها', callback_data='nebulizers')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
-    def get_keyboard_other_therapeutic(self):
+    def get_keyboard_other_therapeutic_equipment(self):
         return [
             [InlineKeyboardButton('دستگاه‌های دیالیز', callback_data='dialysis_machines')],
             [InlineKeyboardButton('دستگاه‌های لیزر درمانی', callback_data='therapeutic_laser_machines')],
