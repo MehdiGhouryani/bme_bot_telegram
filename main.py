@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
-from callback_map import *
+from callback_map import callback_map
 import logging
 from sympy import symbols, diff, integrate,sympify
 
