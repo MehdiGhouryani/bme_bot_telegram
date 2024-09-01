@@ -1,7 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
-from main import *
-
+from main import Diagnostic,Therapeutic,Monitoring,GeneralEquipment,SpecializedEquipment,RehabilitationAndSupport,HomeCareEquipment
 
 # لیست دستگاه‌های تشخیصی
 Diagnostic_devices = {
