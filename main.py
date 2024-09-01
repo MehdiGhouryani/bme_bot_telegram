@@ -587,7 +587,7 @@ categories = {
         'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
     ],
     'therapeutic': [
-        'therapeutic', 'surgical_equipment', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
+        'therapeutic', 'surgical_equipment', 'orthopedic_therapeutic', 'cardiovascular_therapeutic_equipment',
         'respiratory_equipment', 'other_therapeutic_equipment'
     ],
     'monitoring': [
@@ -640,7 +640,7 @@ keyboard_map = {
     'ophthalmic_diagnostic_devices': keyboard_ophthalmic_diagnostic_devices,
 
     'surgical_equipment': keyboard_surgical_equipment,
-    'orthopedic_therapeutic_equipment': keyboard_orthopedic_therapeutic_equipment,
+    'orthopedic_therapeutic': keyboard_orthopedic_therapeutic,
     'cardiovascular_therapeutic_equipment': keyboard_cardiovascular_therapeutic_equipment,
     'respiratory_equipment': keyboard_respiratory_equipment,
     'other_therapeutic_equipment': keyboard_other_therapeutic_equipment,
