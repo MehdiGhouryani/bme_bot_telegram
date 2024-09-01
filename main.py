@@ -750,10 +750,13 @@ def generate_keys(device_list,line):
     print("----- generateKeys ------")
     for device in device_list:
         keys.extend([
-            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types:{line}'), InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
-            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
-            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types:{line}'), 
+             InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition:{line}')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure:{line}')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation:{line}'),
+             InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies:{line}')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages:{line}'), 
+             InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety:{line}')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
     return keys
@@ -765,7 +768,7 @@ class Diagnostic:
 
     async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
         device_list = Diagnostic_devices.get(line)
-        global line
+
 
         if not device_list:
             return
