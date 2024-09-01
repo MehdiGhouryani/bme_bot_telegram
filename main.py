@@ -582,43 +582,43 @@ keyboards_manager = KeyboardsManager()
 # دسته‌بندی‌های اصلی
 main_keyboard = keyboards_manager.get_keyboard_main_categories()
 
-# # دسته‌بندی‌های مختلف
-# categories = {
-#     'diagnostic': [
-#         'diagnostic', 'imaging_devices', 'laboratory_devices',
-#         'cardiac_devices', 'neurological_devices',
-#         'pulmonary_devices', 'gastrointestinal_devices',
-#         'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
-#     ],
-#     'therapeutic': [
-#         'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
-#         'respiratory', 'other_therapeutic'
-#     ],
-#     'monitoring': [
-#         'monitoring','cardiac_monitors',
-#         'fetal_maternal_monitors', 'fetal_monitors',
-#         'blood_glucose_monitors'
-#     ],
-#     'general_medical': [
-#         'general_medical', 'hospital_equipment','emergency_equipment'
-#     ],
-#     'rehabilitation_and_support': [
-#         'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
-#     ],
-#     'specialized_equipment': [
-#         'specialized_equipment', 'cardiovascular_equipment', 'neurology_equipment',
-#         'orthopedic_equipment', 'obstetrics_and_gynecology_equipment',
-#         'ent_equipment', 'dental_equipment', 'dermatology_equipment'
-#     ],
-#     'home_care_equipment': [
-#         'home_care_equipment', 'daily_care_equipment', 'home_respiratory_equipment'
-#     ]
-# }
+# دسته‌بندی‌های مختلف
+categories = {
+    'diagnostic': [
+        'diagnostic', 'imaging_devices', 'laboratory_devices',
+        'cardiac_devices', 'neurological_devices',
+        'pulmonary_devices', 'gastrointestinal_devices',
+        'ent_diagnostic_devices', 'ophthalmic_diagnostic_devices'
+    ],
+    'therapeutic': [
+        'therapeutic', 'surgical', 'orthopedic_therapeutic_equipment', 'cardiovascular_therapeutic_equipment',
+        'respiratory', 'other_therapeutic'
+    ],
+    'monitoring': [
+        'monitoring','cardiac_monitors',
+        'fetal_maternal_monitors', 'fetal_monitors',
+        'blood_glucose_monitors'
+    ],
+    'general_medical': [
+        'general_medical', 'hospital_equipment','emergency_equipment'
+    ],
+    'rehabilitation_and_support': [
+        'rehabilitation_and_support', 'rehabilitation', 'patient_support_equipment'
+    ],
+    'specialized_equipment': [
+        'specialized_equipment', 'cardiovascular_equipment', 'neurology_equipment',
+        'orthopedic_equipment', 'obstetrics_and_gynecology_equipment',
+        'ent_equipment', 'dental_equipment', 'dermatology_equipment'
+    ],
+    'home_care_equipment': [
+        'home_care_equipment', 'daily_care_equipment', 'home_respiratory_equipment'
+    ]
+}
 
-# # ایجاد کیبوردها برای هر دسته‌بندی
-# for category, subcategories in categories.items():
-#     for subcategory in subcategories:
-#         globals()[f"keyboard_{subcategory}"] = getattr(keyboards_manager, f"get_keyboard_{subcategory}")()
+# ایجاد کیبوردها برای هر دسته‌بندی
+for category, subcategories in categories.items():
+    for subcategory in subcategories:
+        globals()[f"keyboard_{subcategory}"] = getattr(keyboards_manager, f"get_keyboard_{subcategory}")()
         
 
 
