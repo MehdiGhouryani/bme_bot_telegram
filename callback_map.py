@@ -75,15 +75,17 @@ home_care_equipment_devices = {
 
 
 # تابع تولید کلیدها
-def generate_keys(device_list,category):
+def generate_keys(device_list,line):
     keys = []
+
+    print("----- generateKeys ------")
     for device in device_list:
         keys.extend([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
             [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
             [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
             [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ', callback_data=category)],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
     return keys
 
@@ -92,12 +94,12 @@ class Diagnostic:
     def init(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = Diagnostic_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = Diagnostic_devices.get(line)
         if not device_list:
             return
         
-        keys = generate_keys(device_list,category)
+        keys = generate_keys(device_list,line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -134,12 +136,12 @@ class Therapeutic:
     def init(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = therapeutic_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = therapeutic_devices.get(line)
         if not device_list:
             return
         
-        keys = generate_keys(device_list,category)
+        keys = generate_keys(device_list,line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -169,12 +171,12 @@ class Monitoring:
     def init(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = monitoring_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = monitoring_devices.get(line)
         if not device_list:
             return
         
-        keys = generate_keys(device_list,category)
+        keys = generate_keys(device_list,line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -201,13 +203,13 @@ class GeneralEquipment:
     def __init__(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = general_equipment_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = general_equipment_devices.get(line)
         if not device_list:
             return
         
 
-        keys = generate_keys(device_list, category)
+        keys = generate_keys(device_list, line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -228,12 +230,12 @@ class SpecializedEquipment:
     def __init__(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = specialized_equipment_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = specialized_equipment_devices.get(line)
         if not device_list:
             return
         
-        keys = generate_keys(device_list, category)
+        keys = generate_keys(device_list, line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -268,13 +270,13 @@ class RehabilitationAndSupport:
     def __init__(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = rehabilitation_and_support_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = rehabilitation_and_support_devices.get(line)
         if not device_list:
             return
         
 
-        keys = generate_keys(device_list, category)
+        keys = generate_keys(device_list, line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -296,12 +298,12 @@ class HomeCareEquipment:
     def __init__(self):
         pass
 
-    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, category):
-        device_list = home_care_equipment_devices.get(category)
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = home_care_equipment_devices.get(line)
         if not device_list:
             return
         
-        keys = generate_keys(device_list, category)
+        keys = generate_keys(device_list, line)
         index = device_list.index(data)
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
