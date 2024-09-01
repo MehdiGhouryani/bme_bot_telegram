@@ -139,15 +139,15 @@ class KeyboardsManager:
     def get_keyboard_orthopedic_therapeutic(self):
         return [
             [InlineKeyboardButton('پروتزها و ارتزها', callback_data='prosthetics_orthotics')],
-            [InlineKeyboardButton('دستگاه‌های فیزیوتراپی', callback_data='physical_therapy_equipment')],
-            [InlineKeyboardButton('دستگاه‌های الکتروتراپی', callback_data='electrotherapy_devices')],
+            [InlineKeyboardButton('دستگاه‌های فیزیوتراپی', callback_data='physical_therapy')],
+            [InlineKeyboardButton('دستگاه‌های الکتروتراپی', callback_data='electrotherapy')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
     def get_keyboard_cardiovascular_therapeutic_equipment(self):
         return [
-            [InlineKeyboardButton('(PCR) پی سی آر ', callback_data='pacemakers')],
-            [InlineKeyboardButton(' دفیبریلاتور', callback_data='defibrillators')],
+            [InlineKeyboardButton('(PCR) پی سی آر ', callback_data='PCR')],
+            [InlineKeyboardButton(' دفیبریلاتور', callback_data='defibr')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
@@ -160,8 +160,8 @@ class KeyboardsManager:
 
     def get_keyboard_other_therapeutic_equipment(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های دیالیز', callback_data='dialysis_machines')],
-            [InlineKeyboardButton('دستگاه‌های لیزر درمانی', callback_data='therapeutic_laser_machines')],
+            [InlineKeyboardButton('دستگاه‌های دیالیز', callback_data='dialysis')],
+            [InlineKeyboardButton('دستگاه‌های لیزر درمانی', callback_data='therapeutic_laser')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='therapeutic_equipment')],
         ]
 
@@ -191,8 +191,8 @@ class KeyboardsManager:
     def get_keyboard_cardiac_monitors(self):
         return [
             [InlineKeyboardButton('مانیتورهای الکتروکاردیوگرافی', callback_data='ecg_monitors')],
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون اتوماتیک', callback_data='automatic_blood_pressure_monitors')],
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون دستی', callback_data='manual_blood_pressure_monitors')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون اتوماتیک', callback_data='automatic_pressure')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون دستی', callback_data='manual_pressure')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='monitoring_equipment')],
         ]
 
@@ -200,21 +200,21 @@ class KeyboardsManager:
     def get_keyboard_fetal_maternal_monitors(self):
         return [
             [InlineKeyboardButton('مانیتورهای جنینی', callback_data='fetal_monitors')],
-            [InlineKeyboardButton('مانیتورهای مادر', callback_data='maternal_monitors')],
+            [InlineKeyboardButton('مانیتورهای مادر', callback_data='maternal')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='monitoring_equipment')],
         ]
 
     def get_keyboard_fetal_monitors(self):
         return [
             [InlineKeyboardButton('مانیتورهای نیوناتال', callback_data='neonatal_monitors')],
-            [InlineKeyboardButton('مانیتورهای قلبی جنین', callback_data='fetal_heart_rate_monitors')],
+            [InlineKeyboardButton('مانیتورهای قلبی جنین', callback_data='fetal_heart_rate')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='monitoring_equipment')],
         ]
 
     def get_keyboard_blood_glucose_monitors(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون قابل حمل', callback_data='portable_blood_glucose_meters')],
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون مداوم', callback_data='continuous_blood_glucose_monitors')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون قابل حمل', callback_data='portable_glucose')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون مداوم', callback_data='continuous_glucose')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='monitoring_equipment')],
         ]
     
@@ -287,7 +287,7 @@ class KeyboardsManager:
 
     def get_keyboard_patient_support_equipment(self):
         return [
-            [InlineKeyboardButton('تشک‌های فشارمتغیر', callback_data='pressure_relief_mattresses')],
+            [InlineKeyboardButton('تشک‌های فشارمتغیر', callback_data='pressure_relief')],
             [InlineKeyboardButton('دستگاه‌های بالابر بیمار', callback_data='patient_lifts')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='support_rehabilitation_equipment')],
         ]
@@ -322,9 +322,9 @@ class KeyboardsManager:
 
     def get_keyboard_cardiovascular_equipment(self):
         return [
-            [InlineKeyboardButton('کاتترهای قلبی', callback_data='cardiac_catheters')],
+            [InlineKeyboardButton('کاتترهای قلبی', callback_data='catheters')],
             [InlineKeyboardButton('استنت‌ها', callback_data='stents')],
-            [InlineKeyboardButton('دیفیبریلاتورهای کاشتنی', callback_data='implantable_defibrillators')],
+            [InlineKeyboardButton('دیفیبریلاتورهای کاشتنی', callback_data='implantable')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
 
@@ -338,14 +338,14 @@ class KeyboardsManager:
     def get_keyboard_orthopedic_equipment(self):
         return [
             [InlineKeyboardButton('دستگاه‌های فیکساتور خارجی', callback_data='external_fixators')],
-            [InlineKeyboardButton('پروتزهای ارتوپدی', callback_data='orthopedic_prosthetics')],
+            [InlineKeyboardButton('پروتزهای ارتوپدی', callback_data='prosthetics')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
 
     def get_keyboard_obstetrics_and_gynecology_equipment(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های سونوگرافی تخصصی زنان', callback_data='obgyn_ultrasound_machines')],
-            [InlineKeyboardButton('سیستم‌های پایش جنین', callback_data='fetal_monitoring_systems')],
+            [InlineKeyboardButton('دستگاه‌های سونوگرافی تخصصی زنان', callback_data='obgyn_ultrasound')],
+            [InlineKeyboardButton('سیستم‌های پایش جنین', callback_data='fetal_sys')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
 
@@ -359,7 +359,7 @@ class KeyboardsManager:
     def get_keyboard_dental_equipment(self):
         return [
             [InlineKeyboardButton('یونیت‌های دندانپزشکی', callback_data='dental_units')],
-            [InlineKeyboardButton('دستگاه‌های تصویر برداری پانورامیک', callback_data='panoramic_xray_machines')],
+            [InlineKeyboardButton('دستگاه‌های تصویر برداری پانورامیک', callback_data='panoramic')],
             [InlineKeyboardButton('لیزرهای دندانپزشکی', callback_data='dental_lasers')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
@@ -367,7 +367,7 @@ class KeyboardsManager:
     def get_keyboard_dermatology_equipment(self):
         return [
             [InlineKeyboardButton('درماتوسکوپ‌ها', callback_data='dermatoscopes')],
-            [InlineKeyboardButton('لیزرهای پوستی', callback_data='dermatological_lasers')],
+            [InlineKeyboardButton('لیزرهای پوستی', callback_data='derma_laser')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
 
@@ -395,13 +395,13 @@ class KeyboardsManager:
 
     def get_keyboard_daily_care_equipment(self):
         return [
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون خانگی', callback_data='home_blood_pressure_monitors')],
-            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون خانگی', callback_data='home_blood_glucose_meters')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری فشار خون خانگی', callback_data='home_blood')],
+            [InlineKeyboardButton('دستگاه‌های اندازه‌گیری گلوکز خون خانگی', callback_data='home_glucose')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='home_care_equipment')],
         ]
 
     def get_keyboard_home_respiratory_equipment(self):
         return [
-            [InlineKeyboardButton('اکسیژن‌سازها', callback_data='oxygen_concentrators')],
+            [InlineKeyboardButton('اکسیژن‌سازها', callback_data='oxygen')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='home_care_equipment')],
         ]

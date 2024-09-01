@@ -17,18 +17,18 @@ Diagnostic_devices = {
 # لیست دستگاه‌های درمانی
 therapeutic_devices = {
     'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
-    'orthopedic_therapeutic': ['prosthetics_orthotics', 'physical_therapy_equipment', 'electrotherapy_devices'],
-    'cardiovascular_therapeutic_equipment': ['pacemakers', 'defibrillators'],
+    'orthopedic_therapeutic': ['prosthetics_orthotics', 'physical_therapy', 'electrotherapy'],
+    'cardiovascular_therapeutic_equipment': ['PCR', 'defibr'],
     'respiratory_equipment': ['ventilators', 'nebulizers'],
-    'other_therapeutic_equipment': ['therapeutic_laser_machines', 'dialysis_machines']
+    'other_therapeutic_equipment': [ 'dialysis','therapeutic_laser']
 }
 
 # لیست دستگاه‌های مانیتورینگ
 monitoring_devices = {
-    'cardiac_monitors': ['ecg_monitors', 'automatic_blood_pressure_monitors', 'manual_blood_pressure_monitors'],
-    'fetal_maternal_monitors':['maternal_monitors'],
-    'fetal_monitors': ['neonatal_monitors', 'fetal_heart_rate_monitors'],
-    'blood_glucose_monitors': ['portable_blood_glucose_meters', 'continuous_blood_glucose_monitors']
+    'cardiac_monitors': ['ecg_monitors', 'automatic_pressure', 'manual_pressure'],
+    'fetal_maternal_monitors':['maternal'],
+    'fetal_monitors': ['neonatal_monitors', 'fetal_heart_rate'],
+    'blood_glucose_monitors': ['portable_glucose', 'continuous_glucose']
 }
 
 
@@ -43,13 +43,13 @@ general_equipment_devices = {
 
 # لیست دستگاه‌های تجهیزات تخصصی
 specialized_equipment_devices = {
-    'cardiovascular_equipment': ['cardiac_catheters','stents','implantable_defibrillators'],
-    'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
-    'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
-    'obstetrics_and_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
+    'cardiovascular_equipment': ['catheters','stents','implantable'],
+    'neurology_equipment': ['eeg_machines','tms_machines'],
+    'orthopedic_equipment': ['external_fixators','prosthetics'],
+    'obstetrics_and_gynecology_equipment': ['obgyn_ultrasound','fetal_sys'],
     'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
-    'dental_equipment': ['dental_units','panoramic_xray_machines','dental_lasers'],
-    'dermatology_equipment': ['dermatoscopes','dermatological_lasers']
+    'dental_equipment': ['dental_units','panoramic','dental_lasers'],
+    'dermatology_equipment': ['dermatoscopes','derma_laser']
 }
 
 
@@ -57,7 +57,7 @@ specialized_equipment_devices = {
 rehabilitation_and_support_devices = {
     # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
     'rehabilitation':['tens_units','ems_units'],
-    'patient_support_equipment': ['pressure_relief_mattresses','patient_lifts']
+    'patient_support': ['pressure_relief','patient_lifts']
 }
 
 
@@ -65,8 +65,8 @@ rehabilitation_and_support_devices = {
 
 # لیست دستگاه‌های تجهیزات مراقبت در منزل
 home_care_equipment_devices = {
-        'daily_care_equipment':['home_blood_pressure_monitors','home_blood_glucose_meters'],
-        'home_respiratory_equipment':['oxygen_concentrators']
+        'daily_care_equipment':['home_blood','home_glucose'],
+        'home_respiratory_equipment':['oxygen']
 
 }
 
