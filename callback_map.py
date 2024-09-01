@@ -36,14 +36,14 @@ monitoring_devices = {
 general_equipment_devices = {
     'hospital_equipment': ['hospital_beds','sterilizers','medical_trolleys',],
     
-    'emergency_equipment': ['resuscitation','ambu_bags', 'cpr','defibrillators']
+    'emergency_equipment': ['resuscitation','ambu_bags', 'cpr']
 }
 
 
 
 # لیست دستگاه‌های تجهیزات تخصصی
 specialized_equipment_devices = {
-    'cardiovascular_equipment': ['cardiac_catheters','stents','pacemakers','implantable_defibrillators'],
+    'cardiovascular_equipment': ['cardiac_catheters','stents','implantable_defibrillators'],
     'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
     'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
     'obstetrics_and_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],

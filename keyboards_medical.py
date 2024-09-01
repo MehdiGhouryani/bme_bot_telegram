@@ -254,7 +254,6 @@ class KeyboardsManager:
             [InlineKeyboardButton('دستگاه های تنفس مصنوعی', callback_data='resuscitation')],
             [InlineKeyboardButton('آمبوبگ ها', callback_data='ambu_bags')],
             [InlineKeyboardButton('دستگاه های CPR', callback_data='cpr')],
-            [InlineKeyboardButton('دیفیبریلاتورها', callback_data='defibrillators')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='general_medical_equipment')],
         ]
 
@@ -325,7 +324,6 @@ class KeyboardsManager:
         return [
             [InlineKeyboardButton('کاتترهای قلبی', callback_data='cardiac_catheters')],
             [InlineKeyboardButton('استنت‌ها', callback_data='stents')],
-            [InlineKeyboardButton('پیس‌میکرها', callback_data='pacemakers')],
             [InlineKeyboardButton('دیفیبریلاتورهای کاشتنی', callback_data='implantable_defibrillators')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data='specialized_equipment')],
         ]
