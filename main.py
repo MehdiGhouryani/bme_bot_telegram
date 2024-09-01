@@ -672,6 +672,321 @@ keyboard_map = {
 
 
 
+# لیست دستگاه‌های تشخیصی
+Diagnostic_devices = {
+    'imaging_devices': ['xray', 'ct_scan', 'mri', 'ultrasound', 'mammography', 'fluoroscopy', 'pet_scan', 'blood_analyzers'],
+    'laboratory_devices': ['blood_analyzers', 'electrophoresis_equipment', 'spectrophotometers'],
+    'cardiac_devices': ['ecg', 'echocardiography'],
+    'neurological_devices': ['eeg', 'emg'],
+    'pulmonary_devices': ['spirometer', 'polysomnography', 'pulse_oximetry'],
+    'gastrointestinal_devices': ['endoscopy'],
+    'ent_diagnostic_devices': ['otoscope', 'audiogram', 'laryngoscope'],
+    'ophthalmic_diagnostic_devices': ['ophthalmoscope', 'tonometer', 'slit_lamp']
+}
+
+# لیست دستگاه‌های درمانی
+therapeutic_devices = {
+    'surgical_equipment': ['surgical_instruments', 'electrocautery', 'surgical_laser', 'infusion_pumps', 'blood_pumps', 'robotic_surgical_systems'],
+    'orthopedic_equipment_therapeutic': ['prosthetics_orthotics', 'physical_therapy_equipment', 'electrotherapy_devices'],
+    'cardiovascular_equipment_therapeutic': ['pacemakers', 'defibrillators'],
+    'respiratory_equipment': ['ventilators', 'nebulizers'],
+    'other_therapeutic_equipment': ['therapeutic_laser_machines', 'dialysis_machines']
+}
+
+# لیست دستگاه‌های مانیتورینگ
+monitoring_devices = {
+    'cardiac_monitors': ['ecg_monitors', 'automatic_blood_pressure_monitors', 'manual_blood_pressure_monitors'],
+    'fetal_maternal_monitors':['maternal_monitors'],
+    'fetal_monitors': ['neonatal_monitors', 'fetal_heart_rate_monitors'],
+    'blood_glucose_monitors': ['portable_blood_glucose_meters', 'continuous_blood_glucose_monitors']
+}
+
+
+# لیست دستگاه‌های تجهیزات عمومی
+general_equipment_devices = {
+    'hospital_equipment': ['hospital_beds','sterilizers','medical_trolleys',],
+    
+    'emergency_equipment': ['resuscitation','ambu_bags', 'cpr','defibrillators']
+}
+
+
+
+# لیست دستگاه‌های تجهیزات تخصصی
+specialized_equipment_devices = {
+    'cardiovascular_equipment': ['cardiac_catheters','stents','pacemakers','implantable_defibrillators'],
+    'neurology_equipment': ['eeg_machines','transcranial_magnetic_stimulation'],
+    'orthopedic_equipment': ['external_fixators','orthopedic_prosthetics'],
+    'obstetrics_gynecology_equipment': ['ob_gyn_ultrasound_machines','fetal_monitoring_systems'],
+    'ent_equipment': ['ear_endoscopes','audiometry_equipment'],
+    'dental_equipment': ['dental_units','panoramic_xray_machines','dental_lasers'],
+    'dermatology_equipment': ['dermatoscopes','dermatological_lasers']
+}
+
+
+# لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
+rehabilitation_and_support_devices = {
+    # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
+    'rehabilitation':['tens_units','ems_units'],
+    'patient_support': ['pressure_relief_mattresses','patient_lifts']
+}
+
+
+
+
+# لیست دستگاه‌های تجهیزات مراقبت در منزل
+home_care_equipment_devices = {
+        'daily_care_equipment':['home_blood_pressure_monitors','home_blood_glucose_meters'],
+        'home_respiratory_equipment':['oxygen_concentrators']
+
+}
+
+
+
+
+# تابع تولید کلیدها
+def generate_keys(device_list,line):
+    keys = []
+
+    print("----- generateKeys ------")
+    for device in device_list:
+        keys.extend([
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types:{line}'), InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
+        ])
+    return keys
+
+# کلاس تشخیصی
+class Diagnostic:
+    def init(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = Diagnostic_devices.get(line)
+        global line
+
+        if not device_list:
+            return
+        
+        keys = generate_keys(device_list,line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def imaging_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'imaging_devices')
+
+    async def laboratory_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'laboratory_devices')
+
+    async def cardiac_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiac_devices')
+
+    async def neurological_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'neurological_devices')
+
+    async def pulmonary_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'pulmonary_devices')
+
+
+    async def gastrointestinal_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'gastrointestinal_devices')
+
+    async def ent_diagnostic_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'ent_diagnostic_devices')
+
+    async def ophthalmic_diagnostic_devices(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'ophthalmic_diagnostic_devices')
+
+
+
+# کلاس درمانی
+class Therapeutic:
+    def init(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = therapeutic_devices.get(line)
+        if not device_list:
+            return
+        
+        keys = generate_keys(device_list,line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def surgical_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'surgical_equipment')
+
+    async def orthopedic_equipment_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'orthopedic_equipment_therapeutic')
+
+    async def cardiovascular_equipment_therapeutic(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiovascular_equipment_therapeutic')
+
+    async def respiratory_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'respiratory_equipment')
+
+    async def other_therapeutic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'other_therapeutic_equipment')
+
+
+
+
+
+
+# کلاس مانیتورینگ
+class Monitoring:
+    def init(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = monitoring_devices.get(line)
+        if not device_list:
+            return
+        
+        keys = generate_keys(device_list,line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def cardiac_monitors(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiac_monitors')
+
+    async def fetal_maternal_monitors(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'fetal_maternal_monitors')
+
+
+    async def fetal_monitors(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'fetal_monitors')
+
+    async def blood_glucose_monitors(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'blood_glucose_monitors')
+
+
+
+
+
+# کلاس تجهیزات عمومی
+class GeneralEquipment:
+    def __init__(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = general_equipment_devices.get(line)
+        if not device_list:
+            return
+        
+
+        keys = generate_keys(device_list, line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def hospital_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'hospital_equipment')
+
+    async def emergency_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'emergency_equipment')
+
+
+
+
+
+
+# کلاس تجهیزات تخصصی
+class SpecializedEquipment:
+    def __init__(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = specialized_equipment_devices.get(line)
+        if not device_list:
+            return
+        
+        keys = generate_keys(device_list, line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def cardiovascular_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'cardiovascular_equipment')
+
+    async def neurology_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'neurology_equipment')
+
+    async def orthopedic_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'orthopedic_equipment')
+
+    async def obstetrics_gynecology_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'obstetrics_gynecology_equipment')
+
+    async def ent_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'ent_equipment')
+
+    async def dental_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'dental_equipment')
+
+    async def dermatology_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'dermatology_equipment')
+
+
+
+
+
+# کلاس تجهیزات توانبخشی و پشتیبانی بیمار
+class RehabilitationAndSupport:
+    def __init__(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = rehabilitation_and_support_devices.get(line)
+        if not device_list:
+            return
+        
+
+        keys = generate_keys(device_list, line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def rehabilitation_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'rehabilitation_equipment')
+
+    async def rehabilitation(self,data,update:Update,context:ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data,update,context,'rehabilitation')
+
+    async def patient_support(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'patient_support')
+
+
+
+
+# کلاس تجهیزات مراقبت در منزل
+class HomeCareEquipment:
+    def __init__(self):
+        pass
+
+    async def handle_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE, line):
+        device_list = home_care_equipment_devices.get(line)
+        if not device_list:
+            return
+        
+        keys = generate_keys(device_list, line)
+        index = device_list.index(data)
+        reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
+        await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
+
+    async def daily_care_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'daily_care_equipment')
+    
+    async def home_respiratory_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self.handle_equipment(data, update, context, 'home_respiratory_equipment')
+    
+
+
 
 
 
@@ -700,8 +1015,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     elif ':' in data:
-        
-        device, action = data.split(':')
+        parts = data.split(':')
+        device = parts[0]
+        action = parts[1]
+        line = parts[2] if len(parts) > 2 else 'diagnostic_equipment'
+
+
+
         keyboard_menu =([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
              InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
@@ -709,7 +1029,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
              InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
             [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
 
@@ -719,11 +1039,11 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
             [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
             [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
-            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=category)],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
         reply_markup_definition =InlineKeyboardMarkup(keyboard_definition)
 
-        print(f" ---- in the action  {category}----")
+        print(f" ---- in the action  {line}----")
 
         
 
