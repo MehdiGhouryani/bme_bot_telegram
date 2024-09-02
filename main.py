@@ -683,7 +683,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
-    
+    line = None 
     if data in combined_callback_map:
       
     #   print("-----     combined     -----")
@@ -697,11 +697,17 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
     elif ':' in data:
+
         parts = data.split(':')
         device = parts[0]
         action = parts[1]
-        line = parts[2] if len(parts) > 2 else line
 
+
+        if len(parts) > 2:
+            line = parts[2]
+        else:
+
+            line = line if line is not None else "back_to_main"  
 
 
         keyboard_define =([
