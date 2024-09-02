@@ -728,7 +728,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
 
 
-        print(f" ----    {action}  :  {device}    ----")
+        print(f" ----    {action}  --  : --  {device}  --  :   {line}   ----")
 
         
 
