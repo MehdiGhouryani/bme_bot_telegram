@@ -700,7 +700,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parts = data.split(':')
         device = parts[0]
         action = parts[1]
-        line = parts[2] if len(parts) > 2 else 'Not'
+        line = parts[2] if len(parts) > 2 else line
 
 
 
