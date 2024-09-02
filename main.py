@@ -704,13 +704,25 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
+        keyboard_define =([
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
+             InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), 
+             InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
+        ])
+        reply_markup_menu =InlineKeyboardMarkup(keyboard_define)
+
         keyboard_menu =([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
              InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
             [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
             [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
              InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), 
+             InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
@@ -729,7 +741,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             device_photo = cursor.fetchone()[0]
             
             await query.delete_message()
-            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=keyboard_menu)
+            await context.bot.send_photo(chat_id=chat_id,caption=device_info,photo=device_photo,parse_mode=ParseMode.MARKDOWN,reply_markup=keyboard_define)
         else:
             print('----------')
 
