@@ -718,13 +718,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup_deine =InlineKeyboardMarkup(keyboard_define)
 
         keyboard_menu =([
-            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'), 
-             InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition')],
-            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
-            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation'),
-             InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies')],
-            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages'), 
-             InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety')],
+            [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types:{line}'), 
+             InlineKeyboardButton('معرفی دستگاه', callback_data=f'{device}:definition:{line}')],
+            [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure:{line}')],
+            [InlineKeyboardButton('نحوه عملکرد', callback_data=f'{device}:operation:{line}'),
+             InlineKeyboardButton(' تکنولوژی‌های مشابه', callback_data=f'{device}:related_technologies:{line}')],
+            [InlineKeyboardButton('مزایا و معایب', callback_data=f'{device}:advantages_disadvantages:{line}'), 
+             InlineKeyboardButton('نکات ایمنی', callback_data=f'{device}:safety:{line}')],
             [InlineKeyboardButton('بازگشت به صفحه قبل ⬅️', callback_data=line)],
         ])
         reply_markup_menu =InlineKeyboardMarkup(keyboard_menu)
