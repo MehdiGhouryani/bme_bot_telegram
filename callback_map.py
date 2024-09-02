@@ -78,7 +78,7 @@ home_care_equipment_devices = {
 def generate_keys(device_list,line):
     keys = []
 
-    print("----- generateKeys ------")
+
     for device in device_list:
         keys.extend([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types:{line}'), 
