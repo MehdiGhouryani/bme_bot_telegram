@@ -705,11 +705,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if len(parts) > 2:
             line = parts[2]
-        else:
-
-            line = line if line is not None else "back_to_main"  
-
-
+ 
         keyboard_define =([
             [InlineKeyboardButton('انواع دستگاه', callback_data=f'{device}:types'),],
             [InlineKeyboardButton('ساختار و اجزاء دستگاه', callback_data=f'{device}:structure')],
