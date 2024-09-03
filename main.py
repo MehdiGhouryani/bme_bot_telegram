@@ -37,7 +37,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if member.status not in ['member', 'administrator', 'creator']:
 
             keyboard = [
-                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/joinchat/{GROUP_CHAT_ID[1:]}")],
+                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/{GROUP_CHAT_ID[1:]}")],
                 [InlineKeyboardButton("عضو شدم ✅", callback_data='check_membership')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
