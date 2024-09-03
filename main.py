@@ -216,7 +216,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     if text =='📚 آموزش':
         buttons=[
-        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
+        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("⚙️ سنسور ها و قطعات")],
         [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
         ]
     
@@ -229,9 +229,9 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
 
 
-    elif text == "سنسور ها و قطعات":
+    elif text == "⚙️ سنسور ها و قطعات":
         buttons=[
-            [KeyboardButton("سنسورها"),KeyboardButton("قطعات الکترونیکی")],
+            [KeyboardButton("📡 سنسورها"), KeyboardButton("🔧 قطعات الکترونیکی")],
             [KeyboardButton('بازگشت به صفحه قبل ⬅️')]
         ]
         
@@ -458,7 +458,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text=='بازگشت به صفحه قبل ⬅️':
             
         buttons=[
-        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
+        [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("⚙️ سنسور ها و قطعات")],
         [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
         ]
     
