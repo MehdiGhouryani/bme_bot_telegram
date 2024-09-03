@@ -29,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
-    GROUP_CHAT_ID = 'chat_studentsbme'
+    GROUP_CHAT_ID = '@chat_studentsbme'
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
@@ -37,7 +37,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if member.status not in ['member', 'administrator', 'creator']:
 
             keyboard = [
-                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/joinchat/{GROUP_CHAT_ID}")],
+                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/joinchat/{GROUP_CHAT_ID[1:]}")],
                 [InlineKeyboardButton("عضو شدم ✅", callback_data='check_membership')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -81,7 +81,7 @@ async def save_user(user_id,username,chat_id):
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
-    GROUP_CHAT_ID = 'chat_studentsbme'
+    GROUP_CHAT_ID = '@chat_studentsbme'
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
