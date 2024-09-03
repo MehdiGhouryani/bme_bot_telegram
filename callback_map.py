@@ -291,7 +291,7 @@ class RehabilitationAndSupport:
         await self.handle_equipment(data,update,context,'rehabilitation')
 
     async def patient_support(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'patient_support_equipment')
+        await self.handle_equipment(data, update, context, 'patient_support')
 
 
 
