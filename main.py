@@ -238,7 +238,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         reply_markup=ReplyKeyboardMarkup(buttons,resize_keyboard=True) 
         await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
     
-    elif text == "سنسورها":
+    elif text == "📡 سنسورها":
 
         buttons = [
         [InlineKeyboardButton("سنسور دما", url=pages_sensors["Temperature_Sensor"])],
@@ -259,7 +259,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
 
-    elif text == "قطعات الکترونیکی":
+    elif text == "🔧 قطعات الکترونیکی":
         buttons = [
         [InlineKeyboardButton("میکروکنترلر", url=pages_components["Microcontroller"]),InlineKeyboardButton("تقویت‌کننده", url=pages_components["Amplifier"])],
         [InlineKeyboardButton("ADC", url=pages_components["ADC"]),InlineKeyboardButton("DAC", url=pages_components["DAC"])],
