@@ -241,18 +241,18 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif text == "📡 سنسورها":
 
         buttons = [
-        [InlineKeyboardButton("سنسور دما", url=pages_sensors["Temperature_Sensor"])],
-        [InlineKeyboardButton("سنسور فشار", url=pages_sensors["Pressure_Sensor"])],
-        [InlineKeyboardButton("سنسور ضربان قلب", url=pages_sensors["HeartRate_Sensor"])],
-        [InlineKeyboardButton("سنسور اکسیژن", url=pages_sensors["Oxygen_Sensor"])],
-        [InlineKeyboardButton("سنسور حرکتی", url=pages_sensors["Motion_Sensor"])],
-        [InlineKeyboardButton("سنسور نوار قلب", url=pages_sensors["ECG_Sensor"])],
-        [InlineKeyboardButton("سنسور دما و رطوبت", url=pages_sensors["Humidity"])],
-        [InlineKeyboardButton("سنسور سطح", url=pages_sensors["Level_Sensor"])],  
-        [InlineKeyboardButton("سنسور گاز", url=pages_sensors["Gas_Sensor"])],
-        [InlineKeyboardButton("سنسور نوری", url=pages_sensors["Optical_Sensor"])],
+            [InlineKeyboardButton("🌡️ سنسور دما", url=pages_sensors["Temperature_Sensor"])],
+            [InlineKeyboardButton("⚙️ سنسور فشار", url=pages_sensors["Pressure_Sensor"])],
+            [InlineKeyboardButton("❤️ سنسور ضربان قلب", url=pages_sensors["HeartRate_Sensor"])],
+            [InlineKeyboardButton("🩸 سنسور اکسیژن", url=pages_sensors["Oxygen_Sensor"])],
+            [InlineKeyboardButton("🏃‍♂️ سنسور حرکتی", url=pages_sensors["Motion_Sensor"])],
+            [InlineKeyboardButton("💓 سنسور نوار قلب", url=pages_sensors["ECG_Sensor"])],
+            [InlineKeyboardButton("💧 سنسور دما و رطوبت", url=pages_sensors["Humidity"])],
+            [InlineKeyboardButton("📏 سنسور سطح", url=pages_sensors["Level_Sensor"])],
+            [InlineKeyboardButton("🔥 سنسور گاز", url=pages_sensors["Gas_Sensor"])],
+            [InlineKeyboardButton("💡 سنسور نوری", url=pages_sensors["Optical_Sensor"])]
         ]
-
+        
         reply_markup = InlineKeyboardMarkup(buttons)
 
         # ارسال پیام
@@ -261,11 +261,26 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text == "🔧 قطعات الکترونیکی":
         buttons = [
-        [InlineKeyboardButton("میکروکنترلر", url=pages_components["Microcontroller"]),InlineKeyboardButton("تقویت‌کننده", url=pages_components["Amplifier"])],
-        [InlineKeyboardButton("ADC", url=pages_components["ADC"]),InlineKeyboardButton("DAC", url=pages_components["DAC"])],
-        [InlineKeyboardButton("ترانزیستور", url=pages_components["Transistor"]),InlineKeyboardButton("مقاومت", url=pages_components["Resistor"])],
-        [InlineKeyboardButton("دیود", url=pages_components["Diode"]),InlineKeyboardButton("خازن", url=pages_components["Capacitor"])],
-        [InlineKeyboardButton("پتانسیومتر", url=pages_components["Potentiometer"]),InlineKeyboardButton("مبدل-ولتاژ-", url=pages_components["Voltage-Regulator"])],
+            [
+                InlineKeyboardButton("🔌 میکروکنترلر", url=pages_components["Microcontroller"]),
+                InlineKeyboardButton("📈 تقویت‌کننده", url=pages_components["Amplifier"])
+            ],
+            [
+                InlineKeyboardButton("🔄 ADC", url=pages_components["ADC"]),
+                InlineKeyboardButton("🔄 DAC", url=pages_components["DAC"])
+            ],
+            [
+                InlineKeyboardButton("🔋 ترانزیستور", url=pages_components["Transistor"]),
+                InlineKeyboardButton("⚡ مقاومت", url=pages_components["Resistor"])
+            ],
+            [
+                InlineKeyboardButton("🔋 دیود", url=pages_components["Diode"]),
+                InlineKeyboardButton("🔋 خازن", url=pages_components["Capacitor"])
+            ],
+            [
+                InlineKeyboardButton("🎚️ پتانسیومتر", url=pages_components["Potentiometer"]),
+                InlineKeyboardButton("🔌 مبدل ولتاژ", url=pages_components["Voltage-Regulator"])
+            ]
         ]
 
         reply_markup = InlineKeyboardMarkup(buttons)
