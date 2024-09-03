@@ -20,45 +20,43 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=loggin
 logger = logging.getLogger(__name__)
 
 
-
-async def start(update:Update , context:ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
-    user_id =update.message.from_user.id
-    username =update.effective_user.username
+    user_id = update.message.from_user.id
+    username = update.effective_user.username
 
     print(f'USER : {username}    ID : {user_id}')
-    await save_user(user_id,username,chat_id)
-    CHANNEL_USERNAME ='@studentsbme'
-    try:
-        member =await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME,user_id=user_id)
-        print(f"user {user_id} status in {CHANNEL_USERNAME} : {member.status}")
-        if member.status not in ['member','administrator','creator']:
+    await save_user(user_id, username, chat_id)
+    GROUP_CHAT_ID = -1534361544  
 
-            keyboard= [
-                [InlineKeyboardButton('عضویت در کانال',url=f"https://t.me/{CHANNEL_USERNAME[1:]}")],
-                [InlineKeyboardButton("عضو شدم ✅",callback_data='check_membership')]
+    try:
+        member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
+        print(f"user {user_id} status in group {GROUP_CHAT_ID} : {member.status}")
+        if member.status not in ['member', 'administrator', 'creator']:
+
+            keyboard = [
+                [InlineKeyboardButton('عضویت در گروه', url=f"https://t.me/joinchat/{GROUP_CHAT_ID}")],
+                [InlineKeyboardButton("عضو شدم ✅", callback_data='check_membership')]
             ]
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text('''
-برای استفاده از ربات باید عضو کانال باشی
-اگه عضو شدی دوباره /start کن .
-''',reply_markup=reply_markup)
+برای استفاده از ربات باید عضو گروه باشی
+اگه عضو شدی دوباره /start کن.
+''', reply_markup=reply_markup)
         else:
             keyboard = [
-                [KeyboardButton("آموزش"),]
-                ,[KeyboardButton("حل مسأله ریاضیات")]
-                ,[KeyboardButton("سوالات متداول")]
-                ,[KeyboardButton("درخواست و پیشنهاد 📝")]
-                
+                [KeyboardButton("آموزش"),],
+                [KeyboardButton("حل مسأله ریاضیات")],
+                [KeyboardButton("سوالات متداول")],
+                [KeyboardButton("درخواست و پیشنهاد 📝")],
             ]
     
-            reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
-            await update.message.reply_text("  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
+            reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True) 
+            await update.message.reply_text("لطفا یکی از گزینه‌ها را انتخاب کنید:", reply_markup=reply_markup) 
             
-
     except Exception as e:
-        print(f"Error cheking membership : {e}")
-        await update.message.reply_text(' مشکلی بوجود اومده ! دوباره تلاش کن')
+        print(f"Error checking membership: {e}")
+        await update.message.reply_text('مشکلی بوجود اومده! دوباره تلاش کن.')
    
 
 
@@ -76,31 +74,29 @@ async def save_user(user_id,username,chat_id):
     connection.close()
 
 
-
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
-    CHANNEL_USERNAME = '@studentsbme'
+    GROUP_CHAT_ID = -1534361544
 
     try:
-        member = await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
+        member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
         if member.status in ['member', 'administrator', 'creator']:
-            # Send a confirmation message to the user
+            # ارسال پیام تایید
             await query.answer("عضویت شما تایید شد.")
             await query.delete_message()
             keyboard = [
-                [KeyboardButton("آموزش"),]
-                ,[KeyboardButton("حل مسأله ریاضیات")]
-                ,[KeyboardButton("سوالات متداول")]
-                ,[KeyboardButton("درخواست و پیشنهاد 📝")]
-                
+                [KeyboardButton("آموزش"),],
+                [KeyboardButton("حل مسأله ریاضیات")],
+                [KeyboardButton("سوالات متداول")],
+                [KeyboardButton("درخواست و پیشنهاد 📝")],
             ]
     
-            reply_markup=ReplyKeyboardMarkup(keyboard,resize_keyboard=True) 
-            await context.bot.send_message(f"  لطفا یکی از گزینه‌ها را انتخاب کنید :",reply_markup=reply_markup) 
+            reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True) 
+            await context.bot.send_message(chat_id=user_id, text="لطفا یکی از گزینه‌ها را انتخاب کنید:", reply_markup=reply_markup) 
 
         else:
-            await query.answer("شما هنوز عضو کانال نشده‌اید.")
+            await query.answer("شما هنوز عضو گروه نشده‌اید.")
             
     except Exception as e:
         print(f"Error checking membership: {e}")

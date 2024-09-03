@@ -55,7 +55,7 @@ specialized_equipment_devices = {
 
 # لیست دستگاه‌های تجهیزات توانبخشی و پشتیبانی بیمار
 rehabilitation_and_support_devices = {
-    # 'rehabilitation_equipment': ['electric_wheelchairs','electrotherapy_devices'],
+    # 'rehabilitation_equipment': ['wheelchairs','electrotherap'],
     'rehabilitation':['tens_units','ems_units'],
     'patient_support': ['pressure_relief','patient_lifts']
 }
