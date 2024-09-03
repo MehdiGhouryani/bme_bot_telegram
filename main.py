@@ -244,7 +244,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             [InlineKeyboardButton("🌡️ سنسور دما", url=pages_sensors["Temperature_Sensor"])],
             [InlineKeyboardButton(" سنسور فشار", url=pages_sensors["Pressure_Sensor"])],
             [InlineKeyboardButton("🏃‍♂️ سنسور حرکتی", url=pages_sensors["Motion_Sensor"])],
-            [InlineKeyboardButton("= سنسور ضربان قلب", url=pages_sensors["HeartRate_Sensor"])],
+            [InlineKeyboardButton(" سنسور ضربان قلب", url=pages_sensors["HeartRate_Sensor"])],
             [InlineKeyboardButton("💓 سنسور نوار قلب", url=pages_sensors["ECG_Sensor"])],
             [InlineKeyboardButton(" سنسور اکسیژن", url=pages_sensors["Oxygen_Sensor"])],
             [InlineKeyboardButton("💧 سنسور دما و رطوبت", url=pages_sensors["Humidity"])],
