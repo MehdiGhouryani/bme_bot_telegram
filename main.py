@@ -20,6 +20,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=loggin
 logger = logging.getLogger(__name__)
 
 
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     user_id = update.message.from_user.id
@@ -27,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
-    GROUP_CHAT_ID = -1534361544  
+    GROUP_CHAT_ID = '@chat_studentsbme'
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
@@ -60,6 +62,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
    
 
 
+
 async def save_user(user_id,username,chat_id):
     connection = sqlite3.connect('users.db')
     cursor = connection.cursor()
@@ -74,10 +77,11 @@ async def save_user(user_id,username,chat_id):
     connection.close()
 
 
+
 async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
-    GROUP_CHAT_ID = -1534361544
+    GROUP_CHAT_ID = '@chat_studentsbme'
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
