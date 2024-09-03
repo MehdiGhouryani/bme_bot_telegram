@@ -284,13 +284,13 @@ class RehabilitationAndSupport:
         reply_markup = InlineKeyboardMarkup(keys[index*5:(index+1)*5])
         await update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
-    async def rehabilitation_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await self.handle_equipment(data, update, context, 'rehabilitation_equipment')
+    # async def rehabilitation_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    #     await self.handle_equipment(data, update, context, 'rehabilitation_equipment')
 
     async def rehabilitation(self,data,update:Update,context:ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data,update,context,'rehabilitation')
 
-    async def patient_support_equipment(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def patient_support(self, data, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await self.handle_equipment(data, update, context, 'patient_support_equipment')
 
 
@@ -481,7 +481,7 @@ class callback_map:
             callback_map[device] = rehabilitation_class.rehabilitation
 
         for device in rehabilitation_and_support_devices['patient_support']:
-            callback_map[device] = rehabilitation_class.patient_support_equipment
+            callback_map[device] = rehabilitation_class.patient_support
     
         return callback_map
     
