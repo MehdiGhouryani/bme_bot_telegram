@@ -47,12 +47,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 ''',reply_markup=reply_markup)
         else:
             keyboard = [
-                [KeyboardButton("آموزش"),],
-                [KeyboardButton("حل مسأله ریاضیات")],
-                [KeyboardButton("سوالات متداول")],
-                [KeyboardButton("درخواست و پیشنهاد 📝")],
+                [KeyboardButton("📚 آموزش"),],
+                [KeyboardButton("➕ حل مسئله ریاضیات")],
+                [KeyboardButton("❓ سوالات متداول")],
+                [KeyboardButton("📝 درخواست و پیشنهاد")],
             ]
-    
+
             reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True) 
             await update.message.reply_text("لطفا یکی از گزینه‌ها را انتخاب کنید:", reply_markup=reply_markup) 
             
@@ -90,10 +90,10 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("عضویت شما تایید شد.")
             await query.delete_message()
             keyboard = [
-                [KeyboardButton("آموزش"),],
-                [KeyboardButton("حل مسأله ریاضیات")],
-                [KeyboardButton("سوالات متداول")],
-                [KeyboardButton("درخواست و پیشنهاد 📝")],
+                [KeyboardButton("📚 آموزش"),],
+                [KeyboardButton("➕ حل مسئله ریاضیات")],
+                [KeyboardButton("❓ سوالات متداول")],
+                [KeyboardButton("📝 درخواست و پیشنهاد")],
             ]
     
             reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True) 
@@ -214,7 +214,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 
-    if text =='آموزش':
+    if text =='📚 آموزش':
         buttons=[
         [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("سنسور ها و قطعات")],
         [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
@@ -275,7 +275,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text(text='یک گزینه را انتخاب کنید : ', reply_markup= reply_markup)
 
 
-    elif text == "حل مسأله ریاضیات":  # if برای شروع اولین شرط
+    elif text == "➕ حل مسئله ریاضیات":  # if برای شروع اولین شرط
 
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"), KeyboardButton("انتگرال‌گیری ∫")],
@@ -479,12 +479,12 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         context.user_data['waiting_for_photo'] = True
 
     
-    elif text == "سوالات متداول":
+    elif text == "❓ سوالات متداول":
         await update.message.reply_text(text=question_page1,parse_mode=ParseMode.MARKDOWN,reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('➡️ برو به صفحه بعد ',callback_data='next_question')]]))
 
 
 
-    elif text == "درخواست و پیشنهاد 📝":
+    elif text == "📝 درخواست و پیشنهاد":
         
         context.user_data['awaiting_request'] = True
         await update.message.reply_text('''
