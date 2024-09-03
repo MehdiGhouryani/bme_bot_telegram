@@ -292,8 +292,12 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif context.user_data.get('operation') == 'derivative':
         text = (
             text.replace('√', 'sqrt') 
-                .replace('π', 'pi')   
-                .replace('^', '')   
+                .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
+                .replace('-π','-pi')   
+                .replace('^', '**')   
                 .replace(' ', '')   
                 .lower()          
         )
@@ -325,12 +329,16 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif context.user_data.get('operation') == 'indefinite_integral':
         text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
+             text.replace('√', 'sqrt') 
+                .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
+                .replace('-π','-pi')   
+                .replace('^', '**')   
                 .replace(' ', '')   
-                .lower()             
-        )
+                .lower()          
+       )
 
         x = symbols('x')
         try:
@@ -346,8 +354,12 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     elif context.user_data.get('operation') == 'definite_integral':
         text = (
             text.replace('√', 'sqrt') 
-                .replace('π', 'pi')   
-                .replace('^', '')   
+                .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
+                .replace('-π','-pi')   
+                .replace('^', '**')   
                 .replace(' ', '')   
                 .lower()          
         )
@@ -358,13 +370,16 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif context.user_data.get('operation') == 'enter_limits':
         text = (
-            text.replace('√', 'sqrt') 
+             text.replace('√', 'sqrt') 
                 .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
                 .replace('-π','-pi')   
-                .replace('^', '')   
-                .replace(' ', '')     
+                .replace('^', '**')   
+                .replace(' ', '')   
                 .lower()          
-        )
+       )
 
         try:
             x = symbols('x')
@@ -386,11 +401,15 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif context.user_data.get('operation') == 'partial_derivative':
         text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
+            text.replace('√', 'sqrt') 
+                .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
+                .replace('-π','-pi')   
+                .replace('^', '**')   
                 .replace(' ', '')   
-                .lower()             
+                .lower()          
         )
 
         x, y = symbols('x y')
@@ -412,11 +431,15 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif context.user_data.get('operation') == 'multiple_integral':
         text = (
-            text.replace('√', 'sqrt')  
-                .replace('π', 'pi')   
-                .replace('^', '')    
+            text.replace('√', 'sqrt') 
+                .replace('π', 'pi')
+                .replace('ln', 'log')
+                .replace('×', '*')
+                .replace('÷', '/')
+                .replace('-π','-pi')   
+                .replace('^', '**')   
                 .replace(' ', '')   
-                .lower()             
+                .lower()          
         )
 
         x, y = symbols('x y')
