@@ -42,9 +42,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
             await update.message.reply_text('''
-برای استفاده از ربات باید عضو گروه باشی
-اگه عضو شدی دوباره /start کن.
-''', reply_markup=reply_markup)
+🔔 برای استفاده از ربات، حتماً باید عضو گروه باشید!  
+✅ اگر عضو شدید، دوباره /start را بزنید تا از امکانات ربات استفاده کنید.
+''',reply_markup=reply_markup)
         else:
             keyboard = [
                 [KeyboardButton("آموزش"),],
