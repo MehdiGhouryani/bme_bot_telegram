@@ -26,7 +26,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     user_id = update.message.from_user.id
     username = update.effective_user.username
-
+    # اگ چت  خصوصی نبود return میکنه
+    if not await check_private(update):
+        return
+    
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
     GROUP_CHAT_ID = '@chat_studentsbme'
@@ -105,6 +108,22 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         print(f"Error checking membership: {e}")
         await query.answer("خطا در بررسی عضویت.")
+
+
+
+
+
+async def check_private(update:Update):
+#    چک میکنه پیام در چت خصوصی باشه
+    chat_type = update.effective_chat.type
+    return chat_type =='private'
+
+
+
+
+
+
+
 
 
 question_page1=(
@@ -212,6 +231,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     message_id=update.message.message_id
     ADMIN_CHAT_ID=['1717599240','686724429']
 
+    if not await check_private(update):
+        return
 
 
     if text =='📚 آموزش':
@@ -555,6 +576,8 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await check_private(update):
+        return
     print("handle photo")
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
         if update.message.photo:
