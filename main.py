@@ -26,9 +26,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     user_id = update.message.from_user.id
     username = update.effective_user.username
-    # اگ چت  خصوصی نبود return میکنه
-    if not await check_private(update):
-        return
+
+
     
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
@@ -113,10 +112,10 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-async def check_private(update:Update):
-#    چک میکنه پیام در چت خصوصی باشه
-    chat_type = update.effective_chat.type
-    return chat_type =='private'
+# async def check_private(update:Update):
+# #    چک میکنه پیام در چت خصوصی باشه
+#     chat_type = update.effective_chat.type
+#     return chat_type =='private'
 
 
 
@@ -231,8 +230,6 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
     message_id=update.message.message_id
     ADMIN_CHAT_ID=['1717599240','686724429']
 
-    if not await check_private(update):
-        return
 
 
     if text =='📚 آموزش':
@@ -576,8 +573,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await check_private(update):
-        return
+
     print("handle photo")
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
         if update.message.photo:
@@ -745,8 +741,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     line = None 
-    if not await check_private(update):
-        return
     
     if data in combined_callback_map:
       
@@ -893,20 +887,16 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-
-
-
 def main():
     app = Application.builder().token(token).build()
 
-    start_handler = CommandHandler("start",start)
-    Buttun_handler =MessageHandler(filters.TEXT & ~filters.COMMAND ,Button_click)
+    start_handler = CommandHandler("start", start, filters=filters.ChatType.PRIVATE)
+    Buttun_handler = MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, Button_click)
 
     app.add_handler(start_handler)
     app.add_handler(Buttun_handler)
     app.add_handler(CallbackQueryHandler(callback_handler))
-    app.add_handler(MessageHandler(filters.PHOTO,handle_photo))
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
     app.run_polling()
 
