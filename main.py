@@ -745,6 +745,9 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     connection = sqlite3.connect(db_name)
     cursor = connection.cursor()
     line = None 
+    if not await check_private(update):
+        return
+    
     if data in combined_callback_map:
       
     #   print("-----     combined     -----")
