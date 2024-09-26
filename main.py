@@ -118,6 +118,7 @@ news_subscribers = set()
 # عضویت کاربر در بخش اخبار
 async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
+    print('khabar')
     if user_id not in news_subscribers:
         news_subscribers.add(user_id)
         await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
@@ -127,6 +128,7 @@ async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 # لغو عضویت کاربر از بخش اخبار
 async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
+    print('laghv-khabar')
     if user_id in news_subscribers:
         news_subscribers.remove(user_id)
         await update.message.reply_text('شما از بخش اخبار خارج شدید.')
