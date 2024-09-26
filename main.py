@@ -2,13 +2,13 @@ import sqlite3
 import os
 import random
 from scholarly import scholarly
-from datetime import time
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler,JobQueue,CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler,CallbackContext
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
 from sympy import symbols, diff, integrate,sympify
@@ -1020,8 +1020,10 @@ def main():
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
 
-    job_queue=app.job_queue
-    job_queue.run_daily(send_article,time=time(hour=9,minute=0,second=0))
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_article, 'cron', hour=9, minute=0, args=[app])
+    scheduler.start()
+
 
     app.add_handler(CommandHandler("article", subscribe))
     app.add_handler(CommandHandler("laghv_article", unsubscribe))
