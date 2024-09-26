@@ -2,13 +2,14 @@ import sqlite3
 import os
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
-from telegram import Update
+from telegram import Update ,InputFile
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
 import logging
 from sympy import symbols, diff, integrate,sympify
+
 
 
 load_dotenv()
@@ -111,13 +112,59 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-
-# async def check_private(update:Update):
-# #    چک میکنه پیام در چت خصوصی باشه
-#     chat_type = update.effective_chat.type
-#     return chat_type =='private'
+news_subscribers = set()
 
 
+# عضویت کاربر در بخش اخبار
+async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id not in news_subscribers:
+        news_subscribers.add(user_id)
+        await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
+    else:
+        await update.message.reply_text('شما قبلاً عضو بخش اخبار بوده‌اید.')
+
+# لغو عضویت کاربر از بخش اخبار
+async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id in news_subscribers:
+        news_subscribers.remove(user_id)
+        await update.message.reply_text('شما از بخش اخبار خارج شدید.')
+    else:
+        await update.message.reply_text('شما عضو بخش اخبار نیستید.')
+
+
+
+async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
+    if user_id in ADMIN_CHAT_ID:
+        # بررسی نوع پیام (متن، عکس، ویدئو)
+        if update.message.text:  # اگر پیام متنی است
+            message = update.message.text
+            for subscriber in news_subscribers:
+                await context.bot.send_message(chat_id=subscriber, text=message)
+
+        elif update.message.photo:  # اگر عکس است
+            photo = update.message.photo[-1].file_id  # آخرین نسخه از عکس با کیفیت بالاتر
+            caption = update.message.caption or ""  # اگر کپشن وجود داشت
+            for subscriber in news_subscribers:
+                await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
+
+        elif update.message.video:  # اگر ویدئو است
+            video = update.message.video.file_id
+            caption = update.message.caption or ""  # اگر کپشن وجود داشت
+            for subscriber in news_subscribers:
+                await context.bot.send_video(chat_id=subscriber, video=video, caption=caption)
+
+        elif update.message.document:  # اگر فایل است
+            document = update.message.document.file_id
+            caption = update.message.caption or ""  # اگر کپشن وجود داشت
+            for subscriber in news_subscribers:
+                await context.bot.send_document(chat_id=subscriber, document=document, caption=caption)
+        await update.message.reply_text('پیام خبری برای اعضای بخش ارسال شد.')
+
+    else:
+        await update.message.reply_text('شما مجاز به ارسال خبر نیستید.')
 
 
 
@@ -897,6 +944,12 @@ def main():
     app.add_handler(Buttun_handler)
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
+
+
+    app.add_handler(CommandHandler("khabar", subscribe_news))
+    app.add_handler(CommandHandler("laghv_khabar", unsubscribe_news))
+    app.add_handler(MessageHandler(filters.ALL & filters.User(ADMIN_CHAT_ID), send_news))  # ادمین‌ها می‌توانند پیام‌ها را ارسال کنند
+   
 
     app.run_polling()
 
