@@ -1020,8 +1020,8 @@ def main():
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
 
-
-    app.job_queue.run_daily(send_article,time=time(hour=9,minute=0,second=0))
+    job_queue=app.job_queue
+    job_queue.run_daily(send_article,time=time(hour=9,minute=0,second=0))
 
     app.add_handler(CommandHandler("article", subscribe))
     app.add_handler(CommandHandler("laghv_article", unsubscribe))
