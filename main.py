@@ -221,7 +221,7 @@ async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
 
-    if user_id in ADMIN_CHAT_ID:
+    if str(user_id) in ADMIN_CHAT_ID:
         # بررسی نوع پیام
         if update.message.text:
             message = update.message.text
