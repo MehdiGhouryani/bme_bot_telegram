@@ -1,14 +1,20 @@
 import sqlite3
 import os
+import random
+from scholarly import scholarly
+from datetime import time
+import logging
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
-from telegram import Update ,InputFile
+from telegram import Update
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
+from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler,JobQueue,CallbackContext
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
-import logging
 from sympy import symbols, diff, integrate,sympify
+
+
+
 
 
 
@@ -112,62 +118,128 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-news_subscribers = set()
 
 
-# عضویت کاربر در بخش اخبار
+# اتصال به دیتابیس SQLite
+conn = sqlite3.connect('subscribers.db')
+cursor = conn.cursor()
+
+# ایجاد جدول‌ها
+cursor.execute('''CREATE TABLE IF NOT EXISTS article_subscribers (chat_id INTEGER PRIMARY KEY)''')
+cursor.execute('''CREATE TABLE IF NOT EXISTS news_subscribers (chat_id INTEGER PRIMARY KEY)''')
+conn.commit()
+
+# ذخیره شناسه کاربر در دیتابیس
+def add_subscriber(chat_id, table):
+    cursor.execute(f'INSERT OR IGNORE INTO {table} (chat_id) VALUES (?)', (chat_id,))
+    conn.commit()
+
+# حذف شناسه کاربر از دیتابیس
+def remove_subscriber(chat_id, table):
+    cursor.execute(f'DELETE FROM {table} WHERE chat_id = ?', (chat_id,))
+    conn.commit()
+
+# واکشی تمام مشترکین
+def get_subscribers(table):
+    cursor.execute(f'SELECT chat_id FROM {table}')
+    return [row[0] for row in cursor.fetchall()]
+
+
+# لیست کلیدواژه‌های مقالات مهندسی پزشکی
+keywords_article = [
+
+    "Biomaterials", "Bioinformatics", "Biomedical Imaging", "Biomimetics", 
+    "Tissue Engineering", "Medical Devices", "Neuroengineering", "Biosensors", 
+    "Bioprinting", "Clinical Engineering", "Rehabilitation Engineering", 
+    "Bioelectrics", "Biomechanics", "Nanomedicine", "Regenerative Medicine", 
+    "Biomedical Signal Processing", "Medical Robotics", "Wearable Health Technology", 
+    "Telemedicine", "Cardiovascular Engineering", "Orthopaedic Bioengineering", 
+    "Prosthetics and Implants", "Artificial Organs", "Cancer Bioengineering", 
+    "Biomedical Data Science", "Biophotonics", "Medical Imaging Informatics", 
+    "Robotic Surgery", "Wearable Sensors", "Digital Health", "Biomedical Optics", 
+    "Point-of-Care Diagnostics", "Cardiac Engineering", "Personalized Medicine", 
+    "Gene Therapy"
+
+]
+
+TARGET = 'Articles_studentsBme'  # کانال آرشیو مقالات
+
+# تابع ارسال مقاله به کاربران
+async def send_article(context: CallbackContext):
+    selected_keyword = random.choice(keywords_article)
+    search_query = scholarly.search_pubs(selected_keyword)
+    articles = [next(search_query) for _ in range(5)]
+    random_article = random.choice(articles)
+
+    abstract = random_article['bib'].get('abstract', 'No abstract available')
+
+    result = f"📚 {random_article['bib']['title']}\n" \
+             f"👨‍🔬 Author(s): {', '.join(random_article['bib']['author'])}\n" \
+             f"📅 Year: {random_article['bib'].get('pub_year', 'Unknown')}\n" \
+             f"🔗 [Link to Article]({random_article.get('pub_url', '#')})\n\n" \
+             f"Abstract:\n{abstract}\n\n" \
+             "--"
+
+    # ارسال به کاربران
+    subscribers = get_subscribers('article_subscribers')
+    for user_id in subscribers:
+        await context.bot.send_message(chat_id=user_id, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    
+    # ارسال به کانال آرشیو
+    await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+# عضویت در بخش مقالات
+async def subscribe(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    
+    add_subscriber(user_id, 'article_subscribers')
+    context.job_queue.run_repeating(send_article, interval=86400, first=0)  # ارسال هر 24 ساعت
+    await update.message.reply_text("شما با موفقیت عضو شدید و مقالات را هر ۲۴ ساعت دریافت خواهید کرد.")
+
+# لغو عضویت در بخش مقالات
+async def unsubscribe(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+
+    remove_subscriber(user_id, 'article_subscribers')
+    await update.message.reply_text("عضویت شما لغو شد. دیگر مقالاتی دریافت نخواهید کرد.")
+
+# عضویت در بخش اخبار
 async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
-    print('khabar')
-    if user_id not in news_subscribers:
-        news_subscribers.add(user_id)
-        await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
-    else:
-        await update.message.reply_text('شما قبلاً عضو بخش اخبار بوده‌اید.')
+    
+    add_subscriber(user_id, 'news_subscribers')
+    await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
 
-# لغو عضویت کاربر از بخش اخبار
+# لغو عضویت در بخش اخبار
 async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
-    print('laghv-khabar')
-    if user_id in news_subscribers:
-        news_subscribers.remove(user_id)
-        await update.message.reply_text('شما از بخش اخبار خارج شدید.')
-    else:
-        await update.message.reply_text('شما عضو بخش اخبار نیستید.')
 
+    remove_subscriber(user_id, 'news_subscribers')
+    await update.message.reply_text('شما از بخش اخبار خارج شدید.')
 
-
+# ارسال خبر توسط ادمین
 async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
+
     if user_id in ADMIN_CHAT_ID:
-        # بررسی نوع پیام (متن، عکس، ویدئو)
-        if update.message.text:  # اگر پیام متنی است
+        # بررسی نوع پیام
+        if update.message.text:
             message = update.message.text
-            for subscriber in news_subscribers:
+            subscribers = get_subscribers('news_subscribers')
+            for subscriber in subscribers:
                 await context.bot.send_message(chat_id=subscriber, text=message)
 
-        elif update.message.photo:  # اگر عکس است
-            photo = update.message.photo[-1].file_id  # آخرین نسخه از عکس با کیفیت بالاتر
-            caption = update.message.caption or ""  # اگر کپشن وجود داشت
-            for subscriber in news_subscribers:
+
+        elif update.message.photo:
+            photo = update.message.photo[-1].file_id
+            caption = update.message.caption or ""
+            subscribers = get_subscribers('news_subscribers')
+            for subscriber in subscribers:
                 await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
 
-        elif update.message.video:  # اگر ویدئو است
-            video = update.message.video.file_id
-            caption = update.message.caption or ""  # اگر کپشن وجود داشت
-            for subscriber in news_subscribers:
-                await context.bot.send_video(chat_id=subscriber, video=video, caption=caption)
-
-        elif update.message.document:  # اگر فایل است
-            document = update.message.document.file_id
-            caption = update.message.caption or ""  # اگر کپشن وجود داشت
-            for subscriber in news_subscribers:
-                await context.bot.send_document(chat_id=subscriber, document=document, caption=caption)
-        await update.message.reply_text('پیام خبری برای اعضای بخش ارسال شد.')
-
+        await update.message.reply_text('خبر برای اعضا ارسال شد.')
     else:
         await update.message.reply_text('شما مجاز به ارسال خبر نیستید.')
-
 
 
 
@@ -948,10 +1020,15 @@ def main():
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
 
+
+    app.job_queue.run_daily(send_article,time=time(hour=9,minute=0,second=0))
+
+    app.add_handler(CommandHandler("article", subscribe))
+    app.add_handler(CommandHandler("laghv_article", unsubscribe))
     app.add_handler(CommandHandler("khabar", subscribe_news))
     app.add_handler(CommandHandler("laghv_khabar", unsubscribe_news))
-    app.add_handler(MessageHandler(filters.ALL & filters.User(ADMIN_CHAT_ID), send_news))  # ادمین‌ها می‌توانند پیام‌ها را ارسال کنند
-   
+    app.add_handler(CommandHandler("send_news", send_news))
+
 
     app.run_polling()
 
