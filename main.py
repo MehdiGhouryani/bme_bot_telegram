@@ -153,11 +153,14 @@ def get_subscribers(table):
     conn = sqlite3.connect('subscribers.db')
     cursor = conn.cursor()
 
-
-    cursor.execute(f'SELECT chat_id FROM {table}')
-    conn.close()
-    return [row[0] for row in cursor.fetchall()]
-
+    try:
+        cursor.execute(f'SELECT chat_id FROM {table}')
+    
+        subscribers=[row[0] for row in cursor.fetchall()]
+    finally:
+        conn.close()
+    
+    return subscribers
 
 # لیست کلیدواژه‌های مقالات مهندسی پزشکی
 keywords_article = [
