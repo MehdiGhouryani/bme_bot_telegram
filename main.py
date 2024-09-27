@@ -1,15 +1,15 @@
 import sqlite3
 import os
-# import random
-# from scholarly import scholarly
-# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import random
+from scholarly import scholarly
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
-# from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
 from sympy import symbols, diff, integrate,sympify
@@ -121,126 +121,139 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 
-# # اتصال به دیتابیس SQLite
-# conn = sqlite3.connect('subscribers.db')
-# cursor = conn.cursor()
+# اتصال به دیتابیس SQLite
 
 # # ایجاد جدول‌ها
 # cursor.execute('''CREATE TABLE IF NOT EXISTS article_subscribers (chat_id INTEGER PRIMARY KEY)''')
 # cursor.execute('''CREATE TABLE IF NOT EXISTS news_subscribers (chat_id INTEGER PRIMARY KEY)''')
 # conn.commit()
 
-# # ذخیره شناسه کاربر در دیتابیس
-# def add_subscriber(chat_id, table):
-#     cursor.execute(f'INSERT OR IGNORE INTO {table} (chat_id) VALUES (?)', (chat_id,))
-#     conn.commit()
+# ذخیره شناسه کاربر در دیتابیس
+def add_subscriber(chat_id, table):
+    conn = sqlite3.connect('subscribers.db')
+    cursor = conn.cursor()
 
-# # حذف شناسه کاربر از دیتابیس
-# def remove_subscriber(chat_id, table):
-#     cursor.execute(f'DELETE FROM {table} WHERE chat_id = ?', (chat_id,))
-#     conn.commit()
-
-# # واکشی تمام مشترکین
-# def get_subscribers(table):
-#     cursor.execute(f'SELECT chat_id FROM {table}')
-#     return [row[0] for row in cursor.fetchall()]
+    cursor.execute(f'INSERT OR IGNORE INTO {table} (chat_id) VALUES (?)', (chat_id,))
+    conn.commit()
+    conn.close()
+# حذف شناسه کاربر از دیتابیس
 
 
-# # لیست کلیدواژه‌های مقالات مهندسی پزشکی
-# keywords_article = [
+def remove_subscriber(chat_id, table):
+    conn = sqlite3.connect('subscribers.db')
+    cursor = conn.cursor()
 
-#     "Biomaterials", "Bioinformatics", "Biomedical Imaging", "Biomimetics", 
-#     "Tissue Engineering", "Medical Devices", "Neuroengineering", "Biosensors", 
-#     "Bioprinting", "Clinical Engineering", "Rehabilitation Engineering", 
-#     "Bioelectrics", "Biomechanics", "Nanomedicine", "Regenerative Medicine", 
-#     "Biomedical Signal Processing", "Medical Robotics", "Wearable Health Technology", 
-#     "Telemedicine", "Cardiovascular Engineering", "Orthopaedic Bioengineering", 
-#     "Prosthetics and Implants", "Artificial Organs", "Cancer Bioengineering", 
-#     "Biomedical Data Science", "Biophotonics", "Medical Imaging Informatics", 
-#     "Robotic Surgery", "Wearable Sensors", "Digital Health", "Biomedical Optics", 
-#     "Point-of-Care Diagnostics", "Cardiac Engineering", "Personalized Medicine", 
-#     "Gene Therapy"
+    cursor.execute(f'DELETE FROM {table} WHERE chat_id = ?', (chat_id,))
+    conn.commit()
+    conn.close()
 
-# ]
 
-# TARGET = 'Articles_studentsBme'  # کانال آرشیو مقالات
+# واکشی تمام مشترکین
+def get_subscribers(table):
+    conn = sqlite3.connect('subscribers.db')
+    cursor = conn.cursor()
 
-# # تابع ارسال مقاله به کاربران
-# async def send_article(context: CallbackContext):
-#     selected_keyword = random.choice(keywords_article)
-#     search_query = scholarly.search_pubs(selected_keyword)
-#     articles = [next(search_query) for _ in range(5)]
-#     random_article = random.choice(articles)
 
-#     abstract = random_article['bib'].get('abstract', 'No abstract available')
+    cursor.execute(f'SELECT chat_id FROM {table}')
+    conn.close()
+    return [row[0] for row in cursor.fetchall()]
 
-#     result = f"📚 {random_article['bib']['title']}\n" \
-#              f"👨‍🔬 Author(s): {', '.join(random_article['bib']['author'])}\n" \
-#              f"📅 Year: {random_article['bib'].get('pub_year', 'Unknown')}\n" \
-#              f"🔗 [Link to Article]({random_article.get('pub_url', '#')})\n\n" \
-#              f"Abstract:\n{abstract}\n\n" \
-#              "--"
 
-#     # ارسال به کاربران
-#     subscribers = get_subscribers('article_subscribers')
-#     for user_id in subscribers:
-#         await context.bot.send_message(chat_id=user_id, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+# لیست کلیدواژه‌های مقالات مهندسی پزشکی
+keywords_article = [
+
+    "Biomaterials", "Bioinformatics", "Biomedical Imaging", "Biomimetics", 
+    "Tissue Engineering", "Medical Devices", "Neuroengineering", "Biosensors", 
+    "Bioprinting", "Clinical Engineering", "Rehabilitation Engineering", 
+    "Bioelectrics", "Biomechanics", "Nanomedicine", "Regenerative Medicine", 
+    "Biomedical Signal Processing", "Medical Robotics", "Wearable Health Technology", 
+    "Telemedicine", "Cardiovascular Engineering", "Orthopaedic Bioengineering", 
+    "Prosthetics and Implants", "Artificial Organs", "Cancer Bioengineering", 
+    "Biomedical Data Science", "Biophotonics", "Medical Imaging Informatics", 
+    "Robotic Surgery", "Wearable Sensors", "Digital Health", "Biomedical Optics", 
+    "Point-of-Care Diagnostics", "Cardiac Engineering", "Personalized Medicine", 
+    "Gene Therapy"
+
+]
+
+TARGET = 'Articles_studentsBme'  # کانال آرشیو مقالات
+
+# تابع ارسال مقاله به کاربران
+async def send_article(context: CallbackContext):
+    selected_keyword = random.choice(keywords_article)
+    search_query = scholarly.search_pubs(selected_keyword)
+    articles = [next(search_query) for _ in range(5)]
+    random_article = random.choice(articles)
+
+    abstract = random_article['bib'].get('abstract', 'No abstract available')
+
+    result = f"📚 {random_article['bib']['title']}\n" \
+             f"👨‍🔬 Author(s): {', '.join(random_article['bib']['author'])}\n" \
+             f"📅 Year: {random_article['bib'].get('pub_year', 'Unknown')}\n" \
+             f"🔗 [Link to Article]({random_article.get('pub_url', '#')})\n\n" \
+             f"Abstract:\n{abstract}\n\n" \
+             "--"
+
+    # ارسال به کاربران
+    subscribers = get_subscribers('article_subscribers')
+    for user_id in subscribers:
+        await context.bot.send_message(chat_id=user_id, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     
-#     # ارسال به کانال آرشیو
-#     await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    # ارسال به کانال آرشیو
+    await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
-# # عضویت در بخش مقالات
-# async def subscribe(update: Update, context: CallbackContext):
-#     user_id = update.effective_user.id
+# عضویت در بخش مقالات
+async def subscribe(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
     
-#     add_subscriber(user_id, 'article_subscribers')
-#     context.job_queue.run_repeating(send_article, interval=86400, first=0)  # ارسال هر 24 ساعت
-#     await update.message.reply_text("شما با موفقیت عضو شدید و مقالات را هر ۲۴ ساعت دریافت خواهید کرد.")
+    add_subscriber(user_id, 'article_subscribers')
+    context.job_queue.run_repeating(send_article, interval=86400, first=0)  # ارسال هر 24 ساعت
+    await update.message.reply_text("شما با موفقیت عضو شدید و مقالات را هر ۲۴ ساعت دریافت خواهید کرد.")
 
-# # لغو عضویت در بخش مقالات
-# async def unsubscribe(update: Update, context: CallbackContext):
-#     user_id = update.effective_user.id
+# لغو عضویت در بخش مقالات
+async def unsubscribe(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
 
-#     remove_subscriber(user_id, 'article_subscribers')
-#     await update.message.reply_text("عضویت شما لغو شد. دیگر مقالاتی دریافت نخواهید کرد.")
+    remove_subscriber(user_id, 'article_subscribers')
+    await update.message.reply_text("عضویت شما لغو شد. دیگر مقالاتی دریافت نخواهید کرد.")
 
-# # عضویت در بخش اخبار
-# async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     user_id = update.effective_user.id
+# عضویت در بخش اخبار
+async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
     
-#     add_subscriber(user_id, 'news_subscribers')
-#     await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
+    add_subscriber(user_id, 'news_subscribers')
+    await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
 
-# # لغو عضویت در بخش اخبار
-# async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     user_id = update.effective_user.id
+# لغو عضویت در بخش اخبار
+async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
 
-#     remove_subscriber(user_id, 'news_subscribers')
-#     await update.message.reply_text('شما از بخش اخبار خارج شدید.')
+    remove_subscriber(user_id, 'news_subscribers')
+    await update.message.reply_text('شما از بخش اخبار خارج شدید.')
 
-# # ارسال خبر توسط ادمین
-# async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#     user_id = update.effective_user.id
+# ارسال خبر توسط ادمین
+async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.effective_user.id
 
-#     if str(user_id) in ADMIN_CHAT_ID:
-#         # بررسی نوع پیام
-#         if update.message.text:
-#             message = update.message.text
-#             subscribers = get_subscribers('news_subscribers')
-#             for subscriber in subscribers:
-#                 await context.bot.send_message(chat_id=subscriber, text=message)
+    if str(user_id) in ADMIN_CHAT_ID:
+        # بررسی نوع پیام
+        if update.message.text:
+            message = update.message.text
+            subscribers = get_subscribers('news_subscribers')
+            for subscriber in subscribers:
+                await context.bot.send_message(chat_id=subscriber, text=message)
 
 
-#         elif update.message.photo:
-#             photo = update.message.photo[-1].file_id
-#             caption = update.message.caption or ""
-#             subscribers = get_subscribers('news_subscribers')
-#             for subscriber in subscribers:
-#                 await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
+        elif update.message.photo:
+            photo = update.message.photo[-1].file_id
+            caption = update.message.caption or ""
+            subscribers = get_subscribers('news_subscribers')
+            for subscriber in subscribers:
+                await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
 
-#         await update.message.reply_text('خبر برای اعضا ارسال شد.')
-#     else:
-#         await update.message.reply_text('شما مجاز به ارسال خبر نیستید.')
+        await update.message.reply_text('خبر برای اعضا ارسال شد.')
+    else:
+        await update.message.reply_text('شما مجاز به ارسال خبر نیستید.')
 
 
 
