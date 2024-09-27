@@ -208,7 +208,7 @@ async def subscribe(update: Update, context: CallbackContext):
     
     add_subscriber(user_id, 'article_subscribers')
     context.job_queue.run_repeating(send_article, interval=86400, first=0)  # ارسال هر 24 ساعت
-    await update.message.reply_text("شما با موفقیت عضو شدید و مقالات را هر ۲۴ ساعت دریافت خواهید کرد.")
+    await update.message.reply_text("شما با موفقیت عضو بخش مقالات مهندسی پزشکی شدید ✅")
 
 # لغو عضویت در بخش مقالات
 async def unsubscribe(update: Update, context: CallbackContext):
@@ -217,12 +217,16 @@ async def unsubscribe(update: Update, context: CallbackContext):
     remove_subscriber(user_id, 'article_subscribers')
     await update.message.reply_text("عضویت شما لغو شد. دیگر مقالاتی دریافت نخواهید کرد.")
 
+
+
+
+
 # عضویت در بخش اخبار
 async def subscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.effective_user.id
     
     add_subscriber(user_id, 'news_subscribers')
-    await update.message.reply_text('شما به بخش اخبار اضافه شدید.')
+    await update.message.reply_text('شما با موفقیت عضو بخش خبری مهندسی پزشکی شدید ✅')
 
 # لغو عضویت در بخش اخبار
 async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -231,29 +235,7 @@ async def unsubscribe_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     remove_subscriber(user_id, 'news_subscribers')
     await update.message.reply_text('شما از بخش اخبار خارج شدید.')
 
-# ارسال خبر توسط ادمین
-async def send_news(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
 
-    if str(user_id) in ADMIN_CHAT_ID:
-        # بررسی نوع پیام
-        if update.message.text:
-            message = update.message.text
-            subscribers = get_subscribers('news_subscribers')
-            for subscriber in subscribers:
-                await context.bot.send_message(chat_id=subscriber, text=message)
-
-
-        elif update.message.photo:
-            photo = update.message.photo[-1].file_id
-            caption = update.message.caption or ""
-            subscribers = get_subscribers('news_subscribers')
-            for subscriber in subscribers:
-                await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
-
-        await update.message.reply_text('خبر برای اعضا ارسال شد.')
-    else:
-        await update.message.reply_text('شما مجاز به ارسال خبر نیستید.')
 
 
 
@@ -705,6 +687,32 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         
 
 
+    if text == "/send_news" and str(user_id) in ADMIN_CHAT_ID:
+        await update.message.reply_text("لطفاً پیام خبری خود را وارد کنید:")
+        context.user_data['awaiting_news'] = True  
+        
+    # بررسی اینکه آیا ربات در حالت انتظار دریافت خبر است
+    elif context.user_data.get('awaiting_news') and str(user_id) in ADMIN_CHAT_ID:
+        subscribers = get_subscribers('news_subscribers')
+        
+        # بررسی اینکه پیام متنی است یا تصویری
+        if update.message.text:
+            message = update.message.text
+            for subscriber in subscribers:
+                await context.bot.send_message(chat_id=subscriber, text=message)
+
+        elif update.message.photo:
+            photo = update.message.photo[-1].file_id
+            caption = update.message.caption or ""
+            for subscriber in subscribers:
+                await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
+
+        await update.message.reply_text('خبر برای اعضا ارسال شد.')
+        context.user_data['awaiting_news'] = False  
+
+
+
+
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1034,16 +1042,16 @@ def main():
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
 
-    # scheduler = AsyncIOScheduler()
-    # scheduler.add_job(send_article, 'cron', hour=9, minute=0, args=[app])
-    # scheduler.start()
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(send_article, 'cron', hour=9, minute=0, args=[app])
+    scheduler.start()
 
 
-    # app.add_handler(CommandHandler("article", subscribe))
-    # app.add_handler(CommandHandler("laghv_article", unsubscribe))
-    # app.add_handler(CommandHandler("khabar", subscribe_news))
-    # app.add_handler(CommandHandler("laghv_khabar", unsubscribe_news))
-    # app.add_handler(CommandHandler("send_news", send_news))
+    app.add_handler(CommandHandler("article", subscribe))
+    app.add_handler(CommandHandler("laghv_article", unsubscribe))
+    app.add_handler(CommandHandler("khabar", subscribe_news))
+    app.add_handler(CommandHandler("laghv_khabar", unsubscribe_news))
+ 
 
 
     app.run_polling()
