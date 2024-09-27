@@ -207,20 +207,26 @@ async def send_article(context: CallbackContext):
     
     # ارسال به کانال آرشیو
     await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    try:
+        genai.configure(api_key=gen_token)
 
-    genai.configure(api_key=gen_token)
-
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    content = f"""لطفا این مقاله رو به شکل خیلی خوب و با جزيیات بررسی کن و برداشت هات رو به شکل زبان عامیانه فارسی به‌طور کامل شرح بده بطور علمی و دقیق با فرمولها و دلایل حرفه‌ای و دقیقا توضیح بده این مقاله رو.
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        content = f"""لطفا این مقاله رو به شکل خیلی خوب و با جزيیات بررسی کن و برداشت هات رو به شکل زبان عامیانه فارسی به‌طور کامل شرح بده بطور علمی و دقیق با فرمولها و دلایل حرفه‌ای و دقیقا توضیح بده این مقاله رو.
 
 لینک مقاله و خلاصه‌ای ازش: {result}
 دقت کن حدود 8 تا 12 خط باشه توضیحاتت
 لطفا انتهای پست هم رفرنس بزار 
 """
-    response = await model.generate_content(content)
-    text_ai= response.text.replace("#", "")
-    
+        response = await model.generate_content(content)
+        text_ai= response.text.replace("#", "")
+        for user_id in subscribers:
+            await context.bot.send_message(chat_id=user_id, text=text_ai, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
+        # ارسال به کانال آرشیو
+        await context.bot.send_message(chat_id=TARGET, text=text_ai, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+    except Exception as e:
+        print(f"ERROR : {e}")
 
 
 
