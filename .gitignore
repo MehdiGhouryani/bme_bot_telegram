@@ -3,5 +3,4 @@ images/
 venv/
 .env
 optimize.py
-users.db
-medical_device.db
+*.db
