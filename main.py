@@ -1,14 +1,15 @@
 import sqlite3
 import os
-import random
-from scholarly import scholarly
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# import random
+# from scholarly import scholarly
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
 from telegram.constants import ParseMode
-from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler,CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
+# from telegram.ext import CallbackContext
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
 from sympy import symbols, diff, integrate,sympify
