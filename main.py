@@ -690,7 +690,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         
 
 
-    if text == "/send_news" and str(user_id) in ADMIN_CHAT_ID:
+    elif text == "send_news" and str(user_id) in ADMIN_CHAT_ID:
         await update.message.reply_text("لطفاً پیام خبری خود را وارد کنید:")
         context.user_data['awaiting_news'] = True  
         
