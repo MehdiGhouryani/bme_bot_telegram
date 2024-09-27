@@ -193,13 +193,13 @@ async def send_article(context: CallbackContext):
 
 
 
-    abstract = random_article['bib'].get('abstract', 'No abstract available')
+    abst = random_article['bib'].get('abstract', 'No abstract available')
 
-    result = f"📚 {random_article['bib']['title']}\n" \
+    res = f"📚 {random_article['bib']['title']}\n" \
              f"👨‍🔬 Author(s): {', '.join(random_article['bib']['author'])}\n" \
              f"📅 Year: {random_article['bib'].get('pub_year', 'Unknown')}\n" \
              f"🔗 [Link to Article]({random_article.get('pub_url', '#')})\n\n\n" \
-             f"Abstract:\n{abstract}\n\n" \
+             f"Abstract:\n{abst}\n\n" \
              "--"
     try:
         genai.configure(api_key=gen_token)
@@ -207,7 +207,7 @@ async def send_article(context: CallbackContext):
         model = genai.GenerativeModel("gemini-1.5-flash")
         content = f"""لطفا این مقاله رو به شکل خیلی خوب و با جزيیات بررسی کن و برداشت هات رو به شکل زبان عامیانه فارسی به‌طور کامل شرح بده بطور علمی و دقیق با فرمولها و دلایل حرفه‌ای و دقیقا توضیح بده این مقاله رو.
 
-لینک مقاله و خلاصه‌ای ازش: {result}
+لینک مقاله و خلاصه‌ای ازش: {res}
 دقت کن حدود 8 تا 12 خط باشه توضیحاتت
 لطفا انتهای پست هم رفرنس بزار 
 """
@@ -246,7 +246,7 @@ async def subscribe(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     
     add_subscriber(user_id, 'article_subscribers')
-    context.job_queue.run_repeating(send_article, interval=100, first=0)  
+    context.job_queue.run_repeating(send_article, interval=1000, first=0)  
     await update.message.reply_text("شما با موفقیت عضو بخش مقالات مهندسی پزشکی شدید ✅")
 
 # لغو عضویت در بخش مقالات
