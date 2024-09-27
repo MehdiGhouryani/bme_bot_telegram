@@ -2,8 +2,9 @@ import sqlite3
 import os
 import random
 from scholarly import scholarly
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
+import google.generativeai as genai
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
@@ -21,6 +22,8 @@ from sympy import symbols, diff, integrate,sympify
 
 load_dotenv()
 token=os.getenv('Token')
+gen_token =os.getenv("genai")
+
 db_name="medical_device.db"
 ADMIN_CHAT_ID=['1717599240','686724429']
 
@@ -205,12 +208,31 @@ async def send_article(context: CallbackContext):
     # ارسال به کانال آرشیو
     await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
+    genai.configure(api_key=gen_token)
+
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    content = f"""لطفا این مقاله رو به شکل خیلی خوب و با جزيیات بررسی کن و برداشت هات رو به شکل زبان عامیانه فارسی به‌طور کامل شرح بده بطور علمی و دقیق با فرمولها و دلایل حرفه‌ای و دقیقا توضیح بده این مقاله رو.
+
+لینک مقاله و خلاصه‌ای ازش: {result}
+دقت کن حدود 8 تا 12 خط باشه توضیحاتت
+لطفا انتهای پست هم رفرنس بزار 
+"""
+    response = await model.generate_content(content)
+    text_ai= response.text.replace("#", "")
+    
+
+
+
+
+
+
+
 # عضویت در بخش مقالات
 async def subscribe(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     
     add_subscriber(user_id, 'article_subscribers')
-    context.job_queue.run_repeating(send_article, interval=86400, first=0)  # ارسال هر 24 ساعت
+    context.job_queue.run_repeating(send_article, interval=1800, first=0)  # ارسال هر 24 ساعت
     await update.message.reply_text("شما با موفقیت عضو بخش مقالات مهندسی پزشکی شدید ✅")
 
 # لغو عضویت در بخش مقالات
@@ -1052,9 +1074,9 @@ def main():
     app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, handle_photo))
 
 
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(send_article, 'cron', hour=9, minute=0, args=[app])
-    scheduler.start()
+    # scheduler = AsyncIOScheduler()
+    # scheduler.add_job(send_article, 'cron', hour='*',args=[app])
+    # scheduler.start()
 
 
     app.add_handler(CommandHandler("article", subscribe))
