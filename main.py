@@ -238,7 +238,7 @@ async def subscribe(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     
     add_subscriber(user_id, 'article_subscribers')
-    context.job_queue.run_repeating(send_article, interval=1800, first=0)  # ارسال هر 24 ساعت
+    context.job_queue.run_repeating(send_article, interval=100, first=0)  
     await update.message.reply_text("شما با موفقیت عضو بخش مقالات مهندسی پزشکی شدید ✅")
 
 # لغو عضویت در بخش مقالات
