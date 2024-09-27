@@ -212,20 +212,30 @@ async def send_article(context: CallbackContext):
 لطفا انتهای پست هم رفرنس بزار 
 """
         response = await model.generate_content(content)
-        abstract = response.text.replace("#", "")
+        abstract = response.replace("#", "")
 
     except Exception as e:
         print(f"ERROR : {e}")
 
+        
+    result = f"📚 {random_article['bib']['title']}\n" \
+             f"👨‍🔬 Author(s): {', '.join(random_article['bib']['author'])}\n" \
+             f"📅 Year: {random_article['bib'].get('pub_year', 'Unknown')}\n" \
+             f"🔗 [Link to Article]({random_article.get('pub_url', '#')})\n\n\n" \
+             f"Abstract:\n{abstract}\n\n" \
+             "--"
 
+    try:
+        # ارسال به کاربران
+        subscribers = get_subscribers('article_subscribers')
+        for user_id in subscribers:
+            await context.bot.send_message(chat_id=user_id, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
-    # ارسال به کاربران
-    subscribers = get_subscribers('article_subscribers')
-    for user_id in subscribers:
-        await context.bot.send_message(chat_id=user_id, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+        # ارسال به کانال آرشیو
+        await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     
-    # ارسال به کانال آرشیو
-    await context.bot.send_message(chat_id=TARGET, text=result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    except Exception as e:
+        print(f"ERROR : {e}")
 
 
 
