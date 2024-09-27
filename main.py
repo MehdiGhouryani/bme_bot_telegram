@@ -704,12 +704,6 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
             for subscriber in subscribers:
                 await context.bot.send_message(chat_id=subscriber, text=message)
 
-        elif update.message.photo:
-            photo = update.message.photo[-1].file_id
-            caption = update.message.caption or ""
-            for subscriber in subscribers:
-                await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
-
         await update.message.reply_text('خبر برای اعضا ارسال شد.')
         context.user_data['awaiting_news'] = False  
 
@@ -719,14 +713,18 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ADMIN_CHAT_ID=['1717599240','686724429']
+    user_id =update.message.from_user.id
 
     print("handle photo")
+
+
     if 'waiting_for_photo' in context.user_data and context.user_data['waiting_for_photo']:
         if update.message.photo:
             photo = update.message.photo[-1].file_id
             caption = update.message.caption if update.message.caption else ''
 
-            # اتصال به دیتابیس و خواندن chat_idها
+   
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
             cursor.execute("SELECT chat_id FROM users")
@@ -734,7 +732,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             conn.close()
             print("database is close")
 
-            # ذخیره‌ی اطلاعات برای ارسال به کاربران
             context.user_data['photo_id'] = photo
             context.user_data['caption'] = caption
             context.user_data['waiting_for_photo'] = False
@@ -751,6 +748,16 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text('پست به تمام کاربران ارسال شد.')
         else:
             await update.message.reply_text('لطفا یک عکس ارسال کنید.')
+
+
+    if context.user_data.get('awaiting_news') and str(user_id) in ADMIN_CHAT_ID:
+        subscribers = get_subscribers('news_subscribers')
+        photo = update.message.photo[-1].file_id
+        caption = update.message.caption or ""
+        for subscriber in subscribers:
+            await context.bot.send_photo(chat_id=subscriber, photo=photo, caption=caption)
+        await update.message.reply_text('خبر برای اعضا ارسال شد.')
+    context.user_data['awaiting_news'] = False  
 
 
 
