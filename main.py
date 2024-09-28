@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 
-
+asyncio.sleep(2)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     user_id = update.message.from_user.id
