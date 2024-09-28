@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 
 
-asyncio.sleep(2)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id  
     user_id = update.message.from_user.id
@@ -380,7 +380,7 @@ pages_components={
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
-    await asyncio.sleep(2)
+    await asyncio.sleep(5)
     text= update.message.text 
     
     user =update.message.from_user
