@@ -95,6 +95,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
     GROUP_CHAT_ID = '@chat_studentsbme'
+    await asyncio.sleep(8)
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
@@ -379,6 +380,7 @@ pages_components={
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
+    await asyncio.sleep(1)
     text= update.message.text 
     
     user =update.message.from_user
@@ -393,6 +395,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
     if text =='📚 آموزش':
+        await asyncio.sleep(5.5)
         buttons=[
         [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("⚙️ سنسور ها و قطعات")],
         [KeyboardButton('بازگشت به صفحه قبل  ⬅️')]
@@ -417,6 +420,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text('  لطفا یکی از گزینه‌ها را انتخاب کنید :',reply_markup=reply_markup)
     
     elif text == "📡 سنسورها":
+        await asyncio.sleep(6)
 
         buttons = [
             [InlineKeyboardButton("🌡️ سنسور دما", url=pages_sensors["Temperature_Sensor"])],
@@ -469,7 +473,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
     elif text == "➕ حل مسئله ریاضیات":  # if برای شروع اولین شرط
-
+        await asyncio.sleep(4)
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"), KeyboardButton("انتگرال‌گیری ∫")],
             [KeyboardButton("مشتقات جزئی ∂"), KeyboardButton("انتگرال چندگانه ∬")],
@@ -649,6 +653,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     
     elif text=='بازگشت به صفحه قبل ⬅️':
+        await asyncio.sleep(3.5)
             
         buttons=[
         [KeyboardButton("تجهیزات پزشکی  🩺"),KeyboardButton("⚙️ سنسور ها و قطعات")],
@@ -660,10 +665,11 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
 
     elif text =='بازگشت به صفحه قبل  ⬅️':
+        await asyncio.sleep(4)
         await start(update,context)
 
     elif text == "برو به صفحه قبل⬅️":
-
+        await asyncio.sleep(3.5)
         keyboard = [
             [KeyboardButton("مشتق‌گیری 📈"), KeyboardButton("انتگرال‌گیری ∫")],
             [KeyboardButton("مشتقات جزئی ∂"), KeyboardButton("انتگرال چندگانه ∬")],
@@ -942,6 +948,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
       await combined_callback_map[data](data,update, context)
 
     elif data in keyboard_map:
+        await asyncio.sleep(3)
         # print(f"----     keyboard_map     ----")
         reply_markup = InlineKeyboardMarkup(keyboard_map[data])
         await query.edit_message_reply_markup(reply_markup=reply_markup)
@@ -1025,8 +1032,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cursor.execute(f"SELECT operation FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
+                await asyncio.sleep(2)
                 await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
+                await asyncio.sleep(2)
                 await query.delete_message()
                 await context.bot.send_message(chat_id=chat_id,text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
 
@@ -1045,6 +1054,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cursor.execute(f"SELECT safety FROM information WHERE name = '{device}'")
             device_info = cursor.fetchone()[0]
             try:
+                await asyncio.sleep(3)
                 await query.edit_message_text(text = device_info,parse_mode=ParseMode.MARKDOWN,reply_markup=reply_markup_menu)
             except:    
                 await query.delete_message()
