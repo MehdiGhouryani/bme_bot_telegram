@@ -38,7 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     username = update.effective_user.username
 
-    await asyncio.sleep(3)
+    await asyncio.sleep(1.5)
     
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
@@ -95,7 +95,7 @@ async def check_membership(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
     GROUP_CHAT_ID = '@chat_studentsbme'
-    await asyncio.sleep(3)
+    await asyncio.sleep(1.5)
 
     try:
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
@@ -680,7 +680,7 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
         await update.message.reply_text('لطفاً یک گزینه را انتخاب کنید:', reply_markup=reply_markup)
 
     elif text =='تعداد کاربران فعال':
-        await asyncio.sleep(4)
+        await asyncio.sleep(2)
         conn = sqlite3.connect('users.db')
         cursor = conn.cursor()
         cursor.execute('SELECT COUNT(*) FROM users')
@@ -932,7 +932,7 @@ keyboard_map = {
 
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await asyncio.sleep(2)
+    await asyncio.sleep(1.5)
     # user_id = update.message.from_user.id
     query = update.callback_query
     data = query.data
