@@ -1,4 +1,4 @@
-![Logo](assets/readmeLogo.jpg)
+<!-- ![Logo](assets/readmeLogo.jpg) -->
 
 
 ---
