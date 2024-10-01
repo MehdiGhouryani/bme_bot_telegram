@@ -21,6 +21,8 @@ This Telegram bot serves as a comprehensive guide for **biomedical engineering s
 
 Once the bot is running, users can simply interact with it by sending commands or choosing options from the menu to navigate through the various features. Whether you're looking for specific equipment information or need help with a math problem, this bot is designed to assist you efficiently.
 
+@students_bme_bot
+
 ---
 
 
