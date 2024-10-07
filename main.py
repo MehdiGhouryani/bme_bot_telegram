@@ -1,16 +1,16 @@
 import sqlite3
 import os
-import random
-from scholarly import scholarly
+# import random
+# from scholarly import scholarly
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import logging
-import google.generativeai as genai
+# import google.generativeai as genai
 from dotenv import load_dotenv
 from keyboards_medical import KeyboardsManager
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, ContextTypes , MessageHandler,filters, CallbackQueryHandler
-from telegram.ext import CallbackContext
+# from telegram.ext import CallbackContext
 from telegram import KeyboardButton,ReplyKeyboardMarkup ,InlineKeyboardMarkup,InlineKeyboardButton
 from callback_map import callback_map
 from sympy import symbols, diff, integrate,sympify
@@ -38,7 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     username = update.effective_user.username
 
-    await asyncio.sleep(1.5)
+    # await asyncio.sleep(1)
     
     print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
@@ -932,7 +932,7 @@ keyboard_map = {
 
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await asyncio.sleep(1.5)
+    await asyncio.sleep(0.5)
     # user_id = update.message.from_user.id
     query = update.callback_query
     data = query.data
