@@ -932,7 +932,7 @@ keyboard_map = {
 
 
 async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await asyncio.sleep(0.5)
+    # await asyncio.sleep(0.5)
     # user_id = update.message.from_user.id
     query = update.callback_query
     data = query.data
