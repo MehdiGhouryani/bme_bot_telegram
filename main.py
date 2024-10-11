@@ -381,7 +381,7 @@ pages_components={
 
 
 async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
-    await asyncio.sleep(2)
+    await asyncio.sleep(0.5)
     text= update.message.text 
     
     user =update.message.from_user
