@@ -38,13 +38,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     username = update.effective_user.username
 
-    # await asyncio.sleep(1)
+
     
-    print(f'USER : {username}    ID : {user_id}')
+    # print(f'USER : {username}    ID : {user_id}')
     await save_user(user_id, username, chat_id)
     GROUP_CHAT_ID = '@chat_studentsbme'
 
     try:
+        await asyncio.sleep(0.3)
         member = await context.bot.get_chat_member(chat_id=GROUP_CHAT_ID, user_id=user_id)
         print(f"user {user_id} status in group {GROUP_CHAT_ID} : {member.status}")
         if member.status not in ['member', 'administrator', 'creator']:
@@ -666,7 +667,16 @@ async def Button_click(update:Update , context:ContextTypes.DEFAULT_TYPE) :
 
     elif text =='بازگشت به صفحه قبل  ⬅️':
         # await asyncio.sleep(4)
-        await start(update,context)
+        # await start(update,context)
+        keyboard = [
+            [KeyboardButton("📚 آموزش"),],
+            [KeyboardButton("➕ حل مسئله ریاضیات")],
+            [KeyboardButton("❓ سوالات متداول")],
+            [KeyboardButton("📝 درخواست و پیشنهاد")],
+        ]
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True) 
+        await update.message.reply_text("لطفا یکی از گزینه‌ها را انتخاب کنید:", reply_markup=reply_markup) 
+
 
     elif text == "برو به صفحه قبل⬅️":
         # await asyncio.sleep(3.5)
