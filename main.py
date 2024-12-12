@@ -23,7 +23,16 @@ gen_token =os.getenv("genai")
 
 
 db_name="medical_device.db"
+
 ADMIN_CHAT_ID=['1717599240','686724429']
+
+
+def is_admin(user_id):
+    return str(user_id) in ADMIN_CHAT_ID
+
+
+
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,18 +44,16 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_message.id
-    if str(user_id) in ADMIN_CHAT_ID:
-        try:
-            if update.message.reply_to_message:
-                replyText =update.message.reply_to_message.text
-                response = model.generate_content(f"""سلام.
-
-        سوال زیر مربوط به یک کاربر رشته مهندسی پزشکی است. لطفاً پاسخ را به صورت تخصصی و در عین حال به زبان عامیانه و روان فارسی ارائه دهید و از نوشتن مطالب اضافی خودداری کن .\n\n{replyText}""")
-
-                await update.message.reply_text(response.text,parse_mode=ParseMode.MARKDOWN)
-        except Exception as e:
-            await context.bot.send_message(text=e,chat_id=1717599240)
+    if not is_admin(update.message.from_user.id):
+        return
+    try:
+        if update.message.reply_to_message:
+            replyText =update.message.reply_to_message.text
+            response = model.generate_content(f"""سلام.
+    سوال زیر مربوط به یک کاربر رشته مهندسی پزشکی است. لطفاً پاسخ را به صورت تخصصی و در عین حال به زبان عامیانه و روان فارسی ارائه دهید و از نوشتن مطالب اضافی خودداری کن .\n\n{replyText}""")
+            await update.message.reply_text(response.text,parse_mode=ParseMode.MARKDOWN)
+    except Exception as e:
+        await context.bot.send_message(text=e,chat_id=1717599240)
 
 
 
