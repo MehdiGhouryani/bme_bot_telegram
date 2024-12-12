@@ -18,7 +18,7 @@ async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    app = Application().builder().token(bot_TK).build()
+    app = Application.builder().token(bot_TK).build()
     app.add_handler(CommandHandler("ai",ai_command))
     
     app.run_polling()
