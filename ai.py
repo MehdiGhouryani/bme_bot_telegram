@@ -12,7 +12,11 @@ bot_TK = "7715332342:AAFqctg0XVQzxYGHkXNYyXb6U9FlRRjijuA"
 async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
     if update.message.reply_to_message:
         replyText =update.message.reply_to_message.text
-        response = model.generate_content(f" ببین میخام جواب سوال زیر رو به شکل تخصصی و کامل بنویسی , توجه کن جواب رو به زبان عامیانه و ساده فارسی بنویسی و طوری که قابل فهم باشد \n{replyText}")
+        response = model.generate_content(f"""سلام.
+میخام سوال زیر رو به شکل تخصصی پاسخ بدی
+مربوط به رشته مهندسی پزشکی است.
+دقت کن جواب را فقط مربوط به این سوال زیر بدی و مطلب اضافی ننویسی
+در اخر پاسخ را به زبان عامیانه فارسی و روان و قابل فهم ارسال کن\n\n{replyText}""")
 
         await update.message.reply_text(response.text,parse_mode=ParseMode.MARKDOWN)
 
