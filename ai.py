@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application,CommandHandler,filters,MessageHandler,ContextTypes
 import google.generativeai as genai
-
+from telegram.constants import ParseMode
 
 genai.configure(api_key="AIzaSyCEVrQ9LA0LM9qMgxKfj8ZzJE2Ktmu7K6I")
 model = genai.GenerativeModel("gemini-1.5-flash")
@@ -14,7 +14,7 @@ async def ai_command(update:Update,context:ContextTypes.DEFAULT_TYPE):
         replyText =update.message.reply_to_message.text
         response = model.generate_content(f" ببین میخام جواب سوال زیر رو به شکل تخصصی و کامل بنویسی , توجه کن جواب رو به زبان عامیانه و ساده فارسی بنویسی و طوری که قابل فهم باشد \n{replyText}")
 
-        await update.message.reply_text(response.text)
+        await update.message.reply_text(response.text,parse_mode=ParseMode.MARKDOWN)
 
 
 def main():
