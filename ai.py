@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 
 genai.configure(api_key="AIzaSyCEVrQ9LA0LM9qMgxKfj8ZzJE2Ktmu7K6I")
-model = genai.GenerativeModel("gemeni-1.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 bot_TK = "7715332342:AAFqctg0XVQzxYGHkXNYyXb6U9FlRRjijuA"
 
