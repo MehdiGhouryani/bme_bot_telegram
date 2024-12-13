@@ -12,7 +12,7 @@ from sympy import symbols, diff, integrate,sympify
 import asyncio
 from telegram.ext import Application,CommandHandler,filters,MessageHandler,ContextTypes
 import google.generativeai as genai
-
+from config import ADMIN_CHAT_ID
 
 
 
@@ -24,7 +24,7 @@ gen_token =os.getenv("genai")
 
 db_name="medical_device.db"
 
-ADMIN_CHAT_ID=['1717599240','686724429']
+
 
 
 def is_admin(user_id):
