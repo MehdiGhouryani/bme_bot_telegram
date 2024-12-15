@@ -909,7 +909,7 @@ def main():
 
     start_handler = CommandHandler("start", start, filters=filters.ChatType.PRIVATE)
     Buttun_handler = MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, Button_click)
-    # app.add_handler(CommandHandler("ai",ai_command))
+    app.add_handler(CommandHandler("ai",ai_command))
     app.add_handler(start_handler)
     app.add_handler(Buttun_handler)
     app.add_handler(CallbackQueryHandler(callback_handler))
