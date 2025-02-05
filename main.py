@@ -34,8 +34,8 @@ def is_admin(user_id):
 
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
-logger = logging.getLogger(__name__)
+# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s',level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 
 
@@ -57,7 +57,6 @@ async def ai_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 سوال زیر مربوط به یک کاربر رشته مهندسی پزشکی است. لطفاً پاسخ را به صورت تخصصی و در عین حال به زبان عامیانه و روان فارسی ارائه دهید و از نوشتن مطالب اضافی خودداری کن.\n\n{replyText}""")
             
-            # اطمینان از اینکه response.text یک رشته است
             await update.message.reply_text(str(response.text), parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
             error_message = f"خطا در تولید محتوا: {str(e)}"
