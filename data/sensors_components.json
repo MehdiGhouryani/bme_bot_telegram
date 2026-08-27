@@ -1,0 +1,140 @@
+{
+  "sensors": {
+    "Temperature_Sensor": "https://telegra.ph/سنسور-دما---Temperature-Sensor-08-06-3",
+    "Pressure_Sensor": "https://telegra.ph/سنسور-فشار---Pressure-Sensor-08-06-2",
+    "HeartRate_Sensor": "https://telegra.ph/سنسور-ضربان-قلب---Heart-Rate-Sensor-08-06-2",
+    "Oxygen_Sensor": "https://telegra.ph/سنسور-اکسیژن---Oxygen-Sensor-08-06",
+    "Motion_Sensor": "https://telegra.ph/سنسور-حرکتی---Motion-Sensor-08-06",
+    "ECG_Sensor": "https://telegra.ph/سنسور-نوار-قلب---ECG-Sensor-08-06",
+    "Humidity": "https://telegra.ph/سنسور-دما-و-رطوبت---Temperature-and-Humidity-Sensor-08-06",
+    "Level_Sensor": "https://telegra.ph/سنسور-سطح---Level-Sensor-08-06",
+    "Gas_Sensor": "https://telegra.ph/سنسور-گاز---Gas-Sensor-08-06",
+    "Optical_Sensor": "https://telegra.ph/سنسور-نوری---Optical-Sensor-08-06"
+  },
+  "components": {
+    "Microcontroller": "https://telegra.ph/میکروکنترلر-Microcontroller-08-07",
+    "Amplifier": "https://telegra.ph/آی‌سی-تقویت‌کننده-Operational-Amplifier-08-07",
+    "ADC": "https://telegra.ph/آی‌سی-آنالوگ-به-دیجیتال-ADC-08-07",
+    "DAC": "https://telegra.ph/آی‌سی-دیجیتال-به-آنالوگ-DAC-08-07",
+    "Transistor": "https://telegra.ph/ترانزیستور-Transistor-08-07",
+    "Diode": "https://telegra.ph/دیود-Diode-08-07",
+    "Resistor": "https://telegra.ph/مقاومت-Resistor-08-07",
+    "Capacitor": "https://telegra.ph/خازن-Capacitor-08-07",
+    "Potentiometer": "https://telegra.ph/پتانسیومتر-Potentiometer-08-07",
+    "Voltage-Regulator": "https://telegra.ph/مبدل-ولتاژ-Voltage-Regulator-08-07"
+  },
+  "sensors_layout": [
+    [
+      {
+        "label": "🌡️ سنسور دما",
+        "key": "Temperature_Sensor"
+      }
+    ],
+    [
+      {
+        "label": " سنسور فشار",
+        "key": "Pressure_Sensor"
+      }
+    ],
+    [
+      {
+        "label": "🏃‍♂️ سنسور حرکتی",
+        "key": "Motion_Sensor"
+      }
+    ],
+    [
+      {
+        "label": " سنسور ضربان قلب",
+        "key": "HeartRate_Sensor"
+      }
+    ],
+    [
+      {
+        "label": "💓 سنسور نوار قلب",
+        "key": "ECG_Sensor"
+      }
+    ],
+    [
+      {
+        "label": " سنسور اکسیژن",
+        "key": "Oxygen_Sensor"
+      }
+    ],
+    [
+      {
+        "label": "💧 سنسور دما و رطوبت",
+        "key": "Humidity"
+      }
+    ],
+    [
+      {
+        "label": " سنسور سطح",
+        "key": "Level_Sensor"
+      }
+    ],
+    [
+      {
+        "label": " سنسور گاز",
+        "key": "Gas_Sensor"
+      }
+    ],
+    [
+      {
+        "label": "💡 سنسور نوری",
+        "key": "Optical_Sensor"
+      }
+    ]
+  ],
+  "components_layout": [
+    [
+      {
+        "label": " میکروکنترلر",
+        "key": "Microcontroller"
+      },
+      {
+        "label": "📈 تقویت‌کننده",
+        "key": "Amplifier"
+      }
+    ],
+    [
+      {
+        "label": "🔄 ADC",
+        "key": "ADC"
+      },
+      {
+        "label": "🔄 DAC",
+        "key": "DAC"
+      }
+    ],
+    [
+      {
+        "label": " ترانزیستور",
+        "key": "Transistor"
+      },
+      {
+        "label": " مقاومت",
+        "key": "Resistor"
+      }
+    ],
+    [
+      {
+        "label": " دیود",
+        "key": "Diode"
+      },
+      {
+        "label": "🔋 خازن",
+        "key": "Capacitor"
+      }
+    ],
+    [
+      {
+        "label": " پتانسیومتر",
+        "key": "Potentiometer"
+      },
+      {
+        "label": " مبدل ولتاژ",
+        "key": "Voltage-Regulator"
+      }
+    ]
+  ]
+}

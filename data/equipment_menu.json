@@ -1,0 +1,1096 @@
+{
+  "main_menu": [
+    [
+      {
+        "label": "تجهیزات تشخیصی",
+        "id": "diagnostic_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات درمانی",
+        "id": "therapeutic_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات مانیتورینگ",
+        "id": "monitoring_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات پزشکی عمومی",
+        "id": "general_medical_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات پشتیبانی و توانبخشی",
+        "id": "support_rehabilitation_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات تخصصی",
+        "id": "specialized_equipment"
+      }
+    ],
+    [
+      {
+        "label": "تجهیزات مراقبت در منزل",
+        "id": "home_care_equipment"
+      }
+    ]
+  ],
+  "menus": {
+    "diagnostic_equipment": [
+      [
+        {
+          "label": "تصویربرداری پزشکی",
+          "id": "imaging_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات آزمایشگاهی",
+          "id": "laboratory_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی قلبی",
+          "id": "cardiac_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی نورولوژیکی",
+          "id": "neurological_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی ریوی",
+          "id": "pulmonary_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی گوارشی",
+          "id": "gastrointestinal_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی گوش، حلق و بینی",
+          "id": "ent_diagnostic_devices"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تشخیصی چشم‌پزشکی",
+          "id": "ophthalmic_diagnostic"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "therapeutic_equipment": [
+      [
+        {
+          "label": "تجهیزات جراحی",
+          "id": "surgical_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات ارتوپدی",
+          "id": "orthopedic_therapeutic"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات قلبی و عروقی",
+          "id": "cardiovascular_therapeutic"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تنفسی",
+          "id": "respiratory_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات دیگر درمانی",
+          "id": "other_therapeutic_equipment"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "monitoring_equipment": [
+      [
+        {
+          "label": "مانیتورهای علائم حیاتی",
+          "id": "cardiac_monitors"
+        }
+      ],
+      [
+        {
+          "label": "مانیتورهای جنینی و مادر",
+          "id": "fetal_maternal_monitors"
+        }
+      ],
+      [
+        {
+          "label": "مانیتورهای گلوکز خون",
+          "id": "blood_glucose_monitors"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "general_medical_equipment": [
+      [
+        {
+          "label": "تجهیزات بیمارستانی",
+          "id": "hospital_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات اورژانسی",
+          "id": "emergency_equipment"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "support_rehabilitation_equipment": [
+      [
+        {
+          "label": "تجهیزات توانبخشی",
+          "id": "rehabilitation"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات پشتیبانی بیمار",
+          "id": "patient_support"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "specialized_equipment": [
+      [
+        {
+          "label": "تجهیزات تخصصی قلب و عروق",
+          "id": "cardiovascular_equipment"
+        }
+      ],
+      [
+        {
+          "label": " تجهیزات تخصصی نورولوژی",
+          "id": "neurology_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تخصصی ارتوپدی",
+          "id": "orthopedic_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تخصصی زنان و زایمان",
+          "id": "obstetrics_and_gynecology_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تخصصی گوش و حلق و بینی",
+          "id": "ent_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تخصصی دندانپزشکی",
+          "id": "dental_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تخصصی پوست",
+          "id": "dermatology_equipment"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "home_care_equipment": [
+      [
+        {
+          "label": "تجهیزات مراقبت روزانه",
+          "id": "daily_care_equipment"
+        }
+      ],
+      [
+        {
+          "label": "تجهیزات تنفسی خانگی",
+          "id": "home_respiratory_equipment"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "back_to_main"
+        }
+      ]
+    ],
+    "imaging_devices": [
+      [
+        {
+          "label": "Xray",
+          "id": "xray"
+        }
+      ],
+      [
+        {
+          "label": " CT SCAN",
+          "id": "ct_scan"
+        }
+      ],
+      [
+        {
+          "label": " (MRI) تصویربرداری مغناطیسی",
+          "id": "mri"
+        }
+      ],
+      [
+        {
+          "label": "سونوگرافی",
+          "id": "ultrasound"
+        }
+      ],
+      [
+        {
+          "label": "ماموگرافی",
+          "id": "mammography"
+        }
+      ],
+      [
+        {
+          "label": "فلوروسکوپی",
+          "id": "fluoroscopy"
+        }
+      ],
+      [
+        {
+          "label": "پت اسکن",
+          "id": "pet_scan"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "laboratory_devices": [
+      [
+        {
+          "label": "آنالایزرهای خون",
+          "id": "blood_analyzers"
+        }
+      ],
+      [
+        {
+          "label": "اسپکتروفتومترها",
+          "id": "spectrophotometers"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های الکتروفورز",
+          "id": "electrophoresis"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "cardiac_devices": [
+      [
+        {
+          "label": " (ECG) الکتروکاردیوگراف",
+          "id": "ecg"
+        }
+      ],
+      [
+        {
+          "label": "اکوکاردیوگرافی",
+          "id": "echocardiography"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "neurological_devices": [
+      [
+        {
+          "label": "(EEG) الکتروانسفالوگراف",
+          "id": "eeg"
+        }
+      ],
+      [
+        {
+          "label": "(EMG) الکترومیوگراف",
+          "id": "emg"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "pulmonary_devices": [
+      [
+        {
+          "label": "اسپیرومتر",
+          "id": "spirometer"
+        }
+      ],
+      [
+        {
+          "label": "پلی‌سومنوگرافی",
+          "id": "polysomnography"
+        }
+      ],
+      [
+        {
+          "label": "پالس اکسیمتری",
+          "id": "pulse_oximetry"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "gastrointestinal_devices": [
+      [
+        {
+          "label": "اندوسکوپی",
+          "id": "endoscopy"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "ent_diagnostic_devices": [
+      [
+        {
+          "label": "اتوسکوپ",
+          "id": "otoscope"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه شنوایی سنجی",
+          "id": "audiogram"
+        }
+      ],
+      [
+        {
+          "label": "لارنگوسکوپ",
+          "id": "laryngoscope"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "ophthalmic_diagnostic": [
+      [
+        {
+          "label": "افتالموسکوپ",
+          "id": "ophthalmoscope"
+        }
+      ],
+      [
+        {
+          "label": "تونومتر",
+          "id": "tonometer"
+        }
+      ],
+      [
+        {
+          "label": "اسلیت لامپ",
+          "id": "slit_lamp"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "diagnostic_equipment"
+        }
+      ]
+    ],
+    "surgical_equipment": [
+      [
+        {
+          "label": "ابزارهای جراحی",
+          "id": "surgical_instruments"
+        }
+      ],
+      [
+        {
+          "label": "الکتروکوتر",
+          "id": "electrocautery"
+        }
+      ],
+      [
+        {
+          "label": "لیزر جراحی",
+          "id": "surgical_laser"
+        }
+      ],
+      [
+        {
+          "label": "پمپ‌های تزریق",
+          "id": "infusion_pumps"
+        }
+      ],
+      [
+        {
+          "label": "پمپ‌های خون",
+          "id": "blood_pumps"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های جراحی روباتیک",
+          "id": "robo_surgical"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "therapeutic_equipment"
+        }
+      ]
+    ],
+    "orthopedic_therapeutic": [
+      [
+        {
+          "label": "پروتزها و ارتزها",
+          "id": "prosthes"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های فیزیوتراپی",
+          "id": "physical_therapy"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های الکتروتراپی",
+          "id": "electrotherapy"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "therapeutic_equipment"
+        }
+      ]
+    ],
+    "cardiovascular_therapeutic": [
+      [
+        {
+          "label": "(PCR) پی سی آر ",
+          "id": "PCR"
+        }
+      ],
+      [
+        {
+          "label": " دفیبریلاتور",
+          "id": "defibr"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "therapeutic_equipment"
+        }
+      ]
+    ],
+    "respiratory_equipment": [
+      [
+        {
+          "label": "ونتیلاتورها",
+          "id": "ventilators"
+        }
+      ],
+      [
+        {
+          "label": "نبولایزرها",
+          "id": "nebulizers"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "therapeutic_equipment"
+        }
+      ]
+    ],
+    "other_therapeutic_equipment": [
+      [
+        {
+          "label": "دستگاه‌های دیالیز",
+          "id": "dialysis"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های لیزر درمانی",
+          "id": "therapy_laser"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "therapeutic_equipment"
+        }
+      ]
+    ],
+    "cardiac_monitors": [
+      [
+        {
+          "label": "مانیتورهای الکتروکاردیوگرافی",
+          "id": "ecg_monitors"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری فشار خون اتوماتیک",
+          "id": "automatic_pressure"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری فشار خون دستی",
+          "id": "manual_pressure"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "monitoring_equipment"
+        }
+      ]
+    ],
+    "fetal_maternal_monitors": [
+      [
+        {
+          "label": "مانیتورهای جنینی",
+          "id": "fetal_monitors"
+        }
+      ],
+      [
+        {
+          "label": "مانیتورهای مادر",
+          "id": "maternal"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "monitoring_equipment"
+        }
+      ]
+    ],
+    "fetal_monitors": [
+      [
+        {
+          "label": "مانیتورهای نیوناتال",
+          "id": "neonatal_monitors"
+        }
+      ],
+      [
+        {
+          "label": "مانیتورهای قلبی جنین",
+          "id": "fetal_heart_rate"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "monitoring_equipment"
+        }
+      ]
+    ],
+    "blood_glucose_monitors": [
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری گلوکز خون قابل حمل",
+          "id": "portable_glucose"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری گلوکز خون مداوم",
+          "id": "contine_glucose"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "monitoring_equipment"
+        }
+      ]
+    ],
+    "hospital_equipment": [
+      [
+        {
+          "label": "تخت‌های بیمارستانی",
+          "id": "hospital_beds"
+        }
+      ],
+      [
+        {
+          "label": "استریلیزاتورها",
+          "id": "sterilizers"
+        }
+      ],
+      [
+        {
+          "label": "ترالی‌ها",
+          "id": "medical_trolleys"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "general_medical_equipment"
+        }
+      ]
+    ],
+    "emergency_equipment": [
+      [
+        {
+          "label": "دستگاه های تنفس مصنوعی",
+          "id": "resuscitation"
+        }
+      ],
+      [
+        {
+          "label": "آمبوبگ ها",
+          "id": "ambu_bags"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه های CPR",
+          "id": "cpr"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "general_medical_equipment"
+        }
+      ]
+    ],
+    "rehabilitation": [
+      [
+        {
+          "label": "تنس (TENS Units)",
+          "id": "tens_units"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های الکتروتراپی عضلانی (EMS Units)",
+          "id": "ems_units"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "support_rehabilitation_equipment"
+        }
+      ]
+    ],
+    "patient_support": [
+      [
+        {
+          "label": "تشک‌های فشارمتغیر",
+          "id": "pressure_relief"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های بالابر بیمار",
+          "id": "patient_lifts"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "support_rehabilitation_equipment"
+        }
+      ]
+    ],
+    "cardiovascular_equipment": [
+      [
+        {
+          "label": "کاتترهای قلبی",
+          "id": "catheters"
+        }
+      ],
+      [
+        {
+          "label": "استنت‌ها",
+          "id": "stents"
+        }
+      ],
+      [
+        {
+          "label": "دیفیبریلاتورهای کاشتنی",
+          "id": "implantable"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "neurology_equipment": [
+      [
+        {
+          "label": "دستگاه‌های الکتروانسفالوگرافی",
+          "id": "eeg_machines"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های تحریک مغناطیسی",
+          "id": "tms_machines"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "orthopedic_equipment": [
+      [
+        {
+          "label": "دستگاه‌های فیکساتور خارجی",
+          "id": "external_fixators"
+        }
+      ],
+      [
+        {
+          "label": "پروتزهای ارتوپدی",
+          "id": "prosthetics"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "obstetrics_and_gynecology_equipment": [
+      [
+        {
+          "label": "دستگاه‌های سونوگرافی تخصصی زنان",
+          "id": "obgyn"
+        }
+      ],
+      [
+        {
+          "label": "سیستم‌های پایش جنین",
+          "id": "fetals"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "ent_equipment": [
+      [
+        {
+          "label": "آندوسکوپ‌های گوش",
+          "id": "ear_endoscopes"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های آزمون شنوایی",
+          "id": "audiometry_equipment"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "dental_equipment": [
+      [
+        {
+          "label": "یونیت‌های دندانپزشکی",
+          "id": "dental_units"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های تصویر برداری پانورامیک",
+          "id": "panoramic"
+        }
+      ],
+      [
+        {
+          "label": "لیزرهای دندانپزشکی",
+          "id": "dental_lasers"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "dermatology_equipment": [
+      [
+        {
+          "label": "درماتوسکوپ‌ها",
+          "id": "dermatoscopes"
+        }
+      ],
+      [
+        {
+          "label": "لیزرهای پوستی",
+          "id": "derma_laser"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "specialized_equipment"
+        }
+      ]
+    ],
+    "daily_care_equipment": [
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری فشار خون خانگی",
+          "id": "home_blood"
+        }
+      ],
+      [
+        {
+          "label": "دستگاه‌های اندازه‌گیری گلوکز خون خانگی",
+          "id": "home_glucose"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "home_care_equipment"
+        }
+      ]
+    ],
+    "home_respiratory_equipment": [
+      [
+        {
+          "label": "اکسیژن‌سازها",
+          "id": "oxygen"
+        }
+      ],
+      [
+        {
+          "label": "بازگشت به صفحه قبل ⬅️",
+          "id": "home_care_equipment"
+        }
+      ]
+    ]
+  },
+  "device_line": {
+    "xray": "imaging_devices",
+    "ct_scan": "imaging_devices",
+    "mri": "imaging_devices",
+    "ultrasound": "imaging_devices",
+    "mammography": "imaging_devices",
+    "fluoroscopy": "imaging_devices",
+    "pet_scan": "imaging_devices",
+    "blood_analyzers": "laboratory_devices",
+    "electrophoresis": "laboratory_devices",
+    "spectrophotometers": "laboratory_devices",
+    "ecg": "cardiac_devices",
+    "echocardiography": "cardiac_devices",
+    "eeg": "neurological_devices",
+    "emg": "neurological_devices",
+    "spirometer": "pulmonary_devices",
+    "polysomnography": "pulmonary_devices",
+    "pulse_oximetry": "pulmonary_devices",
+    "endoscopy": "gastrointestinal_devices",
+    "otoscope": "ent_diagnostic_devices",
+    "audiogram": "ent_diagnostic_devices",
+    "laryngoscope": "ent_diagnostic_devices",
+    "ophthalmoscope": "ophthalmic_diagnostic",
+    "tonometer": "ophthalmic_diagnostic",
+    "slit_lamp": "ophthalmic_diagnostic",
+    "surgical_instruments": "surgical_equipment",
+    "electrocautery": "surgical_equipment",
+    "surgical_laser": "surgical_equipment",
+    "infusion_pumps": "surgical_equipment",
+    "blood_pumps": "surgical_equipment",
+    "robo_surgical": "surgical_equipment",
+    "prosthes": "orthopedic_therapeutic",
+    "physical_therapy": "orthopedic_therapeutic",
+    "electrotherapy": "orthopedic_therapeutic",
+    "PCR": "cardiovascular_therapeutic",
+    "defibr": "cardiovascular_therapeutic",
+    "ventilators": "respiratory_equipment",
+    "nebulizers": "respiratory_equipment",
+    "dialysis": "other_therapeutic_equipment",
+    "therapy_laser": "other_therapeutic_equipment",
+    "ecg_monitors": "cardiac_monitors",
+    "automatic_pressure": "cardiac_monitors",
+    "manual_pressure": "cardiac_monitors",
+    "maternal": "fetal_maternal_monitors",
+    "neonatal_monitors": "fetal_monitors",
+    "fetal_heart_rate": "fetal_monitors",
+    "portable_glucose": "blood_glucose_monitors",
+    "contine_glucose": "blood_glucose_monitors",
+    "hospital_beds": "hospital_equipment",
+    "sterilizers": "hospital_equipment",
+    "medical_trolleys": "hospital_equipment",
+    "resuscitation": "emergency_equipment",
+    "ambu_bags": "emergency_equipment",
+    "cpr": "emergency_equipment",
+    "catheters": "cardiovascular_equipment",
+    "stents": "cardiovascular_equipment",
+    "implantable": "cardiovascular_equipment",
+    "eeg_machines": "neurology_equipment",
+    "tms_machines": "neurology_equipment",
+    "external_fixators": "orthopedic_equipment",
+    "prosthetics": "orthopedic_equipment",
+    "obgyn": "obstetrics_and_gynecology_equipment",
+    "fetals": "obstetrics_and_gynecology_equipment",
+    "ear_endoscopes": "ent_equipment",
+    "audiometry_equipment": "ent_equipment",
+    "dental_units": "dental_equipment",
+    "panoramic": "dental_equipment",
+    "dental_lasers": "dental_equipment",
+    "dermatoscopes": "dermatology_equipment",
+    "derma_laser": "dermatology_equipment",
+    "tens_units": "rehabilitation",
+    "ems_units": "rehabilitation",
+    "pressure_relief": "patient_support",
+    "patient_lifts": "patient_support",
+    "home_blood": "daily_care_equipment",
+    "home_glucose": "daily_care_equipment",
+    "oxygen": "home_respiratory_equipment"
+  },
+  "device_detail_template": [
+    [
+      {
+        "label": "انواع دستگاه",
+        "action": "types"
+      },
+      {
+        "label": "معرفی دستگاه",
+        "action": "definition"
+      }
+    ],
+    [
+      {
+        "label": "ساختار و اجزاء دستگاه",
+        "action": "structure"
+      }
+    ],
+    [
+      {
+        "label": "نحوه عملکرد",
+        "action": "operation"
+      },
+      {
+        "label": " تکنولوژی‌های مشابه",
+        "action": "related_technologies"
+      }
+    ],
+    [
+      {
+        "label": "مزایا و معایب",
+        "action": "advantages_disadvantages"
+      },
+      {
+        "label": "نکات ایمنی",
+        "action": "safety"
+      }
+    ]
+  ]
+}
