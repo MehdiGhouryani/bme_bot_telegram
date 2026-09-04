@@ -19,7 +19,7 @@ from bme_bot.db import jozve_usage_repository  # noqa: E402
 from bme_bot.handlers import jozve  # noqa: E402
 from bme_bot.services import ai_service, stt_service  # noqa: E402
 from bme_bot.utils import admin as admin_utils  # noqa: E402
-from bme_bot.utils import error_reporting  # noqa: E402
+from bme_bot.utils import error_reporting, messages  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -132,7 +132,7 @@ async def test_rejected_when_stt_not_configured_before_download(monkeypatch):
     await jozve.handle_jozve_audio_message(update, context)
 
     context.bot.get_file.assert_not_called()
-    message.reply_text.assert_awaited_once_with(jozve._STT_UNAVAILABLE_MESSAGE)
+    message.reply_text.assert_awaited_once_with(messages.STT_UNAVAILABLE)
 
 
 @pytest.mark.asyncio
@@ -253,7 +253,7 @@ async def test_stt_service_unavailable_reports_with_jozve_stt_label(monkeypatch)
 
     await jozve.handle_jozve_audio_message(update, context)
 
-    processing_msg.edit_text.assert_awaited_once_with(jozve._STT_UNAVAILABLE_MESSAGE)
+    processing_msg.edit_text.assert_awaited_once_with(messages.STT_UNAVAILABLE)
     _, kwargs = report_mock.call_args
     assert kwargs["context_label"] == "jozve.stt"
     assert kwargs["failure_feature"] == "jozve"

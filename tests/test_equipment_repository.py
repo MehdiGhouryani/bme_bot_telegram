@@ -108,6 +108,53 @@ async def test_missing_device_returns_none(temp_equipment_db):
 # --- update_action_text (دکمه‌ی ویرایش ادمین) ---
 
 @pytest.mark.asyncio
+async def test_update_action_text_creates_row_when_device_has_none_yet(tmp_path, monkeypatch):
+    """رگرسیون: قبلاً این تابع فقط UPDATE می‌زد — اگه ردیف device اصلاً
+    وجود نداشت، بی‌سروصدا ۰ ردیف تغییر می‌کرد و متن هیچ‌وقت ذخیره نمی‌شد،
+    درحالی‌که فراخواننده (equipment_admin_edit.py) فکر می‌کرد ذخیره موفق
+    بوده. الان باید upsert باشه: هم دستگاه هم مقدار ستون رو بسازه."""
+    db_path = tmp_path / "empty.db"
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        """CREATE TABLE information (
+            name TEXT PRIMARY KEY, definition TEXT, photo TEXT, types TEXT, structure TEXT,
+            operation TEXT, related_technologies TEXT, advantages_disadvantages TEXT, safety TEXT
+        )"""
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(config, "EQUIPMENT_DB_PATH", str(db_path))
+
+    # قبل از هر ویرایشی، دستگاه اصلاً وجود نداره
+    assert await equipment_repository.get_action_text("new_device", "types") is None
+
+    await equipment_repository.update_action_text("new_device", "types", "انواع تازه")
+
+    assert await equipment_repository.get_action_text("new_device", "types") == "انواع تازه"
+    raw = sqlite3.connect(db_path).execute(
+        "SELECT COUNT(*) FROM information WHERE name = ?", ("new_device",)
+    ).fetchone()[0]
+    assert raw == 1  # دقیقاً یک ردیف ساخته شد، نه صفر و نه بیشتر
+
+
+@pytest.mark.asyncio
+async def test_update_action_text_fills_previously_empty_column_on_existing_device(temp_equipment_db):
+    """همون سناریو، ولی برای دستگاهی که از قبل وجود داره ولی یه ستونش هنوز
+    NULL/خالیه — باید بشه اون یکی رو هم بدون تاثیر روی بقیه‌ی ستون‌ها پر کرد."""
+    conn = sqlite3.connect(temp_equipment_db)
+    conn.execute("UPDATE information SET safety = NULL WHERE name = 'xray'")
+    conn.commit()
+    conn.close()
+    assert await equipment_repository.get_action_text("xray", "safety") is None
+
+    await equipment_repository.update_action_text("xray", "safety", "نکات ایمنی تازه")
+
+    assert await equipment_repository.get_action_text("xray", "safety") == "نکات ایمنی تازه"
+    # بقیه‌ی ستون‌های همون دستگاه نباید دست‌خورده باشن
+    assert await equipment_repository.get_action_text("xray", "definition") == "تعریف اشعه ایکس"
+
+
+@pytest.mark.asyncio
 async def test_update_action_text_changes_stored_value(temp_equipment_db):
     await equipment_repository.update_action_text("xray", "structure", "ساختار جدید")
 

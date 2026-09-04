@@ -23,10 +23,12 @@ from bme_bot.services import stt_service  # noqa: E402
 
 
 class _FakeResponse:
-    def __init__(self, json_data=None, status_code=200, text=None):
+    def __init__(self, json_data=None, status_code=200, text=None, reason_phrase="Error"):
         self._json_data = json_data
         self.status_code = status_code
         self.text = text if text is not None else (json.dumps(json_data) if json_data is not None else "")
+        self.reason_phrase = reason_phrase
+        self.request = None
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -92,6 +94,12 @@ def _default_no_keys_configured(monkeypatch):
     monkeypatch.setattr(stt_service, "httpx", SimpleNamespace(
         AsyncClient=_FakeAsyncClient,
         Timeout=httpx.Timeout,
+        # کلاس‌های exception واقعی httpx — retry.is_retryable و
+        # stt_service._try_google با isinstance/response.status_code روی
+        # اینا کار می‌کنن.
+        HTTPStatusError=httpx.HTTPStatusError,
+        TimeoutException=httpx.TimeoutException,
+        NetworkError=httpx.NetworkError,
     ))
 
 
@@ -308,6 +316,25 @@ async def test_google_does_not_hardcode_sample_rate_for_ogg_opus(monkeypatch):
     assert sent_payload["config"]["encoding"] == "OGG_OPUS"
     assert "sampleRateHertz" not in sent_payload["config"]
     assert sent_payload["config"]["languageCode"] == "fa-IR"
+
+
+@pytest.mark.asyncio
+async def test_google_stt_error_message_never_contains_the_api_key(monkeypatch):
+    """رگرسیون: مثل تست مشابه در test_ocr_service.py — Google STT هم کلید رو
+    به‌عنوان query param می‌فرسته، پس پیام پیش‌فرض httpx (URL کامل) کلید رو
+    لو می‌داد. یه لاگ production واقعی همین الگو رو برای Google Vision
+    تایید کرد؛ این تست مطمئن می‌شه همون رفع برای Google STT هم اعمال شده."""
+    secret_key = "AIzaSuperSecretGoogleSttKey456"
+    monkeypatch.setattr(config, "GOOGLE_STT_API_KEY", secret_key)
+    monkeypatch.setattr(config, "STT_PROVIDER_ORDER", ["google"])
+    _q(_FakeResponse({}, status_code=401, reason_phrase="Unauthorized"))
+
+    with pytest.raises(stt_service.SttProviderError) as exc_info:
+        await stt_service.transcribe(b"fake-audio-bytes", "voice.ogg")
+
+    full_text = f"{exc_info.value}\n{exc_info.value.__cause__}"
+    assert secret_key not in full_text
+    assert "401" in str(exc_info.value.__cause__)
 
 
 @pytest.mark.asyncio
@@ -560,3 +587,54 @@ async def test_ogg_to_wav_missing_ffmpeg_raises_stt_provider_error(monkeypatch):
 
     with pytest.raises(stt_service.SttProviderError):
         await stt_service._ogg_to_wav_bytes(b"fake-ogg-bytes")
+
+
+# --- test_all_providers (دکمه‌ی «🩺 تست سرویس‌ها الان» تو پنل ادمین) ---
+#
+# _PROVIDER_FUNCS مستقیم monkeypatch می‌شه (نه شبیه‌سازی هر ۸ پروتکل واقعی)
+# — چون google_unofficial فقط با نصب‌بودن speech_recognition «پیکربندی‌شده»
+# محسوب می‌شه (نه یه کلید API)، و اون پکیج تو همین محیط تست واقعاً نصبه؛
+# بدون این mock، تست واقعاً سعی می‌کرد ffmpeg اجرا کنه و به API غیررسمی
+# گوگل وصل بشه. هدف این تست منطق orchestration خودِ test_all_providers هست
+# (همه رو جدا صدا بزنه، یکی شکست بخوره بقیه متوقف نشن) نه قرارداد HTTP هر
+# provider (که جای دیگه‌ی همین فایل جدا تست شده).
+
+@pytest.mark.asyncio
+async def test_test_all_providers_checks_every_provider_independently(monkeypatch):
+    async def fake_ok(audio_bytes, filename):
+        return "متن تست"
+
+    async def fake_not_configured(audio_bytes, filename):
+        raise stt_service.SttProviderNotConfigured("x")
+
+    async def fake_failure(audio_bytes, filename):
+        raise RuntimeError("401 Unauthorized")
+
+    monkeypatch.setattr(stt_service, "_PROVIDER_FUNCS", {
+        "elevenlabs": fake_ok,
+        "azure": fake_not_configured,
+        "groq": fake_failure,
+    })
+
+    results = await stt_service.test_all_providers()
+
+    assert results == [
+        ("elevenlabs", True, "OK"),
+        ("azure", None, "پیکربندی نشده"),
+        ("groq", False, "401 Unauthorized"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_make_test_wav_bytes_is_a_valid_wav_file():
+    """تست ساز فایل صوتی خودش هم باید یه WAV واقعاً معتبر بسازه — وگرنه
+    تست بالا معنی نداره."""
+    import io
+    import wave
+
+    wav_bytes = stt_service._make_test_wav_bytes()
+
+    with wave.open(io.BytesIO(wav_bytes), "rb") as w:
+        assert w.getnchannels() == 1
+        assert w.getframerate() == 16000
+        assert w.getnframes() > 0

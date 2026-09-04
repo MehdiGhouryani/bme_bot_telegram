@@ -14,14 +14,11 @@ from telegram.ext import ContextTypes
 from .. import config
 from ..db import ai_usage_repository, feature_usage_repository
 from ..services import ai_service
-from ..utils import error_reporting, text_chunking
+from ..utils import error_reporting, messages, text_chunking
 from ..utils.admin import is_admin
 from ..utils.draft_stream import stream_preview
 
 logger = logging.getLogger(__name__)
-
-_SOFT_UNAVAILABLE = "سرویس هوش مصنوعی فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
-_SOFT_UNEXPECTED = "سرویس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید."
 
 _PROMPTS: dict | None = None
 
@@ -56,12 +53,25 @@ async def send_error_to_admins(
     )
 
 
-async def _require_ai_key_configured(context: ContextTypes.DEFAULT_TYPE, chat_id) -> bool:
+async def _require_ai_key_configured(
+    context: ContextTypes.DEFAULT_TYPE, chat_id, *, context_label: str, user_id: int | None = None,
+) -> bool:
     if not config.GEMINI_API_KEY:
         try:
-            await context.bot.send_message(chat_id=chat_id, text=_SOFT_UNAVAILABLE)
+            await context.bot.send_message(chat_id=chat_id, text=messages.AI_UNAVAILABLE)
         except Exception as e:
             logger.debug("soft unavailable notice failed: %s", e)
+        # قبلاً این‌جا هیچ report_service_issue‌ای نبود — چون این پیش‌چک
+        # همیشه *قبل* از try/except رسیدن به ai_service.ask() صدا زده
+        # می‌شه، شاخه‌ی except ai_service.AIServiceUnavailable پایین‌تر
+        # (که تنها جای صدا زدن report_service_issue برای این وضعیت بود)
+        # عملاً هیچ‌وقت اجرا نمی‌شد — یعنی اگه GEMINI_API_KEY خالی باشه،
+        # هیچ هشدار تلگرامی به ادمین نمی‌رفت (فقط یه لاگ ERROR یه‌بار موقع
+        # استارت بات، تو ai_service.py). حالا این‌جا مستقیم گزارش می‌شه.
+        await error_reporting.report_service_issue(
+            context, "GEMINI_API_KEY تنظیم نشده است.",
+            context_label=context_label, failure_feature="ai", user_id=user_id,
+        )
         return False
     return True
 
@@ -76,7 +86,7 @@ async def _report_unexpected_error(
 ):
     await send_error_to_admins(context, error, command_name=command_name, user_id=user_id)
     try:
-        await context.bot.send_message(chat_id=chat_id, text=_SOFT_UNEXPECTED)
+        await context.bot.send_message(chat_id=chat_id, text=messages.GENERIC_UNAVAILABLE)
     except Exception as e:
         logger.debug("soft unexpected notice failed: %s", e)
 
@@ -129,7 +139,7 @@ async def ask_user_question(
     """True = تلاش انجام شد (موفق یا ناموفق با پیام نهایی). False = رد شد قبل از تلاش.
     is_private_chat: برای پیش‌نمایش تدریجی draft لازم است (sendMessageDraft
     فقط در چت خصوصی کار می‌کند) — رجوع به utils/draft_stream.py."""
-    if not await _require_ai_key_configured(context, chat_id):
+    if not await _require_ai_key_configured(context, chat_id, context_label="/ask", user_id=user_id):
         return False
 
     if not is_admin(user_id):
@@ -158,7 +168,7 @@ async def ask_user_question(
             return True
         except ai_service.AIServiceUnavailable as e:
             await _safe_delete(context, chat_id, processing_message.message_id)
-            await context.bot.send_message(chat_id=chat_id, text=_SOFT_UNAVAILABLE)
+            await context.bot.send_message(chat_id=chat_id, text=messages.AI_UNAVAILABLE)
             await error_reporting.report_service_issue(
                 context, str(e), context_label="/ask", failure_feature="ai", user_id=user_id,
             )
@@ -204,7 +214,7 @@ async def ai_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_question = update.message.reply_to_message.text
     original_message = update.message.reply_to_message
 
-    if not await _require_ai_key_configured(context, admin_id):
+    if not await _require_ai_key_configured(context, admin_id, context_label="/ai", user_id=admin_id):
         return
 
     try:
@@ -218,7 +228,7 @@ async def ai_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
         except ai_service.AIServiceUnavailable as e:
-            await context.bot.send_message(chat_id=admin_id, text=_SOFT_UNAVAILABLE)
+            await context.bot.send_message(chat_id=admin_id, text=messages.AI_UNAVAILABLE)
             await error_reporting.report_service_issue(
                 context, str(e), context_label="/ai", failure_feature="ai", user_id=admin_id,
             )

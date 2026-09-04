@@ -37,11 +37,10 @@ from .handlers import (
     suggestion,
 )
 from .keyboards import menu_builder, reply_keyboards
-from .utils import error_reporting, telegram_error_handler
+from .utils import admin as admin_utils
+from .utils import error_reporting, messages, telegram_error_handler
 
 logger = logging.getLogger(__name__)
-
-_SOFT_ERROR_MSG = "سرویس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید."
 
 _CONNECT_TIMEOUT = 15.0
 _READ_TIMEOUT = 40.0
@@ -161,15 +160,15 @@ async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYP
             return
         if update.callback_query:
             try:
-                await update.callback_query.answer(_SOFT_ERROR_MSG, show_alert=True)
+                await update.callback_query.answer(messages.GENERIC_UNAVAILABLE, show_alert=True)
             except Exception:
                 if update.effective_chat:
                     await context.bot.send_message(
-                        chat_id=update.effective_chat.id, text=_SOFT_ERROR_MSG,
+                        chat_id=update.effective_chat.id, text=messages.GENERIC_UNAVAILABLE,
                     )
         elif update.effective_chat:
             await context.bot.send_message(
-                chat_id=update.effective_chat.id, text=_SOFT_ERROR_MSG,
+                chat_id=update.effective_chat.id, text=messages.GENERIC_UNAVAILABLE,
             )
     except Exception as e:
         logger.warning("user soft-notice failed: %s", e)
@@ -178,6 +177,11 @@ async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYP
 async def _post_init(application: Application):
     await setup_users_database()
     await setup_maintenance_tables()
+    # باید بعد از setup_users_database بیاد (جدول admins رو می‌سازه) — کش
+    # حافظه‌ای is_admin() رو یه‌بار موقع استارت از دیتابیس پر می‌کنه؛
+    # افزودن/حذف بعدی از پنل (utils/admin.add_dynamic_admin/remove_dynamic_admin)
+    # همین کش رو بدون نیاز به ریستارت به‌روز نگه می‌داره.
+    await admin_utils.load_dynamic_admins()
     application.job_queue.run_daily(
         admin.send_daily_summary,
         time=datetime.time(hour=9, minute=0, tzinfo=pytz.timezone("Asia/Tehran")),
@@ -224,6 +228,7 @@ def main():
     app.add_handler(admin.user_search_conversation)
     app.add_handler(admin.broadcast_conversation)
     app.add_handler(admin.limits_edit_conversation)
+    app.add_handler(admin.admin_add_conversation)
     app.add_handler(equipment_admin_edit.equipment_edit_conversation)
     app.add_handler(maintenance_admin_edit.maintenance_admin_conversation)
 

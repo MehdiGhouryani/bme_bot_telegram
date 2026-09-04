@@ -8,6 +8,7 @@ import logging
 import litellm
 
 from .. import config
+from ..utils import messages
 from ..utils.retry import async_retry
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 PRIMARY_MODEL = config.AI_PRIMARY_MODEL
 FALLBACK_MODELS = config.AI_FALLBACK_MODELS
 
-NO_API_KEY_MESSAGE = "سرویس هوش مصنوعی فعلاً در دسترس نیست."
+NO_API_KEY_MESSAGE = messages.AI_UNAVAILABLE
 
 if not config.GEMINI_API_KEY:
     logger.error("GEMINI_API_KEY missing — AI primary layer unavailable")
@@ -62,3 +63,29 @@ async def ask(user_question: str, system_prompt: str) -> tuple[str, str]:
 
     logger.info("AI ok via model=%s (%d chars)", response.model, len(text))
     return text, response.model
+
+async def test_all_models() -> list[tuple[str, bool, str]]:
+    """هر مدل (اصلی + همه‌ی fallback ها) رو *مستقل و جدا از هم* با یه سوال
+    مینیمال تست می‌کنه — برخلاف ask() که با اولین موفقیت متوقف می‌شه (و با
+    fallbacks=... به litellm خودش زنجیره رو مدیریت می‌کنه، نه یه حلقه‌ی
+    دستی)، اینجا هر مدل با یه فراخوانی litellm.acompletion جدا (بدون
+    fallbacks) صدا زده می‌شه تا سهم واقعی هرکدوم معلوم بشه.
+
+    این دقیقاً همون چیزیه که اگه از قبل بود، خرابی مدل gemini-2.5-flash رو
+    (۴۰۴ روی *هر* درخواست) با یه تست دستی همون لحظه لو می‌داد، نه فقط از
+    راه خوندن دستی لاگ production چند روز بعد.
+
+    (نام مدل, موفق بود یا نه, پیام کوتاه). هیچ‌کدوم raise نمی‌کنه —
+    شکست یه مدل نباید جلوی تست بقیه رو بگیره."""
+    results = []
+    for model in [PRIMARY_MODEL, *FALLBACK_MODELS]:
+        try:
+            await litellm.acompletion(
+                model=model,
+                messages=[{"role": "user", "content": "سلام"}],
+                max_tokens=5,
+            )
+            results.append((model, True, "OK"))
+        except Exception as e:
+            results.append((model, False, str(e)[:150]))
+    return results

@@ -11,14 +11,13 @@ from telegram.ext import ContextTypes
 
 from ..db import equipment_repository, feature_usage_repository
 from ..keyboards import menu_builder
+from ..utils import messages
 from ..utils.admin import is_admin
 from ..utils.button_style import PRIMARY, styled_button
 from ..utils.retry import async_retry
 from . import maintenance_callbacks
 
 logger = logging.getLogger(__name__)
-
-_SOFT_UNAVAILABLE = "سرویس موقتاً در دسترس نیست. لطفاً کمی بعد دوباره تلاش کنید."
 
 
 async def _safe_answer(query, text: str | None = None, *, alert: bool = False) -> None:
@@ -159,7 +158,7 @@ async def _show_text_action(
         )
     except Exception as e:
         logger.warning("send_message failed device=%s action=%s: %s", device, action, e)
-        await _safe_answer(query, _SOFT_UNAVAILABLE, alert=True)
+        await _safe_answer(query, messages.GENERIC_UNAVAILABLE, alert=True)
 
 
 async def handle_device_action(update: Update, context: ContextTypes.DEFAULT_TYPE, data: str):
@@ -181,7 +180,24 @@ async def handle_device_action(update: Update, context: ContextTypes.DEFAULT_TYP
     if action == "definition":
         result = await equipment_repository.get_definition_with_photo(device)
         if not result:
-            await _safe_answer(query, "اطلاعاتی یافت نشد.", alert=True)
+            # برای کاربر عادی همون پیام قبلی؛ برای ادمین دکمه‌ی ✏️ رو هم
+            # نشون بده تا بتونه این فیلد خالی رو برای بار اول پر کنه —
+            # قبلاً این مسیر هیچ‌وقت به with_admin_edit_button نمی‌رسید،
+            # یعنی تنها راه پر کردن یه فیلد کاملاً خالی، دستکاری مستقیم
+            # دیتابیس بود.
+            if is_admin(update.effective_user.id):
+                reply_markup = with_admin_edit_button(
+                    menu_builder.get_device_detail_markup(device, line, hide_definition_row=True),
+                    device, action, line, update.effective_user.id,
+                )
+                await _safe_answer(query)
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text="این بخش هنوز محتوایی نداره. با دکمه‌ی زیر می‌تونید اضافه‌ش کنید.",
+                    reply_markup=reply_markup,
+                )
+            else:
+                await _safe_answer(query, "اطلاعاتی یافت نشد.", alert=True)
             return
 
         device_info, device_photo = result
@@ -199,7 +215,7 @@ async def handle_device_action(update: Update, context: ContextTypes.DEFAULT_TYP
         )
         if not ok:
             try:
-                await context.bot.send_message(chat_id=chat_id, text=_SOFT_UNAVAILABLE)
+                await context.bot.send_message(chat_id=chat_id, text=messages.GENERIC_UNAVAILABLE)
             except Exception as e:
                 logger.debug("soft notice failed device=%s: %s", device, e)
             return
@@ -217,7 +233,20 @@ async def handle_device_action(update: Update, context: ContextTypes.DEFAULT_TYP
     # --- سایر اکشن‌های متنی ---
     device_info = await equipment_repository.get_action_text(device, action)
     if not device_info:
-        await _safe_answer(query, "اطلاعاتی برای این بخش یافت نشد.", alert=True)
+        # همون منطق بالا: ادمین باید بتونه فیلد خالی رو از همین‌جا پر کنه.
+        if is_admin(update.effective_user.id):
+            reply_markup = with_admin_edit_button(
+                menu_builder.get_device_detail_markup(device, line),
+                device, action, line, update.effective_user.id,
+            )
+            await _safe_answer(query)
+            await context.bot.send_message(
+                chat_id=chat_id,
+                text="این بخش هنوز محتوایی نداره. با دکمه‌ی زیر می‌تونید اضافه‌ش کنید.",
+                reply_markup=reply_markup,
+            )
+        else:
+            await _safe_answer(query, "اطلاعاتی برای این بخش یافت نشد.", alert=True)
         return
 
     reply_markup = menu_builder.get_device_detail_markup(device, line)

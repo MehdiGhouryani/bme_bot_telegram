@@ -32,12 +32,25 @@ async def get_definition_with_photo(device: str):
     ستون‌های این کوئری ثابت و در کد نوشته شده‌اند (نه از ورودی کاربر) پس نیازی
     به اعتبارسنجی allow-list ندارد؛ فقط `device` به‌صورت پارامتر (نه در متن
     کوئری) استفاده می‌شود.
-    """
+
+    None برمی‌گرداند هم وقتی device اصلاً وجود ندارد، هم وقتی وجود دارد ولی
+    definition و photo هردو خالی/NULL‌اند — قبلاً فقط حالت اول را در نظر
+    می‌گرفت: fetchone() برای یک ردیف موجود با هر دو ستون NULL، تاپل
+    (None, None) برمی‌گرداند که خودش truthy است، پس چک `if not result` در
+    equipment_callbacks.handle_device_action هیچ‌وقت این حالت را نمی‌گرفت
+    و به‌جایش سعی می‌کرد با photo=None یک عکس بفرستد (که در تلگرام واقعی
+    شکست می‌خورد و به‌جای پیام «هنوز محتوایی نداره»، «سرویس موقتاً در
+    دسترس نیست» نشان می‌داد — گمراه‌کننده، چون مشکل سرویس نبود، صرفاً
+    محتوایی برای نشان‌دادن وجود نداشت)."""
     async with equipment_connection.get_connection() as conn:
         async with conn.execute(
             "SELECT definition, photo FROM information WHERE name = ?", (device,)
         ) as cursor:
-            return await cursor.fetchone()
+            row = await cursor.fetchone()
+
+    if row is None or (not row[0] and not row[1]):
+        return None
+    return row
 
 
 async def get_action_text(device: str, action: str):
@@ -58,8 +71,8 @@ async def get_action_text(device: str, action: str):
 
 
 async def update_action_text(device: str, action: str, new_text: str) -> None:
-    """متن یک ستون/اکشن مشخص را برای یک دستگاه به‌روزرسانی می‌کند (دکمه‌ی
-    ویرایش ادمین).
+    """متن یک ستون/اکشن مشخص را برای یک دستگاه جایگزین می‌کند (دکمه‌ی
+    ویرایش ادمین) — همیشه جایگزینی کامل، نه الحاق.
 
     برخلاف get_definition_with_photo، اینجا هم (مثل get_action_text) `action`
     مستقیماً نام ستون است، نه یک مقدار پارامتری — همان کلاس آسیب‌پذیری SQL
@@ -67,12 +80,21 @@ async def update_action_text(device: str, action: str, new_text: str) -> None:
     کوئری چک شود؛ عمداً یک ValueError raise می‌کند (نه یک بازگشت بی‌صدا مثل
     get_action_text) چون فراخواننده (یک ادمین که آگاهانه در حال ویرایش است)
     باید از رد شدن مطلع شود، نه این‌که فکر کند ذخیره موفق بوده.
+
+    upsert (INSERT ... ON CONFLICT ... DO UPDATE)، نه UPDATE خالص: قبلاً اگر
+    ردیف device اصلاً وجود نداشت، UPDATE بی‌سروصدا ۰ ردیف را تغییر می‌داد —
+    ادمین پیام «✅ ذخیره شد» را می‌دید ولی هیچ‌چیز واقعاً ذخیره نشده بود. این
+    حالت با UI فعلی (دکمه‌ی ✏️ حالا حتی برای فیلد خالی/بدون‌ردیف هم رندر
+    می‌شود، equipment_callbacks.handle_device_action را ببینید) عملاً
+    قابل‌دسترس شده، پس دیگر یک حالت نظری/غیرقابل‌وقوع نیست.
     """
     if action not in ALLOWED_ACTIONS:
         raise ValueError(f"'{action}' یک اکشن مجاز نیست.")
 
     async with equipment_connection.get_connection() as conn:
         await conn.execute(
-            f"UPDATE information SET {action} = ? WHERE name = ?", (new_text, device)
+            f"INSERT INTO information (name, {action}) VALUES (?, ?) "
+            f"ON CONFLICT(name) DO UPDATE SET {action} = excluded.{action}",
+            (device, new_text),
         )
         await conn.commit()

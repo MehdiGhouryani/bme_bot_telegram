@@ -22,8 +22,8 @@ get_connection = make_connection_getter(lambda: config.USERS_DB_PATH)
 
 async def setup_users_database():
     """جدول‌های users، ai_usage، ocr_usage، stt_usage، quiz_usage،
-    jozve_usage، feature_limits، feature_usage و admin_actions را در صورت
-    نبود می‌سازد (معادل setup_database قدیمی)."""
+    jozve_usage، feature_limits، feature_usage، admin_actions و admins را
+    در صورت نبود می‌سازد (معادل setup_database قدیمی)."""
     async with get_connection() as conn:
         await conn.execute('''CREATE TABLE IF NOT EXISTS users
                           (user_id INTEGER PRIMARY KEY,
@@ -114,6 +114,15 @@ async def setup_users_database():
                            action TEXT NOT NULL,
                            target TEXT,
                            timestamp TEXT NOT NULL)''')
+
+        # admins — ادمین‌های اضافه‌شده از داخل خودِ بات توسط ادمین اصلی
+        # (config.MAIN_ADMIN_CHAT_ID)، مکمل فهرست استاتیک config.ADMIN_CHAT_ID
+        # (که فقط با ویرایش .env + ریستارت عوض می‌شه). جزئیات کامل طراحی و
+        # چرایی cache حافظه‌ای مجزا در utils/admin.py مستند شده.
+        await conn.execute('''CREATE TABLE IF NOT EXISTS admins
+                          (user_id INTEGER PRIMARY KEY,
+                           added_by INTEGER NOT NULL,
+                           added_at TEXT NOT NULL)''')
 
         # ستون‌های جدید (اگر قبلاً اضافه نشده) — عیناً همان الگوی last_request_timestamp
         for alter_statement in (

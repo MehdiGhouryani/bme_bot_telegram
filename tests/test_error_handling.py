@@ -20,7 +20,7 @@ from telegram import Update  # noqa: E402
 from bme_bot import app, config  # noqa: E402
 from bme_bot.db import feature_usage_repository  # noqa: E402
 from bme_bot.handlers import membership  # noqa: E402
-from bme_bot.utils import error_reporting  # noqa: E402
+from bme_bot.utils import error_reporting, messages  # noqa: E402
 
 
 def _fake_update(*, callback_query=None, message_text=None, chat_id=111):
@@ -66,7 +66,7 @@ async def test_global_error_handler_notifies_admins_and_user_for_message_update(
     admin_msgs = [m for c, m in bot.sent_messages if c == "999"]
     user_msgs = [m for c, m in bot.sent_messages if c == 111]
     assert admin_msgs and "boom" in admin_msgs[0]
-    assert user_msgs and "خطایی رخ داد" in user_msgs[0]
+    assert user_msgs and user_msgs[0] == messages.GENERIC_UNAVAILABLE
 
 
 @pytest.mark.asyncio
@@ -258,7 +258,13 @@ async def test_membership_required_lets_handler_errors_propagate(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_membership_required_still_handles_membership_check_failure_gracefully(monkeypatch):
-    """محافظت اصلی (خطای واقعیِ بررسی عضویت) باید دست‌نخورده بماند."""
+    """محافظت اصلی (خطای واقعیِ بررسی عضویت) باید دست‌نخورده بماند — یعنی
+    RuntimeError بالا نره و کل هندلر کرش نکنه. قبلاً این تست انتظار داشت یه
+    پیام خطا هم برای کاربر فرستاده بشه؛ ولی طراحی فعلی membership.py عمداً
+    برعکسه (رجوع به docstring ماژول و _get_membership_status: «در صورت خطای
+    API هیچ پیامی به کاربر نشان داده نمی‌شود») — پس این‌جا فقط باید تایید
+    بشه که هیچ پیامی نرفته و هیچ استثنایی بالا نیومده، نه اینکه یه پیام
+    خاص فرستاده شده."""
 
     async def handler_that_should_not_run(update, context):
         raise AssertionError("این هندلر نباید اصلاً اجرا شود")
@@ -283,4 +289,4 @@ async def test_membership_required_still_handles_membership_check_failure_gracef
 
     await wrapped(update, context)  # نباید RuntimeError را بالا بفرستد
 
-    assert update.message.replies == ["خطا در بررسی عضویت. لطفاً لحظاتی دیگر دوباره تلاش کنید."]
+    assert update.message.replies == []

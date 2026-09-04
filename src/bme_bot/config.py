@@ -43,7 +43,17 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 # همین مدل هم‌زمان مدل vision-capable سرویس OCR است (services/ocr_service.py).
 # قبل از استقرار جدید، وضعیت فعلی مدل‌ها را با console.groq.com/docs/models
 # چک کن.
-AI_PRIMARY_MODEL = os.getenv("AI_PRIMARY_MODEL", "gemini/gemini-2.5-flash")
+#
+# ۲۰۲۶-۰۸-۳۰: gemini-2.5-flash از کار افتاد — لاگ production واقعی نشون داد
+# هر تک درخواست AI (بدون استثنا) روی این مدل با ۴۰۴
+# "This model models/gemini-2.5-flash is no longer available to new users"
+# fail می‌شد و همیشه به لایه‌ی دوم (Groq) سقوط می‌کرد؛ یعنی لایه‌ی اول
+# (رایگان، قرار بود اول امتحان بشه) عملاً کلاً حذف شده بود و کل ترافیک AI
+# داشت بی‌دلیل بودجه‌ی روزانه‌ی مشترک Groq رو می‌خورد. متن همون پیام خطا
+# صراحتاً gemini-3.6-flash رو پیشنهاد داده؛ همون رو گذاشتیم. اگه دوباره این
+# اتفاق افتاد، اول لاگ رو برای پیام دقیق دیپریکیشن چک کن (گوگل مدل‌های
+# gemini-2.5-flash رو مرتب عوض می‌کنه)، بعد این مقدار رو عوض کن.
+AI_PRIMARY_MODEL = os.getenv("AI_PRIMARY_MODEL", "gemini/gemini-3.6-flash")
 AI_FALLBACK_MODELS = [
     model.strip()
     for model in os.getenv(
@@ -70,8 +80,7 @@ AI_STREAMING_ENABLED = os.getenv("AI_STREAMING_ENABLED", "true").strip().lower()
 # --- زنجیره‌ی OCR چندلایه ---
 # کلیدهای Google Cloud Vision و Azure AI Vision اختیاری‌اند — هرکدام خالی
 # باشد، آن لایه رد می‌شود. ترتیب پیش‌فرض: این دو لایه‌ی اول (بهترین دقت
-# مستند برای فارسی چاپی)، بعد Groq (بدون نیاز به حساب/کلید جدید) به‌عنوان
-# آخرین لایه.
+# مستند برای فارسی چاپی)، بعد Groq، بعد Gemini، به‌عنوان لایه‌های پشتیبان.
 #
 # Google Cloud Vision: از یک API key ساده (نه service account) پشتیبانی می‌کند
 # — docs.cloud.google.com/vision/product-search/docs/auth. همان الگوی ساده‌ی
@@ -84,11 +93,21 @@ AZURE_VISION_KEY = os.getenv("AZURE_VISION_KEY")
 AZURE_VISION_ENDPOINT = os.getenv("AZURE_VISION_ENDPOINT")
 
 # ترتیب لایه‌های زنجیره‌ی OCR. نام‌ها باید دقیقاً یکی از کلیدهای شناخته‌شده‌ی
-# ocr_service._PROVIDER_FUNCS باشند (google, azure, groq_vision). قابل
+# ocr_service._PROVIDER_FUNCS باشند (google, azure, groq_vision, gemini). قابل
 # بازنویسی/تغییر ترتیب از .env بدون لمس کد.
+#
+# لایه‌ی gemini جدیدترین عضو این زنجیره است — بدون نیاز به کلید/ثبت‌نام جدید
+# (همون GEMINI_API_KEY بالا رو استفاده می‌کنه، بی‌هزینه‌ی اضافه). عمداً آخر
+# صف پیش‌فرض قرار گرفته (فقط اگه بقیه شکست بخورن/پیکربندی نشده باشن اجرا
+# می‌شه)، چون برخلاف Google Vision/Azure (سرویس‌های اختصاصی OCR با سابقه‌ی
+# مستند)، دقتش برای فارسی هنوز با داده‌ی واقعی این پروژه تست نشده. برای
+# ارزیابی مستقیم کیفیتش (نه صرفاً به‌عنوان fallback آخر)، موقتاً
+# OCR_PROVIDER_ORDER=gemini رو تنها مقدار این متغیر در .env بذارید — با
+# عکس‌های واقعی فارسی امتحان کنید، بعد بر اساس نتیجه تصمیم بگیرید جایگاه
+# دائمی‌ش کجا باشه (یا همین‌جا، آخر صف، بمونه).
 OCR_PROVIDER_ORDER = [
     p.strip()
-    for p in os.getenv("OCR_PROVIDER_ORDER", "google,azure,groq_vision").split(",")
+    for p in os.getenv("OCR_PROVIDER_ORDER", "google,azure,groq_vision,gemini").split(",")
     if p.strip()
 ]
 
@@ -97,6 +116,17 @@ OCR_PROVIDER_ORDER = [
 # برای «Optical Character Recognition (OCR)» تبلیغ شده — تنها مدل vision این
 # فهرست که چنین ادعای رسمی‌ای دارد.
 OCR_VISION_MODEL = os.getenv("OCR_VISION_MODEL", "groq/qwen/qwen3.6-27b")
+
+# مدل vision-capable Gemini برای لایه‌ی OCR جدید. عمداً جدا نگه داشته شده
+# (نه ارجاع مستقیم به AI_PRIMARY_MODEL) دقیقاً به همون دلیلی که
+# OCR_VISION_MODEL از AI_FALLBACK_MODELS جداست: این دو مصرف کاملاً متفاوتی
+# دارن (تشخیص متن از عکس در برابر پاسخ‌دهی متنی)، تغییر مدل اصلی AI نباید
+# ناخواسته مدل OCR رو هم عوض کنه. پیش‌فرض قبلی gemini-2.5-flash بود که طبق
+# لاگ production منسوخ شده (رجوع به کامنت AI_PRIMARY_MODEL بالا)؛ همون نسخه‌ی
+# جدید (gemini-3.6-flash) اینجا هم گذاشته شده، چون هر دو دقیقاً همون خانواده‌ی
+# مدلن که گوگل عوضش کرده.
+OCR_GEMINI_MODEL = os.getenv("OCR_GEMINI_MODEL", "gemini/gemini-3.6-flash")
+
 
 # --- زنجیره‌ی fallback چندلایه‌ی STT فارسی (تبدیل ویس به متن) ---
 # ترتیب پیش‌فرض: ElevenLabs → Groq → Deepgram → AssemblyAI → Azure →
@@ -141,3 +171,9 @@ LOG_DIR = os.path.join(BASE_DIR, 'logs')
 # قابل بازنویسی با متغیر محیطی برای استقرارهای غیرمعمول.
 USERS_DB_PATH = os.getenv('USERS_DB_PATH', 'users.db')
 EQUIPMENT_DB_PATH = os.getenv('EQUIPMENT_DB_PATH', 'medical_device.db')
+
+# آرشیو خام سوال‌های تولیدشده‌ی کوییز (utils/quiz_archive.py) — یک فایل
+# JSONL (نه دیتابیس، نه پوشه‌ی data/ که فقط محتوای مرجع فقط-خواندنیه) که
+# فقط انباشته می‌شه؛ فعلاً هیچ فیچری از روش نمی‌خونه، فقط برای استفاده‌ی
+# احتمالی آینده (مثلاً یه کوییز رندم از آرشیو) ذخیره می‌شه.
+QUIZ_ARCHIVE_PATH = os.getenv('QUIZ_ARCHIVE_PATH', 'quiz_archive.jsonl')

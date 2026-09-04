@@ -83,3 +83,37 @@ async def test_check_membership_reaches_welcome_message_after_callback_query(tem
     assert query.delete_message.await_count == 1
     assert len(fake_message.replies) == 1
     assert "خوش آمدید" in fake_message.replies[0]
+
+
+@pytest.mark.asyncio
+async def test_membership_required_answers_callback_query_when_not_a_member():
+    """رگرسیون: کاربری که عضو گروه نیست و روی یه دکمه‌ی inline قدیمی
+    (مثلاً از قبلِ خروجش از گروه) کلیک می‌کنه. قبلاً این مسیر هیچ‌وقت
+    query.answer() رو صدا نمی‌زد — یعنی اسپینر لودینگ دکمه هیچ‌وقت بسته
+    نمی‌شد، فقط یه پیام دعوت به عضویت زیرش می‌اومد."""
+
+    async def handler_that_should_not_run(update, context):
+        raise AssertionError("کاربر عضو نیست — این هندلر نباید اجرا بشه")
+
+    wrapped = membership.membership_required(handler_that_should_not_run)
+
+    join_message = FakeMessage()
+    query = SimpleNamespace(
+        data="xray:definition:imaging_devices",
+        answer=AsyncMock(),
+        message=join_message,
+    )
+    update = SimpleNamespace(
+        callback_query=query,
+        effective_user=SimpleNamespace(id=42),
+    )
+    context = SimpleNamespace(
+        bot=SimpleNamespace(
+            get_chat_member=AsyncMock(return_value=SimpleNamespace(status="left")),
+        )
+    )
+
+    await wrapped(update, context)
+
+    query.answer.assert_awaited_once_with()
+    assert join_message.replies  # دعوت به عضویت هم همچنان رفته

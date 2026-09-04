@@ -105,3 +105,33 @@ async def increment_usage(table_name: str, user_id: int) -> None:
             (user_id, today, today),
         )
         await conn.commit()
+
+
+async def get_usage_for_user(table_name: str, user_id: int) -> dict | None:
+    """(تعداد امروز, تاریخ آخرین درخواست) این کاربر برای یک فیچر — برای
+    بخش «📊 مصرف امروز» تو پروفایل جستجوی ادمین (admin.py). None یعنی این
+    کاربر تا الان اصلاً این فیچر رو امتحان نکرده. توجه: last_date را
+    فراخواننده باید با امروز مقایسه کند — عدد count خودش خودکار صفر
+    نمی‌شود مگر check_limit صدا زده شود (رجوع به منطق مشابه در آن تابع)."""
+    _validate_table(table_name)
+    async with app_connection.get_connection() as conn:
+        async with conn.execute(
+            f"SELECT request_count, last_request_date FROM {table_name} WHERE user_id = ?",
+            (user_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+    if row is None:
+        return None
+    return {"count": row[0], "last_date": row[1]}
+
+
+async def reset_all_usage_for_user(user_id: int) -> None:
+    """شمارنده‌ی امروز هر ۴ فیچر مشترک (ai/ocr/quiz/jozve) را برای این
+    کاربر صفر می‌کند — دکمه‌ی «🔄 ریست محدودیت‌های امروز» تو پروفایل
+    جستجوی ادمین، برای پشتیبانی («سقفم پر شده، یه درخواست دیگه امروز
+    بده»). STT اینجا نیست، جدول/منطق کاملاً جداگونه‌ای دارد — رجوع به
+    stt_usage_repository.reset_usage_for_user که admin.py جدا صدا می‌زند."""
+    async with app_connection.get_connection() as conn:
+        for table in _ALLOWED_TABLES:
+            await conn.execute(f"UPDATE {table} SET request_count = 0 WHERE user_id = ?", (user_id,))
+        await conn.commit()

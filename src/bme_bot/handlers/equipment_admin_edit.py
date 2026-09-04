@@ -24,6 +24,8 @@
 import logging
 
 from telegram import Update
+from telegram.constants import ParseMode
+from telegram.error import BadRequest
 from telegram.ext import (
     CallbackQueryHandler,
     CommandHandler,
@@ -127,13 +129,34 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return AWAITING_NEW_TEXT
 
+    # اعتبارسنجی مارک‌داون *قبل* از ذخیره: equipment_callbacks بعداً همین
+    # متن رو با parse_mode=ParseMode.MARKDOWN به کاربرهای واقعی نشون
+    # می‌ده. اگه اینجا یه `*`/`_`/`` ` `` بدون جفت باشه، تلگرام parse رو رد
+    # می‌کنه — و چون هم edit_message_text هم fallback (حذف+ارسال دوباره)
+    # هر دو از همین متن استفاده می‌کنن، کل این بخش برای *همه‌ی کاربران* تا
+    # ویرایش بعدی از کار می‌افته، بی‌سروصدا (فقط «اطلاعاتی یافت نشد»). به‌جای
+    # اینکه بعداً کشف بشه، همین‌جا با یه پیش‌نمایش واقعی (همون parse_mode)
+    # چک می‌کنیم؛ اگه موفق شد، همون پیام پیش‌نمایش جای تاییدیه‌ی جدا رو هم
+    # می‌گیره.
+    try:
+        await update.message.reply_text(
+            f"✅ ذخیره شد. این متن دقیقاً همین‌طوری به کاربرها نشون داده می‌شه:\n\n{new_text}",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    except BadRequest as e:
+        await update.message.reply_text(
+            "⚠️ این متن فرمت مارک‌داون معتبری نداره (مثلاً یه `*`، `_` یا `` ` `` بدون "
+            "جفتش) — دقیقاً همین چیزی بود که می‌تونست بعداً این بخش رو برای همه‌ی "
+            "کاربران خراب کنه. لطفاً تصحیحش کنید و دوباره بفرستید، یا /cancel برای انصراف.\n\n"
+            f"جزئیات فنی: {e}"
+        )
+        return AWAITING_NEW_TEXT
+
     await equipment_repository.update_action_text(device, action, new_text)
     await admin_actions_repository.log_action(
         update.effective_user.id, "edit_equipment_field", target=f"{device}:{action}",
     )
     context.user_data.pop("equipment_edit", None)
-
-    await update.message.reply_text("✅ متن با موفقیت به‌روزرسانی شد.")
 
     # تلاش برای زنده‌کردن همان پیامی که ادمین رویش ✏️ زده بود — اگر شکست
     # بخورد (پیام خیلی قدیمی/حذف‌شده/۴۸ ساعت گذشته و تلگرام دیگر اجازه‌ی ویرایش

@@ -12,6 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import httpx
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -22,9 +23,13 @@ from bme_bot.services import ocr_service  # noqa: E402
 
 
 class _FakeResponse:
-    def __init__(self, json_data, status_code=200):
+    def __init__(self, json_data, status_code=200, reason_phrase="Error"):
         self._json_data = json_data
         self.status_code = status_code
+        self.reason_phrase = reason_phrase
+        # request واقعی لازم نیست، httpx.HTTPStatusError فقط ذخیره‌ش می‌کنه؛
+        # None هم برای ساخت شیء کافیه (خودِ ocr_service چیزی ازش نمی‌خونه).
+        self.request = None
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -73,10 +78,18 @@ def _default_no_keys_configured(monkeypatch):
     monkeypatch.setattr(config, "AZURE_VISION_KEY", None)
     monkeypatch.setattr(config, "AZURE_VISION_ENDPOINT", None)
     monkeypatch.setattr(config, "GROQ_API_KEY", None)
+    monkeypatch.setattr(config, "GEMINI_API_KEY", None)
     monkeypatch.setattr(config, "OCR_PROVIDER_ORDER", ["google", "azure", "groq_vision"])
     monkeypatch.setattr(ocr_service, "httpx", SimpleNamespace(
         AsyncClient=_FakeAsyncClient,
         Timeout=lambda *a, **k: None,
+        # کلاس‌های exception واقعی httpx رو نگه می‌داریم (نه mock) چون
+        # _is_retryable و ocr_service._try_google_vision با isinstance
+        # روی همین‌ها چک می‌کنن — یه SimpleNamespace بدون این‌ها باعث
+        # AttributeError می‌شد به‌محض این‌که کد بهشون می‌رسید.
+        HTTPStatusError=httpx.HTTPStatusError,
+        TimeoutException=httpx.TimeoutException,
+        NetworkError=httpx.NetworkError,
     ))
 
 
@@ -178,6 +191,28 @@ async def test_google_vision_sends_persian_language_hint(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_google_vision_error_message_never_contains_the_api_key(monkeypatch):
+    """رگرسیون: قبلاً response.raise_for_status() پیش‌فرض httpx پیام خطا رو
+    مستقیم از URL کامل درخواست می‌ساخت — و چون Google Vision کلید رو
+    به‌عنوان query param می‌فرسته (نه header)، همون کلید خام تو پیام خطا
+    (و از اونجا به لاگ/هشدار ادمین) می‌افتاد. یه لاگ production واقعی این رو
+    تایید کرد. الان باید فقط status code/reason تو پیام باشه، نه کلید."""
+    secret_key = "AQ.SuperSecretGoogleVisionKey123"
+    monkeypatch.setattr(config, "GOOGLE_VISION_API_KEY", secret_key)
+    monkeypatch.setattr(config, "OCR_PROVIDER_ORDER", ["google"])
+    _FakeAsyncClient._next_response = _FakeResponse(
+        {}, status_code=401, reason_phrase="Unauthorized",
+    )
+
+    with pytest.raises(ocr_service.OcrProviderError) as exc_info:
+        await ocr_service.extract_text(b"fake-image-bytes")
+
+    full_text = f"{exc_info.value}\n{exc_info.value.__cause__}"
+    assert secret_key not in full_text
+    assert "401" in str(exc_info.value.__cause__)
+
+
+@pytest.mark.asyncio
 async def test_azure_vision_uses_read_feature_and_subscription_key_header(monkeypatch):
     monkeypatch.setattr(config, "AZURE_VISION_KEY", "fake-azure-key")
     monkeypatch.setattr(config, "AZURE_VISION_ENDPOINT", "https://example.cognitiveservices.azure.com/")
@@ -211,6 +246,45 @@ async def test_groq_vision_uses_configured_model(monkeypatch):
     assert content[0]["type"] == "text"
     assert content[1]["type"] == "image_url"
     assert content[1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+@pytest.mark.asyncio
+async def test_gemini_vision_uses_configured_model(monkeypatch):
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "fake-gemini-key")
+    monkeypatch.setattr(config, "OCR_PROVIDER_ORDER", ["gemini"])
+    monkeypatch.setattr(config, "OCR_GEMINI_MODEL", "gemini/gemini-2.5-flash")
+
+    fake_choice = SimpleNamespace(message=SimpleNamespace(content="متن تشخیص‌داده‌شده با جمینای"))
+    mock_completion = AsyncMock(return_value=SimpleNamespace(choices=[fake_choice]))
+    monkeypatch.setattr(ocr_service, "litellm", SimpleNamespace(acompletion=mock_completion))
+
+    result = await ocr_service.extract_text(b"fake-image-bytes")
+
+    assert result.text == "متن تشخیص‌داده‌شده با جمینای"
+    assert result.provider == "gemini"
+    _, kwargs = mock_completion.call_args
+    assert kwargs["model"] == "gemini/gemini-2.5-flash"
+    content = kwargs["messages"][0]["content"]
+    assert content[0]["type"] == "text"
+    assert content[1]["type"] == "image_url"
+    assert content[1]["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+@pytest.mark.asyncio
+async def test_gemini_vision_not_configured_is_skipped_silently(monkeypatch):
+    """gemini بدون GEMINI_API_KEY باید مثل بقیه‌ی لایه‌ها بی‌سروصدا رد بشه،
+    نه این‌که کل زنجیره رو بشکنه."""
+    monkeypatch.setattr(config, "GROQ_API_KEY", "fake-groq-key")
+    monkeypatch.setattr(config, "OCR_PROVIDER_ORDER", ["gemini", "groq_vision"])
+
+    fake_choice = SimpleNamespace(message=SimpleNamespace(content="از گروک"))
+    mock_completion = AsyncMock(return_value=SimpleNamespace(choices=[fake_choice]))
+    monkeypatch.setattr(ocr_service, "litellm", SimpleNamespace(acompletion=mock_completion))
+
+    result = await ocr_service.extract_text(b"fake-image-bytes")
+
+    assert result.provider == "groq_vision"
+    mock_completion.assert_awaited_once()  # فقط یه بار — لایه‌ی gemini اصلاً API صدا نزد
 
 
 # --- تمایز خطای واقعی provider از «واقعاً متنی نبود» ---
@@ -253,3 +327,57 @@ async def test_is_configured_true_when_any_single_key_present(monkeypatch):
 
     monkeypatch.setattr(config, "GROQ_API_KEY", "fake-groq-key")
     assert ocr_service.is_configured() is True
+
+
+@pytest.mark.asyncio
+async def test_is_configured_true_when_only_gemini_key_present(monkeypatch):
+    assert ocr_service.is_configured() is False  # فیکسچر پیش‌فرض: هیچ کلیدی نیست
+
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "fake-gemini-key")
+    assert ocr_service.is_configured() is True
+
+
+# --- test_all_providers (دکمه‌ی «🩺 تست سرویس‌ها الان» تو پنل ادمین) ---
+
+@pytest.mark.asyncio
+async def test_test_all_providers_checks_every_provider_independently(monkeypatch):
+    """رگرسیون: برخلاف extract_text که با اولین موفقیت متوقف می‌شه، این
+    تابع باید *همه‌ی ۴* provider رو جدا صدا بزنه — پیکربندی‌نشده‌ها None
+    (نه False)، موفق‌ها True، شکست‌خورده‌ها False با پیام واقعی."""
+    monkeypatch.setattr(config, "GOOGLE_VISION_API_KEY", "fake-google-key")
+    monkeypatch.setattr(config, "GROQ_API_KEY", "fake-groq-key")
+    # azure و gemini پیکربندی‌نشده می‌مونن (فیکسچر پیش‌فرض)
+
+    _FakeAsyncClient._next_response = _FakeResponse(
+        {"responses": [{"fullTextAnnotation": {"text": "متن تست"}}]}
+    )
+    fake_choice = SimpleNamespace(message=SimpleNamespace(content="متن تست"))
+    mock_completion = AsyncMock(return_value=SimpleNamespace(choices=[fake_choice]))
+    monkeypatch.setattr(ocr_service, "litellm", SimpleNamespace(acompletion=mock_completion))
+
+    results = await ocr_service.test_all_providers()
+
+    results_by_name = {name: (ok, msg) for name, ok, msg in results}
+    assert results_by_name["google"] == (True, "OK")
+    assert results_by_name["groq_vision"] == (True, "OK")
+    assert results_by_name["azure"][0] is None
+    assert results_by_name["gemini"][0] is None
+    assert len(results) == 4  # هر ۴ provider، نه فقط اولی که موفق شد
+
+
+@pytest.mark.asyncio
+async def test_test_all_providers_one_failure_does_not_stop_the_rest(monkeypatch):
+    monkeypatch.setattr(config, "GOOGLE_VISION_API_KEY", "fake-google-key")
+    monkeypatch.setattr(config, "GROQ_API_KEY", "fake-groq-key")
+
+    _FakeAsyncClient._next_response = _FakeResponse({}, status_code=401, reason_phrase="Unauthorized")
+    fake_choice = SimpleNamespace(message=SimpleNamespace(content="متن تست"))
+    mock_completion = AsyncMock(return_value=SimpleNamespace(choices=[fake_choice]))
+    monkeypatch.setattr(ocr_service, "litellm", SimpleNamespace(acompletion=mock_completion))
+
+    results = await ocr_service.test_all_providers()
+
+    results_by_name = {name: (ok, msg) for name, ok, msg in results}
+    assert results_by_name["google"][0] is False
+    assert "401" in results_by_name["google"][1]
+    assert results_by_name["groq_vision"] == (True, "OK")  # علی‌رغم شکست google

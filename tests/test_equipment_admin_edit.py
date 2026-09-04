@@ -11,6 +11,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from telegram.error import BadRequest
 from telegram.ext import ConversationHandler
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -168,6 +169,34 @@ async def test_valid_edit_request_prompts_and_stores_state(temp_equipment_db, mo
     assert "ساختار قدیمی" in bot.sent_messages[0][1]
 
 
+@pytest.mark.asyncio
+async def test_receive_new_text_rejects_invalid_markdown_without_saving(temp_equipment_db, monkeypatch):
+    """رگرسیون: اگه متن ادمین فرمت مارک‌داون معتبری نداشته باشه (مثلاً یه
+    `*` بدون جفت)، equipment_callbacks بعداً با parse_mode=MARKDOWN می‌خواد
+    نشونش بده و شکست می‌خوره — چیزی که قبلاً هیچ‌جا چک نمی‌شد و کل بخش رو
+    برای همه‌ی کاربران خراب می‌کرد. الان باید همون‌جا رد بشه، هیچی هم
+    ذخیره نشه."""
+    log_action_mock = AsyncMock()
+    monkeypatch.setattr(admin_actions_repository, "log_action", log_action_mock)
+    bot = FakeBot()
+    context = _make_context(bot=bot, user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555},
+    })
+    update = _make_message_update("متن با ستاره‌ی * تک و بدون جفت")
+    update.message.reply_text = AsyncMock(side_effect=[BadRequest("Can't parse entities"), None])
+
+    result = await equipment_admin_edit.receive_new_text(update, context)
+
+    assert result == equipment_admin_edit.AWAITING_NEW_TEXT
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored != "متن با ستاره‌ی * تک و بدون جفت"
+    log_action_mock.assert_not_called()
+    assert not bot.edited_texts
+    # پیام دوم (توضیح خطا برای ادمین) باید واقعاً رفته باشه
+    assert update.message.reply_text.await_count == 2
+
+
 # --- receive_new_text: مسیر موفق ---
 
 @pytest.mark.asyncio
@@ -189,7 +218,9 @@ async def test_receive_new_text_saves_logs_and_confirms(temp_equipment_db, monke
     log_action_mock.assert_awaited_once_with(42, "edit_equipment_field", target="xray:structure")
     assert "equipment_edit" not in context.user_data
     update.message.reply_text.assert_awaited_once()
-    assert "موفقیت" in update.message.reply_text.await_args.args[0]
+    sent_text, sent_kwargs = update.message.reply_text.await_args.args[0], update.message.reply_text.await_args.kwargs
+    assert "ساختار تازه و به‌روز" in sent_text  # پیش‌نمایش شامل خودِ متن ذخیره‌شده است
+    assert sent_kwargs.get("parse_mode") is not None  # با همون parse_mode واقعی چک شده
     # پیام اصلی (همانی که ادمین رویش ✏️ زده بود) هم باید زنده‌سازی شده باشد
     assert bot.edited_texts
     chat_id, message_id, text, _ = bot.edited_texts[0]

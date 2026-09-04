@@ -9,12 +9,13 @@ import sys
 from pathlib import Path
 
 import pytest
+import pytest_asyncio
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from bme_bot import config  # noqa: E402
-from bme_bot.db import usage_limit_helper  # noqa: E402
+from bme_bot.db import app_connection, usage_limit_helper  # noqa: E402
 
 
 @pytest.fixture
@@ -110,3 +111,58 @@ async def test_increment_usage_via_shared_helper(temp_users_db):
         ) as cursor:
             row = await cursor.fetchone()
     assert row[0] == 1
+
+
+# --- get_usage_for_user / reset_all_usage_for_user («📊 مصرف امروز» تو پنل ادمین) ---
+# فیکسچر بالا فقط quiz_usage می‌سازه؛ اینا هر ۴ جدول لازم دارن (چون
+# reset_all_usage_for_user رو همه‌شون تکرار می‌کنه)، پس از راه‌انداز واقعی
+# production استفاده می‌کنیم.
+
+@pytest_asyncio.fixture
+async def full_users_db(tmp_path, monkeypatch):
+    db_path = tmp_path / "full_users_test.db"
+    monkeypatch.setattr(config, "USERS_DB_PATH", str(db_path))
+    await app_connection.setup_users_database()
+    return db_path
+
+
+@pytest.mark.asyncio
+async def test_get_usage_for_user_returns_none_when_never_used(full_users_db):
+    assert await usage_limit_helper.get_usage_for_user("ai_usage", 42) is None
+
+
+@pytest.mark.asyncio
+async def test_get_usage_for_user_reflects_real_count_and_date(full_users_db):
+    await usage_limit_helper.increment_usage("ai_usage", 42)
+    await usage_limit_helper.increment_usage("ai_usage", 42)
+
+    result = await usage_limit_helper.get_usage_for_user("ai_usage", 42)
+
+    assert result["count"] == 2
+    import datetime
+    assert result["last_date"] == datetime.date.today().isoformat()
+
+
+@pytest.mark.asyncio
+async def test_get_usage_for_user_rejects_disallowed_table(full_users_db):
+    with pytest.raises(ValueError):
+        await usage_limit_helper.get_usage_for_user("not_a_real_table", 42)
+
+
+@pytest.mark.asyncio
+async def test_reset_all_usage_for_user_zeroes_every_feature_for_that_user_only(full_users_db):
+    await usage_limit_helper.increment_usage("ai_usage", 42)
+    await usage_limit_helper.increment_usage("ocr_usage", 42)
+    await usage_limit_helper.increment_usage("quiz_usage", 42)
+    await usage_limit_helper.increment_usage("jozve_usage", 42)
+    # کاربر دیگه نباید تحت‌تاثیر قرار بگیره
+    await usage_limit_helper.increment_usage("ai_usage", 99)
+
+    await usage_limit_helper.reset_all_usage_for_user(42)
+
+    for table in ("ai_usage", "ocr_usage", "quiz_usage", "jozve_usage"):
+        result = await usage_limit_helper.get_usage_for_user(table, 42)
+        assert result["count"] == 0, f"{table} برای کاربر ۴۲ صفر نشد"
+
+    other_user_result = await usage_limit_helper.get_usage_for_user("ai_usage", 99)
+    assert other_user_result["count"] == 1  # کاربر دیگه دست‌نخورده موند

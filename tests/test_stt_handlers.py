@@ -20,7 +20,7 @@ from bme_bot.db import stt_usage_repository  # noqa: E402
 from bme_bot.handlers import stt  # noqa: E402
 from bme_bot.services import stt_service  # noqa: E402
 from bme_bot.utils import admin as admin_utils  # noqa: E402
-from bme_bot.utils import error_reporting  # noqa: E402
+from bme_bot.utils import error_reporting, messages  # noqa: E402
 
 _DEFAULT_DURATION = 30
 
@@ -132,7 +132,7 @@ async def test_voice_service_unavailable_shows_specific_message_and_alerts_admin
 
     await stt.handle_voice_message(update, context)
 
-    processing_msg.edit_text.assert_awaited_once_with(stt._SERVICE_UNAVAILABLE_MESSAGE)
+    processing_msg.edit_text.assert_awaited_once_with(messages.STT_UNAVAILABLE)
     report_issue_mock.assert_awaited_once()
     _, kwargs = report_issue_mock.call_args
     assert kwargs["failure_feature"] == "stt"
@@ -201,7 +201,7 @@ async def test_voice_rejected_when_stt_not_configured_before_download(monkeypatc
     await stt.handle_voice_message(update, context)
 
     context.bot.get_file.assert_not_called()
-    message.reply_text.assert_awaited_once_with(stt._SERVICE_UNAVAILABLE_MESSAGE)
+    message.reply_text.assert_awaited_once_with(messages.STT_UNAVAILABLE)
 
 
 @pytest.mark.asyncio
@@ -389,4 +389,4 @@ async def test_admin_still_blocked_by_service_unavailable(monkeypatch):
     await stt.handle_voice_message(update, context)
 
     context.bot.get_file.assert_not_called()
-    message.reply_text.assert_awaited_once_with(stt._SERVICE_UNAVAILABLE_MESSAGE)
+    message.reply_text.assert_awaited_once_with(messages.STT_UNAVAILABLE)

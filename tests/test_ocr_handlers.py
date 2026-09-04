@@ -24,7 +24,7 @@ from bme_bot.db import ocr_usage_repository  # noqa: E402
 from bme_bot.handlers import ocr  # noqa: E402
 from bme_bot.services import ocr_service  # noqa: E402
 from bme_bot.utils import admin as admin_utils  # noqa: E402
-from bme_bot.utils import error_reporting  # noqa: E402
+from bme_bot.utils import error_reporting, messages  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -138,7 +138,7 @@ async def test_photo_service_unavailable_shows_specific_message(monkeypatch):
 
     await ocr.handle_photo_message(update, context)
 
-    processing_msg.edit_text.assert_awaited_once_with(ocr._SERVICE_UNAVAILABLE_MESSAGE)
+    processing_msg.edit_text.assert_awaited_once_with(messages.OCR_UNAVAILABLE)
     report_issue_mock.assert_awaited_once()
     _, kwargs = report_issue_mock.call_args
     assert kwargs["failure_feature"] == "ocr"
@@ -222,7 +222,7 @@ async def test_photo_rejected_when_ocr_not_configured_before_download(monkeypatc
     await ocr.handle_photo_message(update, context)
 
     context.bot.get_file.assert_not_called()
-    message.reply_text.assert_awaited_once_with(ocr._SERVICE_UNAVAILABLE_MESSAGE)
+    message.reply_text.assert_awaited_once_with(messages.OCR_UNAVAILABLE)
 
 
 @pytest.mark.asyncio

@@ -17,7 +17,7 @@ from .. import config
 from ..db import feature_usage_repository, jozve_usage_repository
 from ..services import ai_service, stt_service
 from ..utils import admin as admin_utils
-from ..utils import error_reporting
+from ..utils import error_reporting, messages
 from ..utils.rich_message import send_rich_message
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,10 @@ _PROMPT_FOR_AUDIO_MESSAGE = (
 )
 _TOO_LONG_MESSAGE = "این فایل بیشتر از ۲۰ دقیقه‌ست. لطفاً یه فایل کوتاه‌تر بفرستید."
 _TOO_LARGE_MESSAGE = "حجم این فایل بیش‌ازحد بزرگه (سقف تلگرام ۲۰ مگابایته)."
-_STT_UNAVAILABLE_MESSAGE = "سرویس تبدیل ویس به متن فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
+# برخلاف پیام STT پایین (که عیناً همون stt.py بود و به messages.STT_UNAVAILABLE
+# منتقل شد)، این یکی عمداً محلی می‌مونه: نه یه کپی تصادفیِ همون پیام، بلکه
+# صریحاً می‌گه مرحله‌ی «ساختاردهی» شکست خورده — یعنی STT قبلش موفق بوده و
+# کاربر باید بفهمه فقط این مرحله‌ی آخره که مشکل داره، نه کل فرآیند.
 _AI_UNAVAILABLE_MESSAGE = "سرویس ساختاردهی هوش مصنوعی فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
 _NO_SPEECH_MESSAGE = "متنی تو این فایل صوتی پیدا نشد. لطفاً یه فایل واضح‌تر امتحان کنید."
 _STT_ERROR_MESSAGE = "مشکلی در تبدیل ویس به متن پیش اومد. لطفاً کمی بعد دوباره امتحان کنید."
@@ -106,7 +109,13 @@ async def handle_jozve_audio_message(update: Update, context: ContextTypes.DEFAU
         return
 
     if not stt_service.is_configured():
-        await message.reply_text(_STT_UNAVAILABLE_MESSAGE)
+        await message.reply_text(messages.STT_UNAVAILABLE)
+        # قبلاً هیچ گزارشی به ادمین نمی‌رفت این‌جا — همون الگوی
+        # ai_assistant._require_ai_key_configured/ocr.py/stt.py.
+        await error_reporting.report_service_issue(
+            context, "هیچ STT provider ای پیکربندی نشده است.",
+            context_label="jozve.stt", failure_feature="jozve", user_id=user_id,
+        )
         return
 
     is_admin_user = admin_utils.is_admin(user_id)
@@ -131,7 +140,7 @@ async def handle_jozve_audio_message(update: Update, context: ContextTypes.DEFAU
     try:
         stt_result = await stt_service.transcribe(audio_bytes, filename=filename)
     except stt_service.SttServiceUnavailable as e:
-        await processing_message.edit_text(_STT_UNAVAILABLE_MESSAGE)
+        await processing_message.edit_text(messages.STT_UNAVAILABLE)
         await error_reporting.report_service_issue(
             context, str(e), context_label="jozve.stt", failure_feature="jozve", user_id=user_id,
         )

@@ -154,3 +154,32 @@ async def test_two_files_summing_past_limit_rejected_on_second(temp_users_db):
     can_process_2, message = await stt_usage_repository.check_stt_limit(user_id, duration_seconds=200)
     assert can_process_2 is False
     assert "دقیقه" in message
+
+
+# --- get_usage_for_user / reset_usage_for_user («📊 مصرف امروز» تو پنل ادمین) ---
+
+@pytest.mark.asyncio
+async def test_get_usage_for_user_returns_none_when_never_used(temp_users_db):
+    assert await stt_usage_repository.get_usage_for_user(42) is None
+
+
+@pytest.mark.asyncio
+async def test_get_usage_for_user_reflects_real_seconds_and_date(temp_users_db):
+    await stt_usage_repository.increment_stt_usage(42, duration_seconds=125)
+
+    result = await stt_usage_repository.get_usage_for_user(42)
+
+    assert result["seconds"] == 125
+    import datetime
+    assert result["last_date"] == datetime.date.today().isoformat()
+
+
+@pytest.mark.asyncio
+async def test_reset_usage_for_user_zeroes_only_that_user(temp_users_db):
+    await stt_usage_repository.increment_stt_usage(42, duration_seconds=125)
+    await stt_usage_repository.increment_stt_usage(99, duration_seconds=60)
+
+    await stt_usage_repository.reset_usage_for_user(42)
+
+    assert (await stt_usage_repository.get_usage_for_user(42))["seconds"] == 0
+    assert (await stt_usage_repository.get_usage_for_user(99))["seconds"] == 60  # دست‌نخورده

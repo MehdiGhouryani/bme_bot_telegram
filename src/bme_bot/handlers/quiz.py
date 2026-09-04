@@ -35,7 +35,7 @@ from .. import config
 from ..db import feature_usage_repository, quiz_usage_repository
 from ..services import ai_service
 from ..utils import admin as admin_utils
-from ..utils import error_reporting
+from ..utils import error_reporting, messages, quiz_archive
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +64,6 @@ _PROMPT_FOR_TEXT_MESSAGE = (
     "یا یه فایل Word (.docx) یا متنی (.txt) آپلود کنید 🧠"
 )
 _PROCESSING_MESSAGE = "⏳ در حال طراحی کوییز..."
-_SERVICE_UNAVAILABLE_MESSAGE = "سرویس هوش مصنوعی فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
 _GENERIC_ERROR_MESSAGE = "متاسفانه در ساخت کوییز مشکلی پیش اومد. لطفاً دوباره امتحان کنید."
 _EMPTY_RESPONSE_MESSAGE = "نتونستم از این متن کوییز بسازم. یه متن دیگه امتحان کنید."
 _INVALID_COUNT_MESSAGE = "این گزینه دیگه معتبر نیست. لطفاً دوباره روی «🎓 کوییز» بزنید."
@@ -202,7 +201,14 @@ async def _generate_and_send_quiz(
     user_id = update.effective_user.id
 
     if not config.GEMINI_API_KEY:
-        await update.message.reply_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await update.message.reply_text(messages.AI_UNAVAILABLE)
+        # قبلاً هیچ گزارشی به ادمین نمی‌رفت این‌جا — شاخه‌ی
+        # except ai_service.AIServiceUnavailable پایین‌تر تنها جای این کار
+        # بود ولی چون این چک همیشه زودتر برمی‌گرده، هیچ‌وقت بهش نمی‌رسید.
+        await error_reporting.report_service_issue(
+            context, "GEMINI_API_KEY تنظیم نشده است.",
+            context_label="quiz", failure_feature="quiz", user_id=user_id,
+        )
         return
 
     if not study_text:
@@ -235,7 +241,7 @@ async def _generate_and_send_quiz(
         )
         return
     except ai_service.AIServiceUnavailable as e:
-        await processing_message.edit_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await processing_message.edit_text(messages.AI_UNAVAILABLE)
         await error_reporting.report_service_issue(
             context, str(e), context_label="quiz", failure_feature="quiz", user_id=user_id,
         )
@@ -259,6 +265,7 @@ async def _generate_and_send_quiz(
     if not is_admin_user:
         await quiz_usage_repository.increment_quiz_usage(user_id)
     await feature_usage_repository.log_usage(user_id, "quiz", detail=model_used)
+    await quiz_archive.archive_quiz(user_id, questions, model_used)
 
     await processing_message.delete()
     for q in questions:

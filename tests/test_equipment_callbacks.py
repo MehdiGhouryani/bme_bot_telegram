@@ -17,6 +17,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from bme_bot import config, equipment_tree  # noqa: E402
 from bme_bot.handlers import equipment_callbacks  # noqa: E402
+from bme_bot.utils import messages  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -122,7 +123,10 @@ async def test_valid_device_and_line_is_accepted(temp_equipment_db):
     await equipment_callbacks.handle_device_action(update, context, query.data)
 
     assert query.edited_text == "ساختار"
-    assert not query.answers  # هیچ پیام خطایی نباید باشد
+    # کد عمداً یک answer() خالی (بدون alert) می‌زنه تا اسپینر تلگرام بسته
+    # بشه — این یه answer معمولی و بی‌خطره، نه یه پیام خطا؛ چیزی که واقعاً
+    # نباید باشه یه alert=True‌ست.
+    assert not any(alert for _, alert in query.answers)
 
 
 @pytest.mark.asyncio
@@ -193,7 +197,12 @@ async def test_definition_photo_failure_does_not_delete_old_message(temp_equipme
 
     assert not bot.sent_photos
     assert query.deleted is False, "پیام قبلی نباید حذف شود چون ارسال عکس شکست خورد"
-    assert query.answers and query.answers[0][1] is True  # show_alert=True
+    # answer() خالی *قبل* از تلاش ارسال عکس زده می‌شه (چون در اون لحظه هنوز
+    # معلوم نیست موفق می‌شه یا نه) — پس نمی‌تونه alert=True باشه. شکست با یه
+    # پیام جداگونه (نه یه answer دوم روی همون callback query) اطلاع داده
+    # می‌شه.
+    assert query.answers == [(None, False)]
+    assert bot.sent_messages == [(111, messages.GENERIC_UNAVAILABLE)]
 
 
 # --- ثبت آمار برای پنل ادمین ---
@@ -273,3 +282,100 @@ async def test_admin_sees_edit_button_on_definition_photo_view(temp_equipment_db
     assert bot.sent_photos
     _, _, _, reply_markup = bot.sent_photos[0]
     assert _find_button(reply_markup, "admin_edit_field:xray:definition:imaging_devices")
+
+
+# --- محتوای خالی: ادمین باید بتونه پر کنه، کاربر عادی همون پیام قبلی ---
+
+@pytest.mark.asyncio
+async def test_admin_sees_edit_button_for_empty_text_field(temp_equipment_db, monkeypatch):
+    """رگرسیون: قبلاً وقتی یه فیلد متنی خالی/NULL بود، حتی ادمین هم فقط
+    «اطلاعاتی برای این بخش یافت نشد» می‌دید و هیچ راهی برای پر کردنش از تو
+    بات نبود."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["42"])
+    conn = sqlite3.connect(temp_equipment_db)
+    conn.execute("UPDATE information SET structure = NULL WHERE name = 'xray'")
+    conn.commit()
+    conn.close()
+
+    query = FakeQuery("xray:structure:imaging_devices")
+    bot = FakeBot()
+    update = make_update(query, bot)
+    context = make_context(bot)
+
+    await equipment_callbacks.handle_device_action(update, context, query.data)
+
+    assert not query.answers or not any(alert for _, alert in query.answers)
+    assert bot.sent_messages
+    chat_id, text = bot.sent_messages[0]
+    assert "هنوز محتوایی نداره" in text
+
+
+@pytest.mark.asyncio
+async def test_admin_empty_field_message_includes_edit_button(temp_equipment_db, monkeypatch):
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["42"])
+    conn = sqlite3.connect(temp_equipment_db)
+    conn.execute("UPDATE information SET structure = NULL WHERE name = 'xray'")
+    conn.commit()
+    conn.close()
+
+    query = FakeQuery("xray:structure:imaging_devices")
+
+    class _BotCapturingMarkup(FakeBot):
+        def __init__(self):
+            super().__init__()
+            self.last_reply_markup = None
+
+        async def send_message(self, chat_id, text, parse_mode=None, reply_markup=None):
+            self.last_reply_markup = reply_markup
+            await super().send_message(chat_id, text, parse_mode, reply_markup)
+
+    bot = _BotCapturingMarkup()
+    update = make_update(query, bot)
+    context = make_context(bot)
+
+    await equipment_callbacks.handle_device_action(update, context, query.data)
+
+    assert _find_button(bot.last_reply_markup, "admin_edit_field:xray:structure:imaging_devices")
+
+
+@pytest.mark.asyncio
+async def test_non_admin_still_sees_not_found_for_empty_text_field(temp_equipment_db, monkeypatch):
+    """کاربر عادی نباید دکمه‌ی ویرایش رو ببینه — رفتار قبلی («یافت نشد»)
+    براش دست‌نخورده می‌مونه."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["999"])  # 42 (effective_user.id) ادمین نیست
+    conn = sqlite3.connect(temp_equipment_db)
+    conn.execute("UPDATE information SET structure = NULL WHERE name = 'xray'")
+    conn.commit()
+    conn.close()
+
+    query = FakeQuery("xray:structure:imaging_devices")
+    bot = FakeBot()
+    update = make_update(query, bot)
+    context = make_context(bot)
+
+    await equipment_callbacks.handle_device_action(update, context, query.data)
+
+    assert not bot.sent_messages
+    assert query.answers == [("اطلاعاتی برای این بخش یافت نشد.", True)]
+
+
+@pytest.mark.asyncio
+async def test_admin_sees_edit_button_for_empty_definition(temp_equipment_db, monkeypatch):
+    """همون سناریو برای مسیر عکس (definition) — نه فقط یه ستون متنی خالیه،
+    بلکه هم definition هم photo تهی هستن."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["42"])
+    conn = sqlite3.connect(temp_equipment_db)
+    conn.execute("UPDATE information SET definition = NULL, photo = NULL WHERE name = 'xray'")
+    conn.commit()
+    conn.close()
+
+    query = FakeQuery("xray:definition:imaging_devices")
+    bot = FakeBot()
+    update = make_update(query, bot)
+    context = make_context(bot)
+
+    await equipment_callbacks.handle_device_action(update, context, query.data)
+
+    assert not bot.sent_photos
+    assert bot.sent_messages
+    assert "هنوز محتوایی نداره" in bot.sent_messages[0][1]

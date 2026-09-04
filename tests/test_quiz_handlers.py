@@ -22,7 +22,16 @@ from bme_bot.db import quiz_usage_repository  # noqa: E402
 from bme_bot.handlers import quiz  # noqa: E402
 from bme_bot.services import ai_service  # noqa: E402
 from bme_bot.utils import admin as admin_utils  # noqa: E402
-from bme_bot.utils import error_reporting  # noqa: E402
+from bme_bot.utils import error_reporting, messages, quiz_archive  # noqa: E402
+
+# رجوع به دو تست پایین فایل (test_archive_quiz_writes_valid_jsonl_end_to_end و
+# test_archive_quiz_appends_across_multiple_calls_without_overwriting):
+# فیکسچر autouse زیر quiz_archive.archive_quiz رو برای *همه‌ی* تست‌های این
+# فایل mock می‌کنه، پس اون دو تست (که عمداً می‌خوان تابع واقعی رو صدا
+# بزنن، نه mock رو) باید یه رفرنس مستقل و دست‌نخورده از تابع واقعی داشته
+# باشن — همین‌جا، قبل از اینکه هر fixture ای اجرا بشه (یعنی موقع
+# import شدن خودِ این فایل) گرفته می‌شه.
+_real_archive_quiz = quiz_archive.archive_quiz
 
 
 def _make_minimal_docx(paragraphs: list[str]) -> bytes:
@@ -61,6 +70,10 @@ def _configured_and_allowed_by_default(monkeypatch):
     monkeypatch.setattr(quiz_usage_repository, "check_quiz_limit", AsyncMock(return_value=(True, "OK")))
     monkeypatch.setattr(quiz_usage_repository, "record_attempt", AsyncMock())
     monkeypatch.setattr(quiz_usage_repository, "increment_quiz_usage", AsyncMock())
+    # پیش‌فرض mock می‌شه تا هیچ تست عادی‌ای فایل آرشیو واقعی رو ننویسه —
+    # تست‌های خودِ آرشیو (پایین‌تر) دوباره monkeypatch می‌کنن تا این
+    # پیش‌فرض رو override کنن.
+    monkeypatch.setattr(quiz_archive, "archive_quiz", AsyncMock())
 
 
 def _make_update_with_text(text="فرکانس نایکوئیست باید دو برابر بالاترین فرکانس سیگنال باشه."):
@@ -223,7 +236,7 @@ async def test_ai_service_unavailable_reports_to_admin(monkeypatch):
 
     await quiz.handle_quiz_text_message(update, context)
 
-    processing_msg.edit_text.assert_awaited_once_with(quiz._SERVICE_UNAVAILABLE_MESSAGE)
+    processing_msg.edit_text.assert_awaited_once_with(messages.AI_UNAVAILABLE)
     report_mock.assert_awaited_once()
     _, kwargs = report_mock.call_args
     assert kwargs["failure_feature"] == "quiz"
@@ -308,6 +321,80 @@ async def test_logs_feature_usage_with_model_detail(monkeypatch):
     await quiz.handle_quiz_text_message(update, context)
 
     log_mock.assert_awaited_once_with(4242, "quiz", detail="groq/qwen/qwen3.6-27b")
+
+
+@pytest.mark.asyncio
+async def test_archives_every_generated_question_with_model_and_user(monkeypatch):
+    """رگرسیون: هر سوال تولیدشده باید آرشیو بشه — نه فقط اولی، نه فقط
+    یه شمارنده‌ی کلی — دقیقاً همون content که واقعاً به‌عنوان poll
+    فرستاده می‌شه، هرکدوم با user_id و مدل درست."""
+    update, message = _make_update_with_text()
+    context = _make_context(user_data={"awaiting_quiz_text": True})
+    message.reply_text = AsyncMock(return_value=SimpleNamespace(edit_text=AsyncMock(), delete=AsyncMock()))
+    monkeypatch.setattr(ai_service, "ask", AsyncMock(return_value=(_valid_quiz_json(count=3), "groq/model-x")))
+    archive_mock = AsyncMock()
+    monkeypatch.setattr(quiz_archive, "archive_quiz", archive_mock)
+
+    await quiz.handle_quiz_text_message(update, context)
+
+    archive_mock.assert_awaited_once()
+    call_args = archive_mock.await_args
+    assert call_args.args[0] == 4242  # user_id
+    archived_questions = call_args.args[1]
+    assert len(archived_questions) == 3
+    assert archived_questions[0]["question"] == quiz._parse_and_validate_quiz(_valid_quiz_json(count=1))[0]["question"]
+    assert call_args.args[2] == "groq/model-x"  # model_used
+
+
+@pytest.mark.asyncio
+async def test_archive_quiz_swallows_write_failures_instead_of_raising(monkeypatch):
+    """آرشیو یه کار جانبیِ best-effort است — quiz.py هیچ try/except دور
+    فراخوانی archive_quiz ندارد و نباید داشته باشد، چون خودِ این تابع
+    مسئول قورت‌دادن خطای نوشتن است (نه بالا فرستادنش)، دقیقاً برای اینکه
+    یه دیسک پر یا مسیر غیرقابل‌نوشتن هیچ‌وقت جلوی ارسال واقعی کوییز به
+    کاربر رو نگیره."""
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", "/this/path/does/not/exist/archive.jsonl")
+    q = quiz._parse_and_validate_quiz(_valid_quiz_json(count=1))
+
+    await _real_archive_quiz(user_id=1, questions=q, model_used="model-a")  # نباید raise کنه
+
+
+@pytest.mark.asyncio
+async def test_archive_quiz_writes_valid_jsonl_end_to_end(tmp_path, monkeypatch):
+    """بدون هیچ mock ای روی خودِ quiz_archive — فایل واقعی رو می‌نویسه و
+    می‌خونتش، برای اطمینان از فرمت واقعی خروجی (نه فقط اینکه تابع صدا
+    زده شده)."""
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(tmp_path / "archive.jsonl"))
+
+    questions = quiz._parse_and_validate_quiz(_valid_quiz_json(count=2))
+    await _real_archive_quiz(user_id=4242, questions=questions, model_used="gemini/gemini-3.6-flash")
+
+    with open(config.QUIZ_ARCHIVE_PATH, encoding="utf-8") as f:
+        lines = [json.loads(line) for line in f]
+
+    assert len(lines) == 2
+    for entry in lines:
+        assert entry["user_id"] == 4242
+        assert entry["model"] == "gemini/gemini-3.6-flash"
+        assert entry["question"] == _VALID_QUESTION["question"]
+        assert entry["options"] == _VALID_QUESTION["options"]
+        assert entry["correct_index"] == _VALID_QUESTION["correct_index"]
+        assert "timestamp" in entry
+
+
+@pytest.mark.asyncio
+async def test_archive_quiz_appends_across_multiple_calls_without_overwriting(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(tmp_path / "archive.jsonl"))
+    q = quiz._parse_and_validate_quiz(_valid_quiz_json(count=1))
+
+    await _real_archive_quiz(user_id=1, questions=q, model_used="model-a")
+    await _real_archive_quiz(user_id=2, questions=q, model_used="model-b")
+
+    with open(config.QUIZ_ARCHIVE_PATH, encoding="utf-8") as f:
+        lines = [json.loads(line) for line in f]
+
+    assert len(lines) == 2
+    assert [entry["user_id"] for entry in lines] == [1, 2]
 
 
 def test_tools_menu_includes_quiz_button():

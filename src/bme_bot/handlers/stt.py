@@ -14,7 +14,7 @@ from telegram.ext import ContextTypes
 from ..db import feature_usage_repository, stt_usage_repository
 from ..services import stt_service
 from ..utils import admin as admin_utils
-from ..utils import error_reporting, persian_text, text_chunking
+from ..utils import error_reporting, messages, persian_text, text_chunking
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,6 @@ _MAX_AUDIO_BYTES = 20 * 1024 * 1024
 
 _PROCESSING_MESSAGE = "⏳ در حال تبدیل ویس به متن... (ممکن است چند ثانیه طول بکشد)"
 _NO_TEXT_FOUND_MESSAGE = "متنی در این ویس پیدا نشد. لطفاً یک ویس واضح‌تر امتحان کنید."
-_SERVICE_UNAVAILABLE_MESSAGE = "سرویس تبدیل ویس به متن فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
 _PROVIDER_ERROR_MESSAGE = "مشکلی در سرویس تبدیل ویس به متن پیش آمد. لطفاً کمی بعد دوباره امتحان کنید."
 _GENERIC_ERROR_MESSAGE = "متاسفانه در پردازش ویس مشکلی پیش آمد. لطفاً دوباره امتحان کنید."
 _PROMPT_FOR_VOICE_MESSAGE = "لطفاً پیام صوتی‌ای که می‌خواهید به متن تبدیل شود را ارسال کنید 🎙"
@@ -43,7 +42,13 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = update.effective_user.id
 
     if not stt_service.is_configured():
-        await update.message.reply_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await update.message.reply_text(messages.STT_UNAVAILABLE)
+        # قبلاً هیچ گزارشی به ادمین نمی‌رفت این‌جا — همون الگوی
+        # ai_assistant._require_ai_key_configured/ocr.py.
+        await error_reporting.report_service_issue(
+            context, "هیچ STT provider ای پیکربندی نشده است.",
+            context_label="stt", failure_feature="stt", user_id=user_id,
+        )
         return
 
     voice = update.message.voice
@@ -74,7 +79,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         result = await stt_service.transcribe(audio_bytes)
     except stt_service.SttServiceUnavailable as e:
-        await processing_message.edit_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await processing_message.edit_text(messages.STT_UNAVAILABLE)
         await error_reporting.report_service_issue(
             context, str(e), context_label="stt", failure_feature="stt", user_id=user_id,
         )

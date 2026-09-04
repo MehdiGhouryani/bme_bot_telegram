@@ -328,10 +328,23 @@ async def _try_google(audio_bytes: bytes, filename: str) -> str:
     async def _call():
         async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
             response = await client.post(
-                f"https://speech.googleapis.com/v1/speech:recognize?key={config.GOOGLE_STT_API_KEY}",
+                "https://speech.googleapis.com/v1/speech:recognize",
+                params={"key": config.GOOGLE_STT_API_KEY},
                 json=payload,
             )
-        response.raise_for_status()
+        if response.status_code >= 400:
+            # همون مشکل ocr_service._try_google_vision: Google این API رو هم
+            # با کلید به‌عنوان query param می‌خواد، پس پیام پیش‌فرض
+            # httpx.HTTPStatusError کلید خام رو تو URL می‌ذاره و از اونجا به
+            # لاگ/هشدار ادمین درز می‌کنه. یه httpx.HTTPStatusError واقعی با
+            # پیام sanitize‌شده raise می‌کنیم (نه Exception عمومی) تا
+            # retry.is_retryable که پایین‌تر response.status_code رو چک
+            # می‌کنه هنوز درست کار کنه.
+            raise httpx.HTTPStatusError(
+                f"Google STT: {response.status_code} {response.reason_phrase}",
+                request=response.request,
+                response=response,
+            )
         data = response.json()
         try:
             return data["results"][0]["alternatives"][0]["transcript"].strip()
@@ -479,3 +492,43 @@ async def transcribe(audio_bytes: bytes, filename: str = "voice.ogg") -> SttResu
         raise SttProviderError("سرویس تبدیل ویس به متن با خطا مواجه شد؛ نتیجه نامعتبر است.") from last_error
 
     return SttResult(text="", provider=None)
+
+
+def _make_test_wav_bytes() -> bytes:
+    """یه فایل WAV معتبر و مینیمال (نیم‌ثانیه سکوت کامل، ۱۶kHz mono) —
+    فقط برای تست اتصال/اعتبار کلید هر provider (test_all_providers)، نه
+    تبدیل واقعی صدا به متن (پس این تابع رفتار STT واقعی رو گزارش نمی‌ده،
+    فقط اینکه provider اصلاً پاسخ می‌ده یا نه). با wave (کتابخانه‌ی
+    استاندارد پایتون) ساخته می‌شه تا یه رشته‌ی base64 بزرگ تو سورس‌کد
+    هاردکد نشه."""
+    import io
+    import wave
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        w.writeframes(b"\x00\x00" * 8000)  # نیم ثانیه سکوت
+    return buf.getvalue()
+
+
+async def test_all_providers() -> list[tuple[str, bool | None, str]]:
+    """هر provider *پیکربندی‌شده* رو (نه فقط اولی که موفق می‌شه) مستقیم و
+    جدا از هم با یه فایل صوتی تستی مینیمال صدا می‌زنه — برخلاف transcribe
+    که همین‌که یکی موفق شد متوقف می‌شه. برای دکمه‌ی «🩺 تست سرویس‌ها» تو
+    پنل ادمین.
+
+    (نام provider، True/False/None، پیام کوتاه) — None یعنی «پیکربندی
+    نشده» (نه شکست واقعی)."""
+    audio_bytes = _make_test_wav_bytes()
+    results = []
+    for name, func in _PROVIDER_FUNCS.items():
+        try:
+            await func(audio_bytes, "test.wav")
+            results.append((name, True, "OK"))
+        except SttProviderNotConfigured:
+            results.append((name, None, "پیکربندی نشده"))
+        except Exception as e:
+            results.append((name, False, str(e)[:150]))
+    return results

@@ -20,6 +20,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from bme_bot import config  # noqa: E402
 from bme_bot.services import ai_service  # noqa: E402
 from bme_bot.handlers import ai_assistant  # noqa: E402
+from bme_bot.utils import error_reporting  # noqa: E402
 
 
 def _fake_litellm_response(content=None, finish_reason="stop", model="gemini/gemini-2.5-flash"):
@@ -146,7 +147,11 @@ async def test_ask_raises_unblocked_empty_response_for_other_empty_cases(monkeyp
 @pytest.mark.asyncio
 async def test_require_ai_key_configured_uses_the_same_shared_message(monkeypatch):
     """اطمینان از اینکه ai_assistant دیگر یک کپی جداگانه و هاردکد از این پیام
-    ندارد، بلکه از ai_service.NO_API_KEY_MESSAGE استفاده می‌کند."""
+    ندارد، بلکه از ai_service.NO_API_KEY_MESSAGE (که خودش الان از
+    utils.messages.AI_UNAVAILABLE می‌آید) استفاده می‌کند. همچنین این پیش‌چک
+    باید به ادمین هم گزارش بدهد — قبلاً هیچ‌وقت این کار را نمی‌کرد، چون تنها
+    جای گزارش (except ai_service.AIServiceUnavailable) به‌خاطر همین پیش‌چک
+    هیچ‌وقت اجرا نمی‌شد."""
     monkeypatch.setattr(config, "GEMINI_API_KEY", None)
 
     sent = []
@@ -156,10 +161,17 @@ async def test_require_ai_key_configured_uses_the_same_shared_message(monkeypatc
             sent.append((chat_id, text))
 
     context = SimpleNamespace(bot=FakeBot())
-    result = await ai_assistant._require_ai_key_configured(context, chat_id=123)
+    report_mock = AsyncMock()
+    monkeypatch.setattr(error_reporting, "report_service_issue", report_mock)
+
+    result = await ai_assistant._require_ai_key_configured(
+        context, chat_id=123, context_label="/ask", user_id=456,
+    )
 
     assert result is False
     assert sent == [(123, ai_service.NO_API_KEY_MESSAGE)]
+    report_mock.assert_awaited_once()
+    assert report_mock.call_args.kwargs["context_label"] == "/ask"
 
 
 def test_ai_service_unavailable_default_message():
@@ -167,3 +179,50 @@ def test_ai_service_unavailable_default_message():
     این تست فقط پیام پیش‌فرضش را تایید می‌کند."""
     err = ai_service.AIServiceUnavailable()
     assert str(err) == ai_service.NO_API_KEY_MESSAGE
+
+
+# --- test_all_models (دکمه‌ی «🩺 تست سرویس‌ها الان» تو پنل ادمین) ---
+
+@pytest.mark.asyncio
+async def test_test_all_models_checks_primary_and_every_fallback_independently(monkeypatch):
+    """رگرسیون: برخلاف ask() که با اولین موفقیت متوقف می‌شه، این تابع
+    باید *همه* رو (اصلی + هر fallback) جدا صدا بزنه، حتی اگه اولی موفق
+    باشه."""
+    monkeypatch.setattr(ai_service, "PRIMARY_MODEL", "gemini/gemini-3.6-flash")
+    monkeypatch.setattr(ai_service, "FALLBACK_MODELS", ["groq/model-a", "groq/model-b"])
+
+    called_models = []
+
+    async def mock_completion(model, **kwargs):
+        called_models.append(model)
+        if model == "gemini/gemini-3.6-flash":
+            raise RuntimeError("404 model not found")
+        return _fake_litellm_response(content="سلام", model=model)
+
+    monkeypatch.setattr(ai_service.litellm, "acompletion", mock_completion)
+
+    results = await ai_service.test_all_models()
+
+    assert called_models == ["gemini/gemini-3.6-flash", "groq/model-a", "groq/model-b"]
+    assert results == [
+        ("gemini/gemini-3.6-flash", False, "404 model not found"),
+        ("groq/model-a", True, "OK"),
+        ("groq/model-b", True, "OK"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_test_all_models_one_failure_does_not_stop_the_rest(monkeypatch):
+    monkeypatch.setattr(ai_service, "PRIMARY_MODEL", "model-1")
+    monkeypatch.setattr(ai_service, "FALLBACK_MODELS", ["model-2"])
+
+    async def mock_completion(model, **kwargs):
+        raise RuntimeError(f"{model} boom")
+
+    monkeypatch.setattr(ai_service.litellm, "acompletion", mock_completion)
+
+    results = await ai_service.test_all_models()
+
+    assert [r[1] for r in results] == [False, False]
+    assert results[0][2] == "model-1 boom"
+    assert results[1][2] == "model-2 boom"

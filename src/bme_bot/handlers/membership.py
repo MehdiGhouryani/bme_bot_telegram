@@ -75,6 +75,16 @@ def membership_required(func):
         if status in _MEMBER_STATUSES:
             return await func(update, context, *args, **kwargs)
 
+        # کاربر عضو نیست — قبلاً اینجا برای callback_query هیچ answer()ای
+        # زده نمی‌شد (برخلاف شاخه‌ی status is None بالا که این کار رو
+        # درست انجام می‌ده) — یعنی اسپینر لودینگ دکمه هیچ‌وقت بسته نمی‌شد،
+        # فقط یه پیام جدید (دعوت به عضویت) زیرش می‌اومد.
+        if update.callback_query:
+            try:
+                await update.callback_query.answer()
+            except Exception:
+                pass
+
         await send_join_request(update)
 
     return wrapper

@@ -10,7 +10,7 @@ from ..db import feature_usage_repository, ocr_usage_repository
 from ..keyboards import reply_keyboards
 from ..services import ocr_service
 from ..utils import admin as admin_utils
-from ..utils import error_reporting, persian_text, text_chunking
+from ..utils import error_reporting, messages, persian_text, text_chunking
 from .menus import make_submenu_handler
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,6 @@ _MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
 _PROCESSING_MESSAGE = "⏳ در حال خواندن متن از عکس... (ممکن است چند ثانیه طول بکشد)"
 _NO_TEXT_FOUND_MESSAGE = "متنی در این عکس پیدا نشد. لطفاً یک عکس واضح‌تر امتحان کنید."
-_SERVICE_UNAVAILABLE_MESSAGE = "سرویس تبدیل عکس به متن فعلاً در دسترس نیست. لطفاً بعداً تلاش کنید."
 _PROVIDER_ERROR_MESSAGE = "مشکلی در سرویس تبدیل عکس به متن پیش آمد. لطفاً کمی بعد دوباره امتحان کنید."
 _GENERIC_ERROR_MESSAGE = "متاسفانه در پردازش عکس مشکلی پیش آمد. لطفاً دوباره امتحان کنید."
 _PROMPT_FOR_PHOTO_MESSAGE = (
@@ -46,7 +45,16 @@ async def handle_photo_message(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = update.effective_user.id
 
     if not ocr_service.is_configured():
-        await update.message.reply_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await update.message.reply_text(messages.OCR_UNAVAILABLE)
+        # قبلاً هیچ گزارشی به ادمین نمی‌رفت این‌جا — دقیقاً همون الگوی
+        # ai_assistant._require_ai_key_configured (رجوع به کامنت اونجا):
+        # شاخه‌ی except ocr_service.OcrServiceUnavailable پایین‌تر تنها
+        # جای این کار بود ولی چون این چک همیشه زودتر برمی‌گرده، هیچ‌وقت
+        # بهش نمی‌رسید.
+        await error_reporting.report_service_issue(
+            context, "هیچ OCR provider ای پیکربندی نشده است.",
+            context_label="ocr", failure_feature="ocr", user_id=user_id,
+        )
         return
 
     is_admin_user = admin_utils.is_admin(user_id)
@@ -73,7 +81,7 @@ async def handle_photo_message(update: Update, context: ContextTypes.DEFAULT_TYP
     try:
         result = await ocr_service.extract_text(image_bytes)
     except ocr_service.OcrServiceUnavailable as e:
-        await processing_message.edit_text(_SERVICE_UNAVAILABLE_MESSAGE)
+        await processing_message.edit_text(messages.OCR_UNAVAILABLE)
         await error_reporting.report_service_issue(
             context, str(e), context_label="ocr", failure_feature="ocr", user_id=user_id,
         )

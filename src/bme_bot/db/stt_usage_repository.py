@@ -104,3 +104,27 @@ async def increment_stt_usage(user_id: int, duration_seconds: int) -> None:
             (user_id, duration_seconds, today, duration_seconds, today),
         )
         await conn.commit()
+
+
+async def get_usage_for_user(user_id: int) -> dict | None:
+    """(ثانیه‌ی مصرف‌شده‌ی امروز, تاریخ آخرین درخواست) این کاربر — برای
+    بخش «📊 مصرف امروز» تو پروفایل جستجوی ادمین (admin.py). None یعنی این
+    کاربر تا الان اصلاً STT رو امتحان نکرده."""
+    async with app_connection.get_connection() as conn:
+        async with conn.execute(
+            "SELECT request_count, last_request_date FROM stt_usage WHERE user_id = ?",
+            (user_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+    if row is None:
+        return None
+    return {"seconds": row[0], "last_date": row[1]}
+
+
+async def reset_usage_for_user(user_id: int) -> None:
+    """ثانیه‌ی مصرف‌شده‌ی امروز رو برای این کاربر صفر می‌کنه — همتای STT
+    برای usage_limit_helper.reset_all_usage_for_user (که این جدول رو
+    پوشش نمی‌ده، چون STT جدول/منطق جداگونه‌ای داره)."""
+    async with app_connection.get_connection() as conn:
+        await conn.execute("UPDATE stt_usage SET request_count = 0 WHERE user_id = ?", (user_id,))
+        await conn.commit()

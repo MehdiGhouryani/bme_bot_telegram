@@ -94,14 +94,14 @@ def test_callback_routes_to_expected_handler(built_app, callback_data, expected_
 
 
 def test_group_0_registration_order_matches_documented_requirement():
-    """هر پنج ConversationHandler (admin.py ×۳ + equipment_admin_edit ×۱ +
+    """هر شش ConversationHandler (admin.py ×۴ + equipment_admin_edit ×۱ +
     maintenance_admin_edit ×۱) باید *قبل* از CallbackQueryHandler عمومی ثبت
     شده باشند — این خودِ الزامی است که در سربرگ‌های admin.py/
     equipment_admin_edit.py/maintenance_admin_edit.py/app.py مستند شده؛ این
     تست تضمین می‌کند یک refactor آینده این ترتیب را خراب نکند.
 
-    پنج ConversationHandler همین الان ثبت شده‌اند: admin.py ×۳
-    (user_search/broadcast/limits_edit) + equipment_admin_edit ×۱ +
+    شش ConversationHandler همین الان ثبت شده‌اند: admin.py ×۴
+    (user_search/broadcast/limits_edit/admin_add) + equipment_admin_edit ×۱ +
     maintenance_admin_edit ×۱. اگر یک ConversationHandler جدید اضافه شد،
     این عدد باید همراهش به‌روز شود."""
     from telegram.ext import CallbackQueryHandler, ConversationHandler
@@ -123,7 +123,7 @@ def test_group_0_registration_order_matches_documented_requirement():
             i for i, h in enumerate(group0)
             if isinstance(h, CallbackQueryHandler) and not isinstance(h, ConversationHandler)
         ]
-        assert len(conversation_indices) == 5
+        assert len(conversation_indices) == 6
         assert len(generic_callback_indices) == 1
         assert max(conversation_indices) < generic_callback_indices[0]
     finally:

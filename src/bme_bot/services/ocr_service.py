@@ -51,6 +51,7 @@ def is_configured() -> bool:
         config.GOOGLE_VISION_API_KEY
         or config.AZURE_VISION_KEY
         or config.GROQ_API_KEY
+        or config.GEMINI_API_KEY
     )
 
 
@@ -126,7 +127,23 @@ async def _try_google_vision(image_bytes: bytes) -> str:
                 params={"key": config.GOOGLE_VISION_API_KEY},
                 json=payload,
             )
-        response.raise_for_status()
+        if response.status_code >= 400:
+            # response.raise_for_status() پیام پیش‌فرضش شامل URL کامل
+            # درخواسته — و چون Google Vision کلید رو به‌عنوان query param
+            # می‌خواد (نه header، برخلاف بقیه‌ی سرویس‌های این پروژه)، یعنی
+            # کلید خام تو اون پیام می‌افته و از اونجا به لاگ/هشدار ادمین
+            # درز می‌کنه (تایید‌شده رو یه لاگ production واقعی). به‌جاش خودمون
+            # با پیام sanitize‌شده raise می‌کنیم، ولی همچنان یه
+            # httpx.HTTPStatusError واقعی با response واقعی — چون
+            # _is_retryable پایین‌تر دقیقاً با isinstance(exc,
+            # httpx.HTTPStatusError) و exc.response.status_code تشخیص
+            # retryable/دائمی بودن (429/500/502/503/504) رو می‌ده؛ اگه اینجا
+            # یه Exception عمومی بدیم، اون تشخیص دقیق از دست می‌ره.
+            raise httpx.HTTPStatusError(
+                f"Google Vision: {response.status_code} {response.reason_phrase}",
+                request=response.request,
+                response=response,
+            )
         data = response.json()
         result = (data.get("responses") or [{}])[0]
         if result.get("error"):
@@ -189,10 +206,37 @@ async def _try_groq_vision(image_bytes: bytes) -> str:
     return await _with_retry("groq_vision", _call)
 
 
+async def _try_gemini_vision(image_bytes: bytes) -> str:
+    # همون GEMINI_API_KEY لایه‌ی AI اصلی — بدون هزینه/ثبت‌نام اضافه. رجوع به
+    # توضیح کامل در config.py برای این‌که چرا آخر صف پیش‌فرضه و چطور مستقلاً
+    # تستش کنید.
+    if not config.GEMINI_API_KEY:
+        raise OcrProviderNotConfigured("gemini")
+
+    b64 = base64.b64encode(image_bytes).decode("ascii")
+
+    async def _call():
+        response = await litellm.acompletion(
+            model=config.OCR_GEMINI_MODEL,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": _OCR_VISION_PROMPT},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
+                ],
+            }],
+        )
+        raw = response.choices[0].message.content or ""
+        return _strip_reasoning(raw)
+
+    return await _with_retry("gemini", _call)
+
+
 _PROVIDER_FUNCS = {
     "google": _try_google_vision,
     "azure": _try_azure_vision,
     "groq_vision": _try_groq_vision,
+    "gemini": _try_gemini_vision,
 }
 
 
@@ -242,3 +286,34 @@ async def extract_text(image_bytes: bytes) -> OcrResult:
         ) from last_error
 
     return OcrResult(text="", provider=None)
+
+# یه PNG سفید ۳۲×۳۲ مینیمال و معتبر — فقط برای تست اتصال/اعتبار کلید هر
+# provider (test_all_providers)، نه استخراج متن واقعی. عمداً بزرگ‌تر از
+# ۱×۱ پیکسل: بعضی API های vision یه تصویر خیلی کوچیک/بی‌محتوا رو با خطای
+# نامرتبط به احراز هویت (مثلاً "image too small") رد می‌کنن که نتیجه‌ی
+# تست رو گمراه‌کننده می‌کرد.
+_TEST_IMAGE_PNG_32X32 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAJklEQVR42u3NMQ0AAAwDoPo33arYs"
+    "QQMkB6LQCAQCAQCgUAg+BIMi1X0ptsIcT0AAAAASUVORK5CYII="
+)
+
+
+async def test_all_providers() -> list[tuple[str, bool | None, str]]:
+    """هر provider *پیکربندی‌شده* رو (نه فقط اولی که موفق می‌شه) مستقیم و
+    جدا از هم با یه عکس تستی مینیمال صدا می‌زنه — برخلاف extract_text که
+    همین‌که یکی موفق شد متوقف می‌شه. برای دکمه‌ی «🩺 تست سرویس‌ها» تو پنل
+    ادمین.
+
+    (نام provider، True/False/None، پیام کوتاه) — None یعنی «پیکربندی
+    نشده» (نه شکست واقعی؛ جدا از False نگه داشته شده تا تو نمایش نتیجه با
+    یه خطای واقعی قاطی نشه)."""
+    results = []
+    for name, func in _PROVIDER_FUNCS.items():
+        try:
+            await func(_TEST_IMAGE_PNG_32X32)
+            results.append((name, True, "OK"))
+        except OcrProviderNotConfigured:
+            results.append((name, None, "پیکربندی نشده"))
+        except Exception as e:
+            results.append((name, False, str(e)[:150]))
+    return results
