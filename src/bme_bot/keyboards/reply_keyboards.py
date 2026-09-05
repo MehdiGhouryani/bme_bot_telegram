@@ -73,6 +73,21 @@ TOOLS_MENU_BUTTONS = [
     [KeyboardButton(BACK_TO_MAIN_TEXT)],
 ]
 
+# همه‌ی متن‌های دکمه‌ی reply keyboard، یک‌جا — برای هندلرهایی که باید تشخیص
+# بدن یه پیام متنی واقعاً محتوای تازه‌ست یا صرفاً یه تپ روی دکمه‌ی ناوبری
+# (مثلاً equipment_admin_edit.py: یه ادمین که وسط ویرایش متن یه دکمه‌ی
+# منو رو می‌زنه نباید نتیجه‌ش این باشه که اون متنِ دکمه به‌عنوان محتوای
+# جدید ذخیره بشه). یک لاگ production واقعی این سناریو رو تایید کرد —
+# تپ رو دکمه‌های ناوبری وسط ویرایش، هرکدوم جدا باعث تلاش برای ذخیره‌ی
+# متن دکمه به‌جای محتوای واقعی می‌شد.
+ALL_MENU_BUTTON_TEXTS = frozenset({
+    EDUCATION_TEXT, FAQ_TEXT, SUGGESTION_TEXT, AI_ASK_TEXT, TOOLS_TEXT,
+    MEDICAL_EQUIPMENT_TEXT, SENSORS_COMPONENTS_TEXT,
+    SENSORS_TEXT, COMPONENTS_TEXT,
+    OCR_TOOL_TEXT, STT_TOOL_TEXT, QUIZ_TOOL_TEXT, JOZVE_TOOL_TEXT,
+    BACK_TO_MAIN_TEXT, BACK_TO_EDUCATION_TEXT,
+})
+
 
 # این ۴ تابع پایینی هرکدام فقط نازک‌ترین wrapper ممکن حول یک سازنده‌ی
 # مشترک (_reply_keyboard) هستند — بدون آن، هر منوی Reply ساده (main/tools/

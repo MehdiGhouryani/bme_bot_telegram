@@ -20,6 +20,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 from bme_bot import config, equipment_tree  # noqa: E402
 from bme_bot.db import admin_actions_repository, equipment_repository  # noqa: E402
 from bme_bot.handlers import equipment_admin_edit  # noqa: E402
+from bme_bot.keyboards import reply_keyboards  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -53,10 +54,14 @@ class FakeQuery:
     def __init__(self, data, chat_id=111, message_id=555):
         self.data = data
         self.answers = []
+        self.edited_texts = []
         self.message = SimpleNamespace(chat_id=chat_id, message_id=message_id)
 
     async def answer(self, text=None, show_alert=False):
         self.answers.append((text, show_alert))
+
+    async def edit_message_text(self, text, **kwargs):
+        self.edited_texts.append(text)
 
 
 class FakeBot:
@@ -200,7 +205,10 @@ async def test_receive_new_text_rejects_invalid_markdown_without_saving(temp_equ
 # --- receive_new_text: مسیر موفق ---
 
 @pytest.mark.asyncio
-async def test_receive_new_text_saves_logs_and_confirms(temp_equipment_db, monkeypatch):
+async def test_receive_new_text_shows_preview_and_awaits_confirmation_without_saving(temp_equipment_db, monkeypatch):
+    """رگرسیون UX: قبلاً همین‌جا (بعد از پیش‌نمایش موفق) مستقیم ذخیره
+    می‌شد. الان باید فقط پیش‌نمایش با دکمه‌ی تایید/لغو نشون بده و منتظر
+    بمونه — هیچی نباید تا قبل از تپ ✅ به دیتابیس نوشته بشه."""
     log_action_mock = AsyncMock()
     monkeypatch.setattr(admin_actions_repository, "log_action", log_action_mock)
     bot = FakeBot()
@@ -212,25 +220,31 @@ async def test_receive_new_text_saves_logs_and_confirms(temp_equipment_db, monke
 
     result = await equipment_admin_edit.receive_new_text(update, context)
 
-    assert result == ConversationHandler.END
+    assert result == equipment_admin_edit.AWAITING_CONFIRMATION
+    # هنوز چیزی ذخیره نشده — مقدار قدیمی دست‌نخورده مونده
     stored = await equipment_repository.get_action_text("xray", "structure")
-    assert stored == "ساختار تازه و به‌روز"
-    log_action_mock.assert_awaited_once_with(42, "edit_equipment_field", target="xray:structure")
-    assert "equipment_edit" not in context.user_data
+    assert stored == "ساختار قدیمی"
+    log_action_mock.assert_not_called()
+    assert not bot.edited_texts
+    assert context.user_data["equipment_edit"]["pending_text"] == "ساختار تازه و به‌روز"
+
     update.message.reply_text.assert_awaited_once()
-    sent_text, sent_kwargs = update.message.reply_text.await_args.args[0], update.message.reply_text.await_args.kwargs
-    assert "ساختار تازه و به‌روز" in sent_text  # پیش‌نمایش شامل خودِ متن ذخیره‌شده است
+    sent_text = update.message.reply_text.await_args.args[0]
+    sent_kwargs = update.message.reply_text.await_args.kwargs
+    assert "ساختار تازه و به‌روز" in sent_text  # پیش‌نمایش شامل خودِ متن پیشنهادیه
     assert sent_kwargs.get("parse_mode") is not None  # با همون parse_mode واقعی چک شده
-    # پیام اصلی (همانی که ادمین رویش ✏️ زده بود) هم باید زنده‌سازی شده باشد
-    assert bot.edited_texts
-    chat_id, message_id, text, _ = bot.edited_texts[0]
-    assert (chat_id, message_id, text) == (111, 555, "ساختار تازه و به‌روز")
+    markup = sent_kwargs.get("reply_markup")
+    labels = [btn.text for row in markup.inline_keyboard for btn in row]
+    assert "✅ تایید و جایگزینی" in labels
+    assert "❌ لغو" in labels
 
 
 @pytest.mark.asyncio
-async def test_receive_new_text_for_definition_edits_caption_not_text(temp_equipment_db, monkeypatch):
-    """پوشش مسیر عکس الزامی بود: definition باید edit_message_caption صدا
-    بزند، نه edit_message_text (که روی پیام‌های عکس‌دار خطا می‌دهد)."""
+async def test_receive_new_text_for_definition_does_not_touch_caption_before_confirmation(temp_equipment_db, monkeypatch):
+    """پوشش مسیر عکس در مرحله‌ی پیش‌نمایش: چون چیزی هنوز ذخیره/زنده‌سازی
+    نشده، edit_message_caption هم نباید در این مرحله صدا زده بشه —
+    رجوع به test_confirm_edit_for_definition_edits_caption_not_text برای
+    مرحله‌ی واقعیِ بعد از تایید."""
     monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
     bot = FakeBot()
     context = _make_context(bot=bot, user_data={
@@ -239,12 +253,11 @@ async def test_receive_new_text_for_definition_edits_caption_not_text(temp_equip
     })
     update = _make_message_update("تعریف تازه")
 
-    await equipment_admin_edit.receive_new_text(update, context)
+    result = await equipment_admin_edit.receive_new_text(update, context)
 
+    assert result == equipment_admin_edit.AWAITING_CONFIRMATION
     assert not bot.edited_texts
-    assert bot.edited_captions
-    chat_id, message_id, caption, _ = bot.edited_captions[0]
-    assert (chat_id, message_id, caption) == (111, 555, "تعریف تازه")
+    assert not bot.edited_captions
 
 
 @pytest.mark.asyncio
@@ -312,15 +325,19 @@ async def test_receive_new_text_allows_oversized_text_for_non_definition_action(
 
     result = await equipment_admin_edit.receive_new_text(update, context)
 
-    assert result == ConversationHandler.END
+    assert result == equipment_admin_edit.AWAITING_CONFIRMATION
+    # هنوز ذخیره نشده، فقط منتظر تاییده — همون متن تو pending_text نشسته
+    assert context.user_data["equipment_edit"]["pending_text"] == long_but_allowed_text
     stored = await equipment_repository.get_action_text("xray", "structure")
-    assert stored == long_but_allowed_text
+    assert stored != long_but_allowed_text
 
 
 @pytest.mark.asyncio
-async def test_receive_new_text_still_succeeds_if_original_message_refresh_fails(temp_equipment_db, monkeypatch):
-    """اگر پیام اصلی خیلی قدیمی/غیرقابل‌ویرایش باشد، ذخیره‌سازی همچنان باید
-    موفق بماند — فقط منظره‌ی زنده‌سازی نمی‌شود، کل عملیات نباید شکست بخورد."""
+async def test_receive_new_text_preview_step_never_touches_original_message(temp_equipment_db, monkeypatch):
+    """مرحله‌ی پیش‌نمایش نباید اصلاً سعی کنه پیام اصلی رو زنده‌سازی کنه —
+    این کار فقط بعد از تایید صریح (confirm_edit) انجام می‌شه؛ رجوع به
+    test_confirm_edit_still_succeeds_if_original_message_refresh_fails
+    برای رفتار واقعیِ «شکست زنده‌سازی نباید کل عملیات رو خراب کنه»."""
     monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
     bot = FakeBot(fail_edit=True)
     context = _make_context(bot=bot, user_data={
@@ -331,9 +348,8 @@ async def test_receive_new_text_still_succeeds_if_original_message_refresh_fails
 
     result = await equipment_admin_edit.receive_new_text(update, context)
 
-    assert result == ConversationHandler.END
-    stored = await equipment_repository.get_action_text("xray", "structure")
-    assert stored == "ساختار تازه"
+    assert result == equipment_admin_edit.AWAITING_CONFIRMATION
+    assert not bot.edited_texts  # bot.fail_edit=True هم فرقی نمی‌کنه، چون اصلاً صدا زده نمی‌شه
     update.message.reply_text.assert_awaited_once()  # تاییدیه همچنان رفته
 
 
@@ -361,6 +377,188 @@ async def test_cancel_edit_clears_state():
     assert result == ConversationHandler.END
     assert "equipment_edit" not in context.user_data
     update.message.reply_text.assert_awaited_once()
+
+
+# --- confirm_edit / cancel_edit_confirmation: تنها جایی که واقعاً می‌نویسه ---
+
+@pytest.mark.asyncio
+async def test_confirm_edit_saves_logs_and_refreshes_original_message(temp_equipment_db, monkeypatch):
+    log_action_mock = AsyncMock()
+    monkeypatch.setattr(admin_actions_repository, "log_action", log_action_mock)
+    bot = FakeBot()
+    query = FakeQuery("equipment_edit_confirm", chat_id=111, message_id=555)
+    context = _make_context(bot=bot, user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "ساختار تازه و به‌روز"},
+    })
+    update = _make_callback_update(query)
+
+    result = await equipment_admin_edit.confirm_edit(update, context)
+
+    assert result == ConversationHandler.END
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار تازه و به‌روز"
+    log_action_mock.assert_awaited_once_with(42, "edit_equipment_field", target="xray:structure")
+    assert "equipment_edit" not in context.user_data
+    assert query.answers == [(None, False)]
+    assert query.edited_texts == ["✅ ذخیره شد."]
+    # پیام اصلی (همانی که ادمین رویش ✏️ زده بود) هم باید زنده‌سازی شده باشد
+    assert bot.edited_texts
+    chat_id, message_id, text, _ = bot.edited_texts[0]
+    assert (chat_id, message_id, text) == (111, 555, "ساختار تازه و به‌روز")
+
+
+@pytest.mark.asyncio
+async def test_confirm_edit_for_definition_edits_caption_not_text(temp_equipment_db, monkeypatch):
+    """پوشش مسیر عکس الزامی بود: definition باید edit_message_caption صدا
+    بزند، نه edit_message_text (که روی پیام‌های عکس‌دار خطا می‌دهد)."""
+    monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
+    bot = FakeBot()
+    query = FakeQuery("equipment_edit_confirm", chat_id=111, message_id=555)
+    context = _make_context(bot=bot, user_data={
+        "equipment_edit": {"device": "xray", "action": "definition", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "تعریف تازه"},
+    })
+    update = _make_callback_update(query)
+
+    await equipment_admin_edit.confirm_edit(update, context)
+
+    assert not bot.edited_texts
+    assert bot.edited_captions
+    chat_id, message_id, caption, _ = bot.edited_captions[0]
+    assert (chat_id, message_id, caption) == (111, 555, "تعریف تازه")
+
+
+@pytest.mark.asyncio
+async def test_confirm_edit_still_succeeds_if_original_message_refresh_fails(temp_equipment_db, monkeypatch):
+    """اگر پیام اصلی خیلی قدیمی/غیرقابل‌ویرایش باشد، ذخیره‌سازی همچنان باید
+    موفق بماند — فقط منظره‌ی زنده‌سازی نمی‌شود، کل عملیات نباید شکست بخورد."""
+    monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
+    bot = FakeBot(fail_edit=True)
+    query = FakeQuery("equipment_edit_confirm", chat_id=111, message_id=555)
+    context = _make_context(bot=bot, user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "ساختار تازه"},
+    })
+    update = _make_callback_update(query)
+
+    result = await equipment_admin_edit.confirm_edit(update, context)
+
+    assert result == ConversationHandler.END
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار تازه"
+    assert query.edited_texts == ["✅ ذخیره شد."]  # پیام تاییدیه هرحال رفته
+
+
+@pytest.mark.asyncio
+async def test_confirm_edit_without_pending_text_is_rejected_defensively(temp_equipment_db):
+    """محافظ دفاعی: اگه conversation قبلاً timeout/cancel شده باشه ولی
+    دکمه‌ی قدیمی هنوز رو صفحه‌ست، نباید AttributeError/KeyError بده —
+    نباید هم چیزی رو دیتابیس بنویسه."""
+    query = FakeQuery("equipment_edit_confirm")
+    context = _make_context(user_data={})  # equipment_edit اصلاً وجود نداره
+    update = _make_callback_update(query)
+
+    result = await equipment_admin_edit.confirm_edit(update, context)
+
+    assert result == ConversationHandler.END
+    assert query.answers and query.answers[0][1] is True  # show_alert
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار قدیمی"  # دست‌نخورده
+
+
+@pytest.mark.asyncio
+async def test_cancel_edit_confirmation_clears_state_without_saving(temp_equipment_db):
+    query = FakeQuery("equipment_edit_cancel")
+    context = _make_context(user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "این نباید ذخیره بشه"},
+    })
+    update = _make_callback_update(query)
+
+    result = await equipment_admin_edit.cancel_edit_confirmation(update, context)
+
+    assert result == ConversationHandler.END
+    assert "equipment_edit" not in context.user_data
+    assert query.edited_texts == ["لغو شد."]
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار قدیمی"  # دست‌نخورده
+
+
+@pytest.mark.asyncio
+async def test_resending_text_while_awaiting_confirmation_replaces_the_pending_preview(temp_equipment_db, monkeypatch):
+    """اگه ادمین به‌جای زدن دکمه دوباره متن بفرسته (مثلاً برای تصحیح یه
+    تایپو)، باید pending_text جایگزین بشه و یه پیش‌نمایش تازه نشون داده
+    بشه — بدون نیاز به /cancel و شروع دوباره."""
+    monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
+    context = _make_context(user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "نسخه‌ی اول با تایپو"},
+    })
+    update = _make_message_update("نسخه‌ی دوم، تصحیح‌شده")
+
+    result = await equipment_admin_edit.receive_new_text(update, context)
+
+    assert result == equipment_admin_edit.AWAITING_CONFIRMATION
+    assert context.user_data["equipment_edit"]["pending_text"] == "نسخه‌ی دوم، تصحیح‌شده"
+    # هنوز چیزی ذخیره نشده
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار قدیمی"
+
+
+# --- رگرسیون production واقعی: تپ رو دکمه‌ی ناوبری وسط ویرایش ---
+
+@pytest.mark.parametrize("button_text", sorted(reply_keyboards.ALL_MENU_BUTTON_TEXTS))
+@pytest.mark.asyncio
+async def test_tapping_any_menu_button_mid_edit_cancels_cleanly_instead_of_crashing(
+    button_text, temp_equipment_db, monkeypatch,
+):
+    """رگرسیون حیاتی: یک لاگ production واقعی نشون داد وقتی ادمین وسط
+    ویرایش رو یه دکمه‌ی منو (مثلاً «بازگشت به صفحه قبل ⬅️»،
+    «تجهیزات پزشکی 🩺»، «⚙️ سنسور ها و قطعات») می‌زد، اون متنِ دکمه
+    به‌عنوان محتوای تازه به update_action_text پاس داده می‌شد و کرش
+    می‌کرد — و چون conversation باز می‌موند، تپ رو *هر* دکمه‌ی دیگه‌ای هم
+    دوباره همین اتفاق می‌افتاد (چرخه‌ی کرش پشت‌سرهم). این تست با تک‌تک
+    متن‌های واقعی دکمه‌های منو (نه فقط یکی) این سناریو رو بازتولید و رفعش
+    رو تایید می‌کنه — نه ذخیره‌ای انجام بشه، نه کرشی."""
+    log_action_mock = AsyncMock()
+    monkeypatch.setattr(admin_actions_repository, "log_action", log_action_mock)
+    context = _make_context(user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555},
+    })
+    update = _make_message_update(button_text)
+
+    result = await equipment_admin_edit.receive_new_text(update, context)
+
+    assert result == ConversationHandler.END
+    assert "equipment_edit" not in context.user_data
+    log_action_mock.assert_not_called()
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار قدیمی"  # دست‌نخورده — متن دکمه ذخیره نشده
+    update.message.reply_text.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_tapping_menu_button_mid_edit_also_cancels_from_confirmation_state(temp_equipment_db, monkeypatch):
+    """همون سناریو، ولی وقتی ادمین از پیش‌نمایش (AWAITING_CONFIRMATION)
+    عبور کرده و به‌جای زدن ✅/❌ رو یه دکمه‌ی منو می‌زنه — چون
+    receive_new_text تو این حالت هم صدا زده می‌شه (برای اجازه‌ی
+    بازنویسی)، باید همین‌جا هم درست کنسل بشه، نه اینکه pending_text قبلی
+    رو با متن دکمه جایگزین کنه."""
+    monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
+    context = _make_context(user_data={
+        "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
+                            "chat_id": 111, "message_id": 555, "pending_text": "متن در انتظار تایید"},
+    })
+    update = _make_message_update(reply_keyboards.BACK_TO_MAIN_TEXT)
+
+    result = await equipment_admin_edit.receive_new_text(update, context)
+
+    assert result == ConversationHandler.END
+    assert "equipment_edit" not in context.user_data
+    stored = await equipment_repository.get_action_text("xray", "structure")
+    assert stored == "ساختار قدیمی"
 
 
 @pytest.mark.asyncio

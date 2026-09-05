@@ -23,7 +23,7 @@
 
 import logging
 
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import (
@@ -37,7 +37,7 @@ from telegram.ext import (
 )
 
 from ..db import admin_actions_repository, equipment_repository
-from ..keyboards import menu_builder
+from ..keyboards import menu_builder, reply_keyboards
 from ..utils.admin import is_admin
 from ..utils.text_chunking import utf16_len
 from . import equipment_callbacks
@@ -45,6 +45,10 @@ from . import equipment_callbacks
 logger = logging.getLogger(__name__)
 
 AWAITING_NEW_TEXT = "equipment_edit_awaiting_text"
+# ادمین متن جدید رو فرستاده و پیش‌نمایش رو دیده، منتظر تپ رو ✅ تایید یا
+# ❌ لغوئه — قبلاً همین‌جا (بلافاصله بعد از پیش‌نمایش موفق) مستقیم ذخیره
+# می‌شد، بدون هیچ قدم تاییدیه‌ی جداگونه‌ای.
+AWAITING_CONFIRMATION = "equipment_edit_awaiting_confirmation"
 
 # بدون JobQueue فعال (python-telegram-bot[job-queue] extra)، این پارامتر
 # بی‌اثر می‌ماند.
@@ -105,6 +109,29 @@ async def start_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """متن جدید رو می‌گیره، پیش‌نمایشش می‌کنه، ولی *ذخیره نمی‌کنه* — فقط
+    منتظر تایید صریح از دکمه‌ی confirm_edit می‌مونه. اگه ادمین (چه تو
+    حالت AWAITING_NEW_TEXT چه بعد از دیدن یه پیش‌نمایش، تو
+    AWAITING_CONFIRMATION) دوباره متن بفرسته، همینجا pending_text
+    جایگزین و پیش‌نمایش دوباره نشون داده می‌شه — یعنی نیازی به لغو و
+    شروع دوباره برای تصحیح یه تایپو نیست.
+
+    رگرسیون واقعی: قبلاً اگه ادمین وسط ویرایش (به‌جای فرستادن متن جدید یا
+    زدن دکمه‌ی تایید/لغو) رو یکی از دکمه‌های reply keyboard منو می‌زد
+    (مثلاً «بازگشت به صفحه قبل ⬅️»)، اون متنِ دکمه به‌عنوان «محتوای جدید» به
+    update_action_text پاس داده می‌شد — و چون این ConversationHandler تا
+    /cancel صریح باز می‌مونه، هر تپ بعدی رو *هر* دکمه‌ی دیگه‌ای هم دوباره
+    همین اتفاق می‌افتاد (یه چرخه‌ی کرش پشت‌سرهم؛ یک لاگ production واقعی
+    این رو با ۳ دکمه‌ی متفاوت پشت‌سرهم تایید کرد). الان این متن‌ها رو
+    می‌شناسیم و ویرایش رو تمیز لغو می‌کنیم، به‌جای تلاش برای ذخیره‌شون."""
+    if update.message.text in reply_keyboards.ALL_MENU_BUTTON_TEXTS:
+        context.user_data.pop("equipment_edit", None)
+        await update.message.reply_text(
+            "ویرایش متن لغو شد (به‌خاطر زدن یکی از دکمه‌های منو). لطفاً دوباره روی "
+            "همون دکمه بزنید."
+        )
+        return ConversationHandler.END
+
     edit_state = context.user_data.get("equipment_edit")
     if not edit_state:
         # نباید عملاً پیش بیاید (state فقط با start_edit ست می‌شود)، ولی یک
@@ -112,7 +139,7 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await update.message.reply_text("خطای داخلی — لطفاً دوباره از روی ✏️ شروع کنید.")
         return ConversationHandler.END
 
-    device, action, line = edit_state["device"], edit_state["action"], edit_state["line"]
+    action = edit_state["action"]
     new_text = update.message.text
     # utf16_len، نه len() خام: سقف واقعی کپشن تلگرام بر پایه‌ی UTF-16
     # code unit است، نه تعداد کاراکتر پایتون — یه متنِ کمتر از ۱۰۲۴ از
@@ -129,19 +156,23 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return AWAITING_NEW_TEXT
 
-    # اعتبارسنجی مارک‌داون *قبل* از ذخیره: equipment_callbacks بعداً همین
+    # اعتبارسنجی مارک‌داون *قبل* از پیش‌نمایش: equipment_callbacks بعداً همین
     # متن رو با parse_mode=ParseMode.MARKDOWN به کاربرهای واقعی نشون
     # می‌ده. اگه اینجا یه `*`/`_`/`` ` `` بدون جفت باشه، تلگرام parse رو رد
     # می‌کنه — و چون هم edit_message_text هم fallback (حذف+ارسال دوباره)
     # هر دو از همین متن استفاده می‌کنن، کل این بخش برای *همه‌ی کاربران* تا
     # ویرایش بعدی از کار می‌افته، بی‌سروصدا (فقط «اطلاعاتی یافت نشد»). به‌جای
     # اینکه بعداً کشف بشه، همین‌جا با یه پیش‌نمایش واقعی (همون parse_mode)
-    # چک می‌کنیم؛ اگه موفق شد، همون پیام پیش‌نمایش جای تاییدیه‌ی جدا رو هم
-    # می‌گیره.
+    # چک می‌کنیم.
+    confirm_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✅ تایید و جایگزینی", callback_data="equipment_edit_confirm")],
+        [InlineKeyboardButton("❌ لغو", callback_data="equipment_edit_cancel")],
+    ])
     try:
         await update.message.reply_text(
-            f"✅ ذخیره شد. این متن دقیقاً همین‌طوری به کاربرها نشون داده می‌شه:\n\n{new_text}",
+            f"📝 پیش‌نمایش (این متن دقیقاً همین‌طوری به کاربرها نشون داده می‌شه):\n\n{new_text}",
             parse_mode=ParseMode.MARKDOWN,
+            reply_markup=confirm_markup,
         )
     except BadRequest as e:
         await update.message.reply_text(
@@ -152,11 +183,32 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return AWAITING_NEW_TEXT
 
+    edit_state["pending_text"] = new_text
+    return AWAITING_CONFIRMATION
+
+
+async def confirm_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """دکمه‌ی «✅ تایید و جایگزینی» — تنها جایی که واقعاً به دیتابیس
+    می‌نویسه."""
+    query = update.callback_query
+    edit_state = context.user_data.get("equipment_edit")
+    if not edit_state or "pending_text" not in edit_state:
+        # مثلاً کانورسیشن قبلاً timeout/cancel شده ولی دکمه‌ی قدیمی هنوز
+        # رو صفحه‌ست — محافظ دفاعی، نباید عملاً پیش بیاید.
+        await query.answer("این تاییدیه دیگه معتبر نیست — از روی ✏️ دوباره شروع کنید.", show_alert=True)
+        return ConversationHandler.END
+
+    await query.answer()
+    device, action, line = edit_state["device"], edit_state["action"], edit_state["line"]
+    new_text = edit_state["pending_text"]
+
     await equipment_repository.update_action_text(device, action, new_text)
     await admin_actions_repository.log_action(
         update.effective_user.id, "edit_equipment_field", target=f"{device}:{action}",
     )
     context.user_data.pop("equipment_edit", None)
+
+    await query.edit_message_text("✅ ذخیره شد.")
 
     # تلاش برای زنده‌کردن همان پیامی که ادمین رویش ✏️ زده بود — اگر شکست
     # بخورد (پیام خیلی قدیمی/حذف‌شده/۴۸ ساعت گذشته و تلگرام دیگر اجازه‌ی ویرایش
@@ -181,6 +233,22 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         logger.warning(f"Could not refresh original message after equipment edit: {e}")
 
     return ConversationHandler.END
+
+
+async def cancel_edit_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """دکمه‌ی «❌ لغو» رو پیش‌نمایش — معادل /cancel ولی از طریق دکمه، نه
+    دستور."""
+    query = update.callback_query
+    await query.answer()
+    context.user_data.pop("equipment_edit", None)
+    await query.edit_message_text("لغو شد.")
+    return ConversationHandler.END
+
+
+async def remind_confirmation_needed(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "لطفاً یکی از دکمه‌های ✅ تایید یا ❌ لغو رو بزنید، یا یه متن جدید بفرستید، یا /cancel."
+    )
 
 
 async def cancel_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -211,6 +279,16 @@ equipment_edit_conversation = ConversationHandler(
         AWAITING_NEW_TEXT: [
             MessageHandler(filters.TEXT & ~filters.COMMAND, receive_new_text),
             MessageHandler(~filters.COMMAND, remind_text_needed),
+        ],
+        AWAITING_CONFIRMATION: [
+            CallbackQueryHandler(confirm_edit, pattern="^equipment_edit_confirm$"),
+            CallbackQueryHandler(cancel_edit_confirmation, pattern="^equipment_edit_cancel$"),
+            # اگه به‌جای زدن دکمه دوباره متن بفرسته، همون‌جا pending_text
+            # جایگزین و پیش‌نمایش دوباره نشون داده می‌شه (رجوع به
+            # docstring خودِ receive_new_text) — نیازی به لغو و شروع
+            # دوباره برای تصحیح یه تایپو نیست.
+            MessageHandler(filters.TEXT & ~filters.COMMAND, receive_new_text),
+            MessageHandler(~filters.COMMAND, remind_confirmation_needed),
         ],
         ConversationHandler.TIMEOUT: [TypeHandler(Update, handle_edit_timeout)],
     },

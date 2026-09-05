@@ -81,20 +81,34 @@ async def update_action_text(device: str, action: str, new_text: str) -> None:
     get_action_text) چون فراخواننده (یک ادمین که آگاهانه در حال ویرایش است)
     باید از رد شدن مطلع شود، نه این‌که فکر کند ذخیره موفق بوده.
 
-    upsert (INSERT ... ON CONFLICT ... DO UPDATE)، نه UPDATE خالص: قبلاً اگر
-    ردیف device اصلاً وجود نداشت، UPDATE بی‌سروصدا ۰ ردیف را تغییر می‌داد —
-    ادمین پیام «✅ ذخیره شد» را می‌دید ولی هیچ‌چیز واقعاً ذخیره نشده بود. این
-    حالت با UI فعلی (دکمه‌ی ✏️ حالا حتی برای فیلد خالی/بدون‌ردیف هم رندر
-    می‌شود، equipment_callbacks.handle_device_action را ببینید) عملاً
-    قابل‌دسترس شده، پس دیگر یک حالت نظری/غیرقابل‌وقوع نیست.
-    """
+    اگر device وجود نداشته باشد، ردیفش ساخته می‌شود (نه فقط UPDATE خالص):
+    قبلاً اگر ردیف device اصلاً وجود نداشت، UPDATE بی‌سروصدا ۰ ردیف را
+    تغییر می‌داد — ادمین پیام «✅ ذخیره شد» را می‌دید ولی هیچ‌چیز واقعاً
+    ذخیره نشده بود. این حالت با UI فعلی (دکمه‌ی ✏️ حالا حتی برای فیلد
+    خالی/بدون‌ردیف هم رندر می‌شود، equipment_callbacks.handle_device_action
+    را ببینید) عملاً قابل‌دسترس شده، پس دیگر یک حالت نظری/غیرقابل‌وقوع نیست.
+
+    عمداً SELECT-then-branch است، نه `INSERT ... ON CONFLICT ... DO UPDATE`:
+    نسخه‌ی قبلی از ON CONFLICT استفاده می‌کرد که فرض می‌کرد ستون name یک
+    PRIMARY KEY/UNIQUE واقعی دارد؛ رو دیتابیس production واقعی این فرض غلط
+    از آب درآمد (جدول واقعی چنین قیدی روی name نداشت) و هر ویرایش با
+    `sqlite3.OperationalError: ON CONFLICT clause does not match any
+    PRIMARY KEY or UNIQUE constraint` کرش می‌کرد — یک لاگ production واقعی
+    این را تایید کرد. این نسخه هیچ فرضی درباره‌ی قید دیتابیس نمی‌کند، پس
+    مستقل از schema واقعی کار می‌کند."""
     if action not in ALLOWED_ACTIONS:
         raise ValueError(f"'{action}' یک اکشن مجاز نیست.")
 
     async with equipment_connection.get_connection() as conn:
-        await conn.execute(
-            f"INSERT INTO information (name, {action}) VALUES (?, ?) "
-            f"ON CONFLICT(name) DO UPDATE SET {action} = excluded.{action}",
-            (device, new_text),
-        )
+        async with conn.execute("SELECT 1 FROM information WHERE name = ?", (device,)) as cursor:
+            exists = await cursor.fetchone() is not None
+
+        if exists:
+            await conn.execute(
+                f"UPDATE information SET {action} = ? WHERE name = ?", (new_text, device)
+            )
+        else:
+            await conn.execute(
+                f"INSERT INTO information (name, {action}) VALUES (?, ?)", (device, new_text)
+            )
         await conn.commit()

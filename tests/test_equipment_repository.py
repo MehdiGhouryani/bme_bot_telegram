@@ -138,6 +138,40 @@ async def test_update_action_text_creates_row_when_device_has_none_yet(tmp_path,
 
 
 @pytest.mark.asyncio
+async def test_update_action_text_works_even_when_name_has_no_unique_constraint(tmp_path, monkeypatch):
+    """رگرسیون حیاتی: نسخه‌ی قبلی این تابع از `INSERT ... ON CONFLICT(name)
+    ... DO UPDATE` استفاده می‌کرد که فرض می‌کرد ستون name یک PRIMARY
+    KEY/UNIQUE واقعی روی جدول دیتابیس داره. یک لاگ production واقعی نشون
+    داد این فرض غلطه — جدول واقعی چنین قیدی نداشت و *هر* ویرایش با
+    `sqlite3.OperationalError: ON CONFLICT clause does not match any
+    PRIMARY KEY or UNIQUE constraint` کرش می‌کرد (۱۰۰٪ خطا، نه یه مورد
+    خاص). این تست عمداً جدولی *بدون* PRIMARY KEY/UNIQUE روی name می‌سازه
+    تا این کلاس خطا دیگه هیچ‌وقت بی‌صدا برنگرده."""
+    db_path = tmp_path / "no_constraint.db"
+    conn = sqlite3.connect(db_path)
+    # عمداً بدون PRIMARY KEY/UNIQUE روی name — دقیقاً شکل جدول واقعی که
+    # باعث کرش production شد.
+    conn.execute(
+        "CREATE TABLE information (name TEXT, definition TEXT, structure TEXT, safety TEXT)"
+    )
+    conn.execute("INSERT INTO information (name, definition) VALUES ('xray', 'تعریف اولیه')")
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(config, "EQUIPMENT_DB_PATH", str(db_path))
+
+    # سناریوی ۱: ویرایش دستگاه موجود — دقیقاً همون چیزی که تو لاگ کرش کرد
+    await equipment_repository.update_action_text("xray", "structure", "ساختار جدید")
+    assert await equipment_repository.get_action_text("xray", "structure") == "ساختار جدید"
+
+    # سناریوی ۲: دستگاه کاملاً جدید (نبود ردیف) — نباید دو بار insert بشه
+    await equipment_repository.update_action_text("new_device", "safety", "ایمنی تازه")
+    assert await equipment_repository.get_action_text("new_device", "safety") == "ایمنی تازه"
+
+    raw_count = sqlite3.connect(db_path).execute("SELECT COUNT(*) FROM information").fetchone()[0]
+    assert raw_count == 2  # دقیقاً دو ردیف، بدون تکرار
+
+
+@pytest.mark.asyncio
 async def test_update_action_text_fills_previously_empty_column_on_existing_device(temp_equipment_db):
     """همون سناریو، ولی برای دستگاهی که از قبل وجود داره ولی یه ستونش هنوز
     NULL/خالیه — باید بشه اون یکی رو هم بدون تاثیر روی بقیه‌ی ستون‌ها پر کرد."""
