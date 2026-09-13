@@ -10,6 +10,7 @@
 # روی همین داده می‌سازد — به‌جای دو لیست دکمه‌ی هاردکد و تقریباً تکراری.
 
 import json
+import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
@@ -19,6 +20,8 @@ from .. import config
 from ..db import feature_usage_repository
 from ..keyboards import reply_keyboards
 from .menus import make_submenu_handler
+
+logger = logging.getLogger(__name__)
 
 _FAQ = None
 _SENSORS_COMPONENTS = None
@@ -83,11 +86,24 @@ handle_sensors_components = make_submenu_handler(
 
 def _build_link_keyboard(url_map: dict, layout: list) -> InlineKeyboardMarkup:
     """یک کیبورد این‌لاین از روی یک نگاشت {کلید: URL} و یک چیدمان [{label, key}]
-    می‌سازد (همان الگوی داده‌محور menu_builder.py برای درخت تجهیزات)."""
+    می‌سازد (همان الگوی داده‌محور menu_builder.py برای درخت تجهیزات).
+
+    اگه یه key تو layout باشه ولی تو url_map نباشه (مثلاً یه ناهماهنگی
+    دستی موقع ویرایش sensors_components.json — یه key تو sensors_layout
+    اضافه/غلط تایپ شده ولی خودِ sensors آپدیت نشده)، فقط همون دکمه رد
+    می‌شه (با یه لاگ هشدار)، نه اینکه کل هندلر با KeyError کرش کنه و
+    کاربر هیچ دکمه‌ای نبینه — حتی برای بقیه‌ی دکمه‌های سالم."""
     rows = []
     for row_spec in layout:
-        row = [InlineKeyboardButton(item["label"], url=url_map[item["key"]]) for item in row_spec]
-        rows.append(row)
+        row = []
+        for item in row_spec:
+            url = url_map.get(item["key"])
+            if url is None:
+                logger.warning("sensors/components layout references missing key: %s", item["key"])
+                continue
+            row.append(InlineKeyboardButton(item["label"], url=url))
+        if row:
+            rows.append(row)
     return InlineKeyboardMarkup(rows)
 
 
