@@ -9,6 +9,7 @@ import sqlite3
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -69,6 +70,10 @@ class FakeQuery:
         self.deleted = False
         self.edited_text = None
         self.edited_reply_markup = None
+        # _show_text_action حالا اول با edit_rich_message (که chat_id/
+        # message_id مستقیم می‌خواد، نه query.edit_message_text) امتحان
+        # می‌کنه — همون چیزی که یه CallbackQuery واقعی رو query.message داره.
+        self.message = SimpleNamespace(message_id=999)
 
     async def answer(self, text=None, show_alert=False):
         self.answers.append((text, show_alert))
@@ -85,10 +90,22 @@ class FakeQuery:
 
 
 class FakeBot:
-    def __init__(self, photo_should_fail=False):
+    def __init__(self, photo_should_fail=False, supports_rich=False):
         self.photo_should_fail = photo_should_fail
         self.sent_photos = []
         self.sent_messages = []
+        self.rich_calls = []
+        # پیش‌فرض False: بدون این متد (مثل قبل)، edit_rich_message خودش
+        # AttributeError رو می‌گیره و بی‌صدا به query.edit_message_text
+        # قدیمی سقوط می‌کنه — یعنی بیشتر تست‌های موجود همچنان مسیر fallback
+        # رو تست می‌کنن، نه چیزی نباید بشکنه. supports_rich=True برای
+        # تست‌هایی که صراحتاً مسیر موفقِ Rich رو می‌خوان.
+        if supports_rich:
+            async def _do_api_request(method, payload):
+                self.rich_calls.append((method, payload))
+                return {"ok": True}
+
+            self.do_api_request = AsyncMock(side_effect=_do_api_request)
 
     async def send_photo(self, chat_id, photo, caption=None, parse_mode=None, reply_markup=None):
         if self.photo_should_fail:
@@ -127,6 +144,26 @@ async def test_valid_device_and_line_is_accepted(temp_equipment_db):
     # بشه — این یه answer معمولی و بی‌خطره، نه یه پیام خطا؛ چیزی که واقعاً
     # نباید باشه یه alert=True‌ست.
     assert not any(alert for _, alert in query.answers)
+
+
+@pytest.mark.asyncio
+async def test_valid_device_and_line_uses_rich_edit_when_bot_supports_it(temp_equipment_db):
+    """مسیر اصلی (نه fallback): وقتی bot از editMessageText+rich_message
+    (Bot API 10.1) پشتیبانی می‌کنه، باید همونو صدا بزنه، نه
+    query.edit_message_text قدیمی."""
+    query = FakeQuery("xray:structure:imaging_devices")
+    bot = FakeBot(supports_rich=True)
+    update = make_update(query, bot)
+    context = make_context(bot)
+
+    await equipment_callbacks.handle_device_action(update, context, query.data)
+
+    assert query.edited_text is None  # مسیر قدیمی اصلاً صدا زده نشد
+    assert bot.rich_calls
+    method, payload = bot.rich_calls[0]
+    assert method == "editMessageText"
+    assert payload["message_id"] == query.message.message_id
+    assert payload["rich_message"]["markdown"] == "ساختار"
 
 
 @pytest.mark.asyncio

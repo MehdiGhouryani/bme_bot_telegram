@@ -39,6 +39,8 @@ from telegram.ext import (
 from ..db import admin_actions_repository, equipment_repository
 from ..keyboards import menu_builder, reply_keyboards
 from ..utils.admin import is_admin
+from ..utils.entities_to_markdown import FLAVOR_LEGACY, FLAVOR_RICH, entities_to_markdown
+from ..utils.rich_message import edit_rich_message
 from ..utils.text_chunking import utf16_len
 from . import equipment_callbacks
 
@@ -140,11 +142,22 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return ConversationHandler.END
 
     action = edit_state["action"]
-    new_text = update.message.text
+    # «معرفی» (کپشن عکس) با ParseMode.MARKDOWN قدیمی نشون داده می‌شه (بولد
+    # تک‌ستاره)؛ بقیه با Rich Markdown (بولد دو-ستاره، تیتر ##). بدون این
+    # تفکیک، بازسازی بولد از entity با سینتکس اشتباه به مقصد اشتباه می‌رسید.
+    flavor = FLAVOR_LEGACY if action == "definition" else FLAVOR_RICH
+    # بازسازی فرمت‌دهی زنده‌ی تلگرام (وقتی ادمین از دکمه/میانبر B/I تلگرام
+    # استفاده می‌کنه، کلاینت خودش */** رو از .text حذف و entity واقعی
+    # می‌سازه — بدون این تبدیل، فرمت ادمین بی‌صدا گم می‌شد، نه فقط وقتی
+    # دستی ** تایپ می‌کنه).
+    new_text = entities_to_markdown(update.message.text, update.message.entities, flavor=flavor)
     # utf16_len، نه len() خام: سقف واقعی کپشن تلگرام بر پایه‌ی UTF-16
     # code unit است، نه تعداد کاراکتر پایتون — یه متنِ کمتر از ۱۰۲۴ از
     # نظر len() که چند ایموجی خارج از BMP هم داشته باشه، می‌تونه واقعاً
     # بیشتر از سقف واقعی تلگرام باشه (رجوع به توضیح در utils/text_chunking.py).
+    # این طول باید *بعد* از entities_to_markdown اندازه‌گیری بشه چون
+    # کاراکترهای ** اضافه‌شده هم واقعاً بخشی از چیزیه که نهایتاً ذخیره/ارسال
+    # می‌شه.
     new_text_length = utf16_len(new_text)
 
     if action == "definition" and new_text_length > _DEFINITION_CAPTION_MAX_LENGTH:
@@ -157,31 +170,59 @@ async def receive_new_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return AWAITING_NEW_TEXT
 
     # اعتبارسنجی مارک‌داون *قبل* از پیش‌نمایش: equipment_callbacks بعداً همین
-    # متن رو با parse_mode=ParseMode.MARKDOWN به کاربرهای واقعی نشون
-    # می‌ده. اگه اینجا یه `*`/`_`/`` ` `` بدون جفت باشه، تلگرام parse رو رد
-    # می‌کنه — و چون هم edit_message_text هم fallback (حذف+ارسال دوباره)
-    # هر دو از همین متن استفاده می‌کنن، کل این بخش برای *همه‌ی کاربران* تا
-    # ویرایش بعدی از کار می‌افته، بی‌سروصدا (فقط «اطلاعاتی یافت نشد»). به‌جای
-    # اینکه بعداً کشف بشه، همین‌جا با یه پیش‌نمایش واقعی (همون parse_mode)
-    # چک می‌کنیم.
+    # متن رو نشون می‌ده — definition با parse_mode=ParseMode.MARKDOWN
+    # قدیمی، بقیه با Rich Markdown (edit_rich_message). اگه فرمت نامعتبر
+    # باشه، تلگرام parse رو رد می‌کنه — و چون مسیر ذخیره‌ی نهایی هم از همین
+    # متن استفاده می‌کنه، کل این بخش برای *همه‌ی کاربران* تا ویرایش بعدی از
+    # کار می‌افته، بی‌سروصدا (فقط «اطلاعاتی یافت نشد»). به‌جای اینکه بعداً
+    # کشف بشه، همین‌جا با یه پیش‌نمایش واقعی (همون سینتکسِ مقصد) چک می‌کنیم.
     confirm_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ تایید و جایگزینی", callback_data="equipment_edit_confirm")],
         [InlineKeyboardButton("❌ لغو", callback_data="equipment_edit_cancel")],
     ])
-    try:
-        await update.message.reply_text(
-            f"📝 پیش‌نمایش (این متن دقیقاً همین‌طوری به کاربرها نشون داده می‌شه):\n\n{new_text}",
-            parse_mode=ParseMode.MARKDOWN,
-            reply_markup=confirm_markup,
-        )
-    except BadRequest as e:
-        await update.message.reply_text(
-            "⚠️ این متن فرمت مارک‌داون معتبری نداره (مثلاً یه `*`، `_` یا `` ` `` بدون "
-            "جفتش) — دقیقاً همین چیزی بود که می‌تونست بعداً این بخش رو برای همه‌ی "
-            "کاربران خراب کنه. لطفاً تصحیحش کنید و دوباره بفرستید، یا /cancel برای انصراف.\n\n"
-            f"جزئیات فنی: {e}"
-        )
-        return AWAITING_NEW_TEXT
+    preview_prefix = "📝 پیش‌نمایش (این متن دقیقاً همین‌طوری به کاربرها نشون داده می‌شه):\n\n"
+
+    if action == "definition":
+        try:
+            await update.message.reply_text(
+                preview_prefix + new_text,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=confirm_markup,
+            )
+        except BadRequest as e:
+            await update.message.reply_text(
+                "⚠️ این متن فرمت مارک‌داون معتبری نداره (مثلاً یه `*`، `_` یا `` ` `` بدون "
+                "جفتش) — دقیقاً همین چیزی بود که می‌تونست بعداً این بخش رو برای همه‌ی "
+                "کاربران خراب کنه. لطفاً تصحیحش کنید و دوباره بفرستید، یا /cancel برای انصراف.\n\n"
+                f"جزئیات فنی: {e}"
+            )
+            return AWAITING_NEW_TEXT
+    else:
+        # مستقیم روی sendRichMessage صدا می‌زنیم (نه از طریق
+        # rich_message.send_rich_message که هر خطایی رو یکسان به False
+        # تبدیل می‌کنه) چون اینجا فقط می‌خوایم «فرمت نامعتبره» (BadRequest
+        # واقعی از تلگرام) رو از خطاهای گذرای دیگه (شبکه و غیره) جدا کنیم؛
+        # قاطی‌کردنشون یعنی یه شکست موقت شبکه به ادمین به‌اشتباه «فرمتت
+        # خرابه» نشون داده بشه.
+        try:
+            await context.bot.do_api_request(
+                "sendRichMessage",
+                {
+                    "chat_id": update.effective_chat.id,
+                    "rich_message": {"markdown": preview_prefix + new_text},
+                },
+            )
+        except BadRequest as e:
+            await update.message.reply_text(
+                "⚠️ این متن فرمت Rich Markdown معتبری نداره (مثلاً یه `**`، `*` یا "
+                "`##` بدون جفت/جای درست) — دقیقاً همین چیزی بود که می‌تونست بعداً این "
+                "بخش رو برای همه‌ی کاربران خراب کنه. لطفاً تصحیحش کنید و دوباره "
+                f"بفرستید، یا /cancel برای انصراف.\n\nجزئیات فنی: {e}"
+            )
+            return AWAITING_NEW_TEXT
+        # پیام پیش‌نمایش (بالا) از طریق sendRichMessage خام رفت، پس دکمه
+        # نداره — تایید/لغو رو جدا می‌فرستیم.
+        await update.message.reply_text("برای ذخیره‌ی همین متن تایید کنید:", reply_markup=confirm_markup)
 
     edit_state["pending_text"] = new_text
     return AWAITING_CONFIRMATION
@@ -220,15 +261,26 @@ async def confirm_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
             device, action, line, update.effective_user.id,
         )
         if action == "definition":
+            # editMessageCaption پارامتر rich_message نگرفته (فقط
+            # editMessageText) — کپشن عکس همیشه با Markdown قدیمی می‌مونه.
             await context.bot.edit_message_caption(
                 chat_id=edit_state["chat_id"], message_id=edit_state["message_id"],
                 caption=new_text, reply_markup=reply_markup,
             )
         else:
-            await context.bot.edit_message_text(
-                chat_id=edit_state["chat_id"], message_id=edit_state["message_id"],
-                text=new_text, reply_markup=reply_markup,
+            # اول Rich (تیتر/بولد واقعی، در جای همون پیام — رجوع به یادداشت
+            # rich_message.edit_rich_message برای این‌که چرا این دیگه نیاز
+            # به حذف+ارسال دوباره نداره)؛ اگه شکست خورد، fallback به ادیت
+            # ساده‌ی قدیمی (بدون تیتر بزرگ، ولی حداقل به‌روز می‌شه).
+            refreshed = await edit_rich_message(
+                context.bot, edit_state["chat_id"], edit_state["message_id"], new_text,
+                reply_markup=reply_markup,
             )
+            if not refreshed:
+                await context.bot.edit_message_text(
+                    chat_id=edit_state["chat_id"], message_id=edit_state["message_id"],
+                    text=new_text, reply_markup=reply_markup,
+                )
     except Exception as e:
         logger.warning(f"Could not refresh original message after equipment edit: {e}")
 

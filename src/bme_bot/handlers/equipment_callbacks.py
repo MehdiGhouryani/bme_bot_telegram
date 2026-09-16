@@ -15,6 +15,7 @@ from ..utils import messages
 from ..utils.admin import is_admin
 from ..utils.button_style import PRIMARY, styled_button
 from ..utils.retry import async_retry
+from ..utils.rich_message import edit_rich_message
 from . import maintenance_callbacks
 
 logger = logging.getLogger(__name__)
@@ -127,7 +128,18 @@ async def _show_text_action(
     device: str,
     action: str,
 ) -> None:
-    """ویرایش پیام؛ در صورت شکست → حذف + ارسال پیام جدید (هر دو با retry)."""
+    """ویرایش پیام؛ سه لایه:
+    ۱) Rich Markdown (تیتر/بولد واقعی — editMessageText+rich_message،
+       Bot API 10.1) روی همون پیام موجود.
+    ۲) اگه لایه‌ی اول شکست خورد (مثلاً سرور قدیمی/فرمت رد شد)، همون
+       edit_message_text قدیمی با parse_mode=Markdown (بدون تیتر بزرگ، ولی
+       حداقل بولد/ایتالیک ساده کار می‌کنه).
+    ۳) اگه اون هم شکست خورد → حذف + ارسال پیام جدید (هر دو با retry)."""
+    if await edit_rich_message(
+        context.bot, chat_id, query.message.message_id, device_info, reply_markup=reply_markup,
+    ):
+        return
+
     try:
         await async_retry(
             lambda: query.edit_message_text(

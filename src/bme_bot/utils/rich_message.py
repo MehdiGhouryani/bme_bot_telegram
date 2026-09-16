@@ -57,3 +57,43 @@ async def send_rich_message(bot, chat_id, markdown_text: str, **extra) -> bool:
         # نباید جریان اصلی کاربر را بشکند.
         logger.info("send_rich_message failed, caller should fall back: %s", e)
         return False
+
+
+async def edit_rich_message(
+    bot, chat_id, message_id, markdown_text: str, reply_markup=None, **extra,
+) -> bool:
+    """ادیت درجای یه پیام موجود با Rich Markdown.
+
+    برخلاف sendRichMessage (متد کاملاً جدا)، اینجا از همون پارامتر
+    `rich_message` روی editMessageText استفاده می‌کنیم که در همون آپدیت Bot
+    API 10.1 اضافه شده («Added the parameter rich_message to the method
+    editMessageText, allowing bots to edit rich messages» — core.telegram.org
+    changelog) — یعنی برخلاف فرض اولیه، نیازی به حذف+ارسال دوباره‌ی پیام
+    نیست، می‌شه همون پیام موجود رو مستقیم ادیت کرد.
+
+    توجه: editMessageCaption همچین پارامتری نگرفته — پس این تابع فقط برای
+    پیام‌های متنی کاربرد داره، نه کپشن عکس (اکشن definition همچنان باید از
+    edit_message_caption معمولی با Markdown قدیمی استفاده کنه).
+
+    همون الگوی امن send_rich_message: True/False، نه exception — فراخواننده
+    روی False باید بی‌صدا به روش قبلی (edit_message_text با
+    parse_mode=Markdown) برگرده."""
+    if len(markdown_text.encode("utf-8")) > RICH_MESSAGE_MAX_BYTES:
+        logger.info("edit_rich_message: content exceeds %d bytes, skipping", RICH_MESSAGE_MAX_BYTES)
+        return False
+
+    payload = {"chat_id": chat_id, "message_id": message_id, "rich_message": {"markdown": markdown_text}, **extra}
+    if reply_markup is not None:
+        payload["reply_markup"] = reply_markup
+
+    async def _call():
+        return await bot.do_api_request("editMessageText", payload)
+
+    try:
+        await async_retry(_call, label="edit_rich_message")
+        return True
+    except Exception as e:
+        # همون منطق send_rich_message: قابلیت افزوده و best-effort، فراخواننده
+        # همیشه یک مسیر جایگزینِ همیشه-کارکرده دارد.
+        logger.info("edit_rich_message failed, caller should fall back: %s", e)
+        return False

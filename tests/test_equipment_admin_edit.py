@@ -65,11 +65,28 @@ class FakeQuery:
 
 
 class FakeBot:
-    def __init__(self, fail_edit=False):
+    def __init__(self, fail_edit=False, rich_side_effect=None):
+        """rich_side_effect: اگه Exception باشه، هر صدازدن do_api_request
+        (هم sendRichMessage پیش‌نمایش، هم editMessageText+rich_message
+        زنده‌سازی بعد از تایید) همونو raise می‌کنه — پیش‌فرض None یعنی
+        موفق. fail_edit فقط رو edit_message_text/edit_message_caption
+        legacy تاثیر می‌ذاره — عمداً مستقل از rich_side_effect، چون این دو
+        مسیر (Rich و legacy) کاملاً جدان و تست‌هایی که می‌خوان فقط legacy
+        رو فیل کنن نباید ناخواسته پیش‌نمایش Rich رو هم خراب کنن."""
         self.fail_edit = fail_edit
         self.sent_messages = []
         self.edited_texts = []
         self.edited_captions = []
+        self.rich_calls: list[tuple[str, dict]] = []
+        self._rich_side_effect = rich_side_effect
+
+        async def _do_api_request(method, payload):
+            self.rich_calls.append((method, payload))
+            if isinstance(self._rich_side_effect, Exception):
+                raise self._rich_side_effect
+            return {"ok": True}
+
+        self.do_api_request = AsyncMock(side_effect=_do_api_request)
 
     async def send_message(self, chat_id, text, **kwargs):
         self.sent_messages.append((chat_id, text))
@@ -89,8 +106,8 @@ def _make_callback_update(query, user_id=42):
     return SimpleNamespace(callback_query=query, effective_user=SimpleNamespace(id=user_id))
 
 
-def _make_message_update(text, user_id=42, chat_id=111):
-    message = SimpleNamespace(text=text, reply_text=AsyncMock())
+def _make_message_update(text, user_id=42, chat_id=111, entities=None):
+    message = SimpleNamespace(text=text, entities=entities or [], reply_text=AsyncMock())
     return SimpleNamespace(message=message, effective_user=SimpleNamespace(id=user_id), effective_chat=SimpleNamespace(id=chat_id))
 
 
@@ -176,30 +193,29 @@ async def test_valid_edit_request_prompts_and_stores_state(temp_equipment_db, mo
 
 @pytest.mark.asyncio
 async def test_receive_new_text_rejects_invalid_markdown_without_saving(temp_equipment_db, monkeypatch):
-    """رگرسیون: اگه متن ادمین فرمت مارک‌داون معتبری نداشته باشه (مثلاً یه
-    `*` بدون جفت)، equipment_callbacks بعداً با parse_mode=MARKDOWN می‌خواد
+    """رگرسیون: اگه متن ادمین فرمت Rich Markdown معتبری نداشته باشه (مثلاً
+    یه `**` بدون جفت)، equipment_callbacks بعداً با Rich Markdown می‌خواد
     نشونش بده و شکست می‌خوره — چیزی که قبلاً هیچ‌جا چک نمی‌شد و کل بخش رو
-    برای همه‌ی کاربران خراب می‌کرد. الان باید همون‌جا رد بشه، هیچی هم
-    ذخیره نشه."""
+    برای همه‌ی کاربران خراب می‌کرد. الان باید همون‌جا (با یه صدازدن واقعی
+    sendRichMessage برای پیش‌نمایش) رد بشه، هیچی هم ذخیره نشه."""
     log_action_mock = AsyncMock()
     monkeypatch.setattr(admin_actions_repository, "log_action", log_action_mock)
-    bot = FakeBot()
+    bot = FakeBot(rich_side_effect=BadRequest("Can't parse entities"))
     context = _make_context(bot=bot, user_data={
         "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
                             "chat_id": 111, "message_id": 555},
     })
-    update = _make_message_update("متن با ستاره‌ی * تک و بدون جفت")
-    update.message.reply_text = AsyncMock(side_effect=[BadRequest("Can't parse entities"), None])
+    update = _make_message_update("متن با ** ستاره‌ی جفت‌نشده")
 
     result = await equipment_admin_edit.receive_new_text(update, context)
 
     assert result == equipment_admin_edit.AWAITING_NEW_TEXT
     stored = await equipment_repository.get_action_text("xray", "structure")
-    assert stored != "متن با ستاره‌ی * تک و بدون جفت"
+    assert stored != "متن با ** ستاره‌ی جفت‌نشده"
     log_action_mock.assert_not_called()
     assert not bot.edited_texts
-    # پیام دوم (توضیح خطا برای ادمین) باید واقعاً رفته باشه
-    assert update.message.reply_text.await_count == 2
+    assert bot.do_api_request.await_count == 1  # پیش‌نمایش، که شکست خورد
+    update.message.reply_text.assert_awaited_once()  # پیام توضیح خطا برای ادمین
 
 
 # --- receive_new_text: مسیر موفق ---
@@ -228,11 +244,15 @@ async def test_receive_new_text_shows_preview_and_awaits_confirmation_without_sa
     assert not bot.edited_texts
     assert context.user_data["equipment_edit"]["pending_text"] == "ساختار تازه و به‌روز"
 
+    # پیش‌نمایش خودش از طریق sendRichMessage خام رفته (نه reply_text)
+    assert bot.do_api_request.await_count == 1
+    rich_method, rich_payload = bot.rich_calls[0]
+    assert rich_method == "sendRichMessage"
+    assert "ساختار تازه و به‌روز" in rich_payload["rich_message"]["markdown"]
+
+    # دکمه‌های تایید/لغو در یه پیام جدای reply_text ارسال شدن
     update.message.reply_text.assert_awaited_once()
-    sent_text = update.message.reply_text.await_args.args[0]
     sent_kwargs = update.message.reply_text.await_args.kwargs
-    assert "ساختار تازه و به‌روز" in sent_text  # پیش‌نمایش شامل خودِ متن پیشنهادیه
-    assert sent_kwargs.get("parse_mode") is not None  # با همون parse_mode واقعی چک شده
     markup = sent_kwargs.get("reply_markup")
     labels = [btn.text for row in markup.inline_keyboard for btn in row]
     assert "✅ تایید و جایگزینی" in labels
@@ -402,10 +422,16 @@ async def test_confirm_edit_saves_logs_and_refreshes_original_message(temp_equip
     assert "equipment_edit" not in context.user_data
     assert query.answers == [(None, False)]
     assert query.edited_texts == ["✅ ذخیره شد."]
-    # پیام اصلی (همانی که ادمین رویش ✏️ زده بود) هم باید زنده‌سازی شده باشد
-    assert bot.edited_texts
-    chat_id, message_id, text, _ = bot.edited_texts[0]
-    assert (chat_id, message_id, text) == (111, 555, "ساختار تازه و به‌روز")
+    # پیام اصلی (همانی که ادمین رویش ✏️ زده بود) هم باید زنده‌سازی شده باشد —
+    # از طریق Rich (editMessageText+rich_message)، نه legacy، چون لایه‌ی اول
+    # موفق می‌شه (bot.rich_calls پر می‌شه، bot.edited_texts خالی می‌مونه چون
+    # اصلاً به fallback نیاز نبوده).
+    assert not bot.edited_texts
+    rich_method, rich_payload = bot.rich_calls[0]
+    assert rich_method == "editMessageText"
+    assert rich_payload["chat_id"] == 111
+    assert rich_payload["message_id"] == 555
+    assert rich_payload["rich_message"]["markdown"] == "ساختار تازه و به‌روز"
 
 
 @pytest.mark.asyncio
@@ -431,10 +457,11 @@ async def test_confirm_edit_for_definition_edits_caption_not_text(temp_equipment
 
 @pytest.mark.asyncio
 async def test_confirm_edit_still_succeeds_if_original_message_refresh_fails(temp_equipment_db, monkeypatch):
-    """اگر پیام اصلی خیلی قدیمی/غیرقابل‌ویرایش باشد، ذخیره‌سازی همچنان باید
-    موفق بماند — فقط منظره‌ی زنده‌سازی نمی‌شود، کل عملیات نباید شکست بخورد."""
+    """اگر پیام اصلی خیلی قدیمی/غیرقابل‌ویرایش باشد (هم لایه‌ی Rich هم
+    fallback قدیمی هر دو شکست بخورند)، ذخیره‌سازی همچنان باید موفق بماند —
+    فقط منظره‌ی زنده‌سازی نمی‌شود، کل عملیات نباید شکست بخورد."""
     monkeypatch.setattr(admin_actions_repository, "log_action", AsyncMock())
-    bot = FakeBot(fail_edit=True)
+    bot = FakeBot(fail_edit=True, rich_side_effect=RuntimeError("simulated: too old to edit"))
     query = FakeQuery("equipment_edit_confirm", chat_id=111, message_id=555)
     context = _make_context(bot=bot, user_data={
         "equipment_edit": {"device": "xray", "action": "structure", "line": "imaging_devices",
@@ -448,6 +475,7 @@ async def test_confirm_edit_still_succeeds_if_original_message_refresh_fails(tem
     stored = await equipment_repository.get_action_text("xray", "structure")
     assert stored == "ساختار تازه"
     assert query.edited_texts == ["✅ ذخیره شد."]  # پیام تاییدیه هرحال رفته
+    assert not bot.edited_texts  # fallback legacy هم امتحان شد، ولی اونم شکست خورد (fail_edit=True)
 
 
 @pytest.mark.asyncio
