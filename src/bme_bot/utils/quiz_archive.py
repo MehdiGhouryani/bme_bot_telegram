@@ -28,6 +28,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import random
 from datetime import datetime, timezone
 
 from .. import config
@@ -41,6 +43,63 @@ def _write_lines_sync(path: str, lines: list[str]) -> None:
     with open(path, "a", encoding="utf-8") as f:
         for line in lines:
             f.write(line + "\n")
+
+
+# کلیدهای الزامی برای این‌که یک ردیف آرشیو مستقیماً قابل تحویل به
+# context.bot.send_poll باشد — همان چهار فیلدی که archive_quiz بالا از
+# quiz._parse_and_validate_quiz دریافت و ذخیره می‌کند.
+_REQUIRED_QUESTION_KEYS = ("question", "options", "correct_index", "explanation")
+
+
+def _read_random_line_sync(path: str) -> dict | None:
+    """کل فایل را می‌خواند و یک ردیفِ معتبر و تصادفی برمی‌گرداند.
+
+    این تابع sync است (دقیقاً مثل _write_lines_sync بالا) و باید فقط از
+    طریق asyncio.to_thread صدا زده شود تا event loop را برای بقیه‌ی
+    کاربران بلاک نکند.
+
+    خواندن کل فایل در حافظه (به‌جای reservoir sampling بدون بارگذاری کل
+    فایل) یک تصمیم آگاهانه است: هر ردیف آرشیو چند صد بایت است و حتی چند
+    ده‌هزار ردیف هم چند مگابایت بیشتر نمی‌شود — برای این حجم، سادگی این
+    روش بر بهینه‌سازی زودهنگام ارجحیت دارد. اگر آرشیو زمانی به مقیاسی
+    رسید که این فرض دیگر درست نبود، این تابع باید بازبینی شود.
+
+    ردیف‌های خراب/ناقص (مثلاً یک خط JSON نامعتبر از یک نوشتن قطع‌شده، یا
+    یک schema قدیمی‌تر که یکی از فیلدهای لازم را ندارد) به‌جای متوقف‌کردن
+    کل عملیات فقط لاگ و رد می‌شوند — یک ردیف بد نباید مانع استفاده از
+    بقیه‌ی آرشیو شود.
+    """
+    if not os.path.exists(path):
+        return None
+
+    valid_entries: list[dict] = []
+    with open(path, encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+            except ValueError:
+                logger.warning("quiz archive: line %d is not valid JSON, skipping", line_number)
+                continue
+            if not isinstance(entry, dict) or not all(k in entry for k in _REQUIRED_QUESTION_KEYS):
+                logger.warning("quiz archive: line %d missing required keys, skipping", line_number)
+                continue
+            valid_entries.append(entry)
+
+    if not valid_entries:
+        return None
+    return random.choice(valid_entries)
+
+
+async def get_random_question() -> dict | None:
+    """یک سوال تصادفی از آرشیو برمی‌گرداند، یا None اگر آرشیو هنوز وجود
+    ندارد/خالی است/هیچ ردیف معتبری ندارد. خروجی دقیقاً همان شکل dict
+    ورودیِ questions در archive_quiz (question/options/correct_index/
+    explanation) به‌علاوه‌ی متادیتای اضافه (timestamp/user_id/model) است
+    که فراخواننده باید نادیده بگیرد."""
+    return await asyncio.to_thread(_read_random_line_sync, config.QUIZ_ARCHIVE_PATH)
 
 
 async def archive_quiz(user_id: int, questions: list[dict], model_used: str) -> None:

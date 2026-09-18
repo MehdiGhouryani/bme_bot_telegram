@@ -41,7 +41,23 @@ def _fake_update_and_context(chat_type, question_text="سوال تست"):
     class FakeBot:
         def __init__(self):
             self.sent_messages = []
-            self.do_api_request = AsyncMock(return_value=True)
+
+            async def _do_api_request_side_effect(endpoint, data=None, **kwargs):
+                # این فایل فقط رفتار sendMessageDraft رو تست می‌کنه (رجوع
+                # به docstring بالای فایل). از این به بعد _send_reply_chunks
+                # هم (مستقل از draft) یه تلاش sendRichMessage برای پیام
+                # نهایی می‌زنه — این‌جا عمداً Exception می‌ندازیم (نه صرفاً
+                # یه مقدار falsy برگردوندن؛ real Bot API هم دقیقاً همین‌طور
+                # کار می‌کنه: send_rich_message فقط exception رو شکست
+                # می‌شمره، نه مقدار برگشتی do_api_request) تا اون تلاش
+                # بی‌صدا شکست بخوره و پیام نهایی از همون مسیر قدیمی
+                # send_message (که پایین‌تر تست می‌شه) بره؛ پوشش خودِ رفتار
+                # sendRichMessage در test_ai_assistant_rich_message.py است.
+                if endpoint == "sendRichMessage":
+                    raise Exception("این فایل مسیر rich message رو پوشش نمی‌ده")
+                return True
+
+            self.do_api_request = AsyncMock(side_effect=_do_api_request_side_effect)
 
         async def send_message(self, chat_id, text, **kwargs):
             self.sent_messages.append((chat_id, text))
@@ -57,6 +73,15 @@ def _fake_update_and_context(chat_type, question_text="سوال تست"):
     )
     context = SimpleNamespace(bot=bot, args=question_text.split())
     return update, context, bot
+
+
+def _draft_calls(bot):
+    """فقط تماس‌های do_api_request مربوط به sendMessageDraft را برمی‌گرداند —
+    از وقتی _send_reply_chunks هم (مستقل از draft) یه تلاش sendRichMessage
+    برای پیام نهایی می‌زنه، assert_not_called()ی خام روی کل mock دیگه دقیق
+    نیست؛ این فیلتر دقیقاً همون چیزی رو چک می‌کنه که این تست‌ها همیشه
+    قصدشون بوده: خودِ قابلیت draft، نه هر تماس do_api_request."""
+    return [c for c in bot.do_api_request.await_args_list if c.args[0] == "sendMessageDraft"]
 
 
 @pytest.mark.asyncio
@@ -76,7 +101,7 @@ async def test_ask_command_in_group_chat_never_attempts_draft_streaming():
 
     await ai_assistant.ask_command(update, context)
 
-    bot.do_api_request.assert_not_called()
+    assert _draft_calls(bot) == []
 
 
 @pytest.mark.asyncio
@@ -106,7 +131,7 @@ async def test_ask_command_disabled_via_config_never_calls_draft_api(monkeypatch
 
     await ai_assistant.ask_command(update, context)
 
-    bot.do_api_request.assert_not_called()
+    assert _draft_calls(bot) == []
     assert any("پاسخ کامل آزمایشی" in text for _, text in bot.sent_messages)
 
 
@@ -141,4 +166,4 @@ async def test_ai_confirm_send_callback_in_group_chat_skips_streaming():
 
     await ai_assistant.handle_ai_callback(update, context, "ai_confirm_send")
 
-    bot.do_api_request.assert_not_called()
+    assert _draft_calls(bot) == []

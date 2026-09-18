@@ -38,6 +38,11 @@ COMPONENTS_TEXT = "🔧 قطعات الکترونیکی"
 OCR_TOOL_TEXT = "📸 تبدیل عکس به متن"
 STT_TOOL_TEXT = "🎙 تبدیل ویس به متن"
 QUIZ_TOOL_TEXT = "🧠 کوییز از متن"
+# کوییز تصادفی: برخلاف QUIZ_TOOL_TEXT هیچ فراخوانی AI ندارد — فقط یک سوال
+# تصادفی از quiz_archive.jsonl (که تا قبل از این فقط نوشته می‌شد، هرگز
+# خوانده نمی‌شد) را به شکل quiz poll بومی تلگرام می‌فرستد. عمداً بدون سقف
+# مصرف روزانه، چون هیچ بودجه‌ی مشترک AI/OCR/STT مصرف نمی‌کند.
+RANDOM_QUIZ_TOOL_TEXT = "🎲 کوییز تصادفی"
 JOZVE_TOOL_TEXT = "🎓 ویس استاد به جزوه"
 
 # نکته‌ی مهم: این دو متن فقط در یک فاصله (بلافاصله بعد از «قبل») با هم فرق
@@ -69,6 +74,7 @@ TOOLS_MENU_BUTTONS = [
     [KeyboardButton(OCR_TOOL_TEXT)],
     [KeyboardButton(STT_TOOL_TEXT)],
     [KeyboardButton(QUIZ_TOOL_TEXT)],
+    [KeyboardButton(RANDOM_QUIZ_TOOL_TEXT)],
     [KeyboardButton(JOZVE_TOOL_TEXT)],
     [KeyboardButton(BACK_TO_MAIN_TEXT)],
 ]
@@ -84,7 +90,7 @@ ALL_MENU_BUTTON_TEXTS = frozenset({
     EDUCATION_TEXT, FAQ_TEXT, SUGGESTION_TEXT, AI_ASK_TEXT, TOOLS_TEXT,
     MEDICAL_EQUIPMENT_TEXT, SENSORS_COMPONENTS_TEXT,
     SENSORS_TEXT, COMPONENTS_TEXT,
-    OCR_TOOL_TEXT, STT_TOOL_TEXT, QUIZ_TOOL_TEXT, JOZVE_TOOL_TEXT,
+    OCR_TOOL_TEXT, STT_TOOL_TEXT, QUIZ_TOOL_TEXT, RANDOM_QUIZ_TOOL_TEXT, JOZVE_TOOL_TEXT,
     BACK_TO_MAIN_TEXT, BACK_TO_EDUCATION_TEXT,
 })
 

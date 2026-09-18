@@ -14,7 +14,7 @@ from telegram.ext import ContextTypes
 from .. import config
 from ..db import ai_usage_repository, feature_usage_repository
 from ..services import ai_service
-from ..utils import error_reporting, messages, text_chunking
+from ..utils import error_reporting, messages, rich_message, text_chunking
 from ..utils.admin import is_admin
 from ..utils.draft_stream import stream_preview
 
@@ -98,8 +98,26 @@ async def _safe_delete(context: ContextTypes.DEFAULT_TYPE, chat_id: int, message
         pass
 
 
-async def _send_reply_chunks(send_fn, full_text: str):
+async def _send_reply_chunks(
+    send_fn, full_text: str, *, bot, chat_id, reply_to_message_id: int | None = None,
+):
+    """هر چانک را اول با sendRichMessage (جدول/تیتر/لیست بومی، بدون نیاز
+    به escape دستی MarkdownV2 — رجوع به utils/rich_message.py) امتحان
+    می‌کند؛ روی هر مانعی (محتوای بیش از سقف ۳۲۷۶۸ بایتی، یا هر خطای
+    واقعی API) rich_message.send_rich_message بی‌صدا False برمی‌گرداند و
+    این تابع دقیقاً به همون مسیر قدیمی و همیشه-کارکرده (MarkdownV2 با
+    fallback متن ساده روی BadRequest) برمی‌گرده — یعنی این تغییر عمداً
+    فقط یه لایه‌ی *اضافه* روی رفتار قبلیه، نه جایگزینش؛ رفتار قبلی حتی
+    یک خط هم عوض نشده، فقط قبلش یه تلاش اول اضافه شده.
+
+    reply_to_message_id فقط برای مسیر /ai (پاسخ به یک پیام مشخص) لازمه —
+    وقتی مقدار داره، به‌شکل reply_parameters به sendRichMessage پاس داده
+    می‌شه تا رفتار reply-threading کنونی (original_message.reply_text)
+    حتی روی مسیر جدید هم حفظ بشه."""
+    extra = {"reply_parameters": {"message_id": reply_to_message_id}} if reply_to_message_id else {}
     for chunk in text_chunking.split_into_chunks(full_text):
+        if await rich_message.send_rich_message(bot, chat_id, chunk, **extra):
+            continue
         try:
             await send_fn(chunk, ParseMode.MARKDOWN_V2)
         except BadRequest as e:
@@ -189,7 +207,7 @@ async def ask_user_question(
         async def send_fn(chunk, parse_mode):
             await context.bot.send_message(chat_id=chat_id, text=chunk, parse_mode=parse_mode)
 
-        await _send_reply_chunks(send_fn, full_text)
+        await _send_reply_chunks(send_fn, full_text, bot=context.bot, chat_id=chat_id)
         return True
 
     except Exception as e:
@@ -237,7 +255,10 @@ async def ai_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         async def send_fn(chunk, parse_mode):
             await original_message.reply_text(text=chunk, parse_mode=parse_mode)
 
-        await _send_reply_chunks(send_fn, full_text)
+        await _send_reply_chunks(
+            send_fn, full_text,
+            bot=context.bot, chat_id=admin_id, reply_to_message_id=original_message.message_id,
+        )
 
     except Exception as e:
         await _report_unexpected_error(

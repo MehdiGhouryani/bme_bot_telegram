@@ -13,6 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from telegram import Poll
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -404,6 +405,73 @@ def test_tools_menu_includes_quiz_button():
     assert reply_keyboards.QUIZ_TOOL_TEXT in rendered
 
 
+def test_tools_menu_includes_random_quiz_button():
+    from bme_bot.keyboards import reply_keyboards
+
+    rendered = {btn.text for row in reply_keyboards.TOOLS_MENU_BUTTONS for btn in row}
+    assert reply_keyboards.RANDOM_QUIZ_TOOL_TEXT in rendered
+    assert reply_keyboards.RANDOM_QUIZ_TOOL_TEXT in reply_keyboards.ALL_MENU_BUTTON_TEXTS
+
+
+# --- quiz_archive.get_random_question ---
+
+@pytest.mark.asyncio
+async def test_get_random_question_returns_none_when_file_missing(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(tmp_path / "does_not_exist.jsonl"))
+
+    assert await quiz_archive.get_random_question() is None
+
+
+@pytest.mark.asyncio
+async def test_get_random_question_returns_none_when_file_empty(tmp_path, monkeypatch):
+    path = tmp_path / "archive.jsonl"
+    path.write_text("", encoding="utf-8")
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(path))
+
+    assert await quiz_archive.get_random_question() is None
+
+
+@pytest.mark.asyncio
+async def test_get_random_question_returns_a_valid_entry(tmp_path, monkeypatch):
+    path = tmp_path / "archive.jsonl"
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(path))
+    q = quiz._parse_and_validate_quiz(_valid_quiz_json(count=1))
+    await _real_archive_quiz(user_id=1, questions=q, model_used="model-a")
+
+    result = await quiz_archive.get_random_question()
+
+    assert result is not None
+    assert result["question"] == _VALID_QUESTION["question"]
+    assert result["options"] == _VALID_QUESTION["options"]
+    assert result["correct_index"] == _VALID_QUESTION["correct_index"]
+
+
+@pytest.mark.asyncio
+async def test_get_random_question_skips_malformed_lines(tmp_path, monkeypatch):
+    """یک خط JSON نامعتبر (مثلاً از یه نوشتن قطع‌شده) و یک خط با schema
+    ناقص (فاقد یکی از فیلدهای لازم) نباید کل عملیات رو خراب کنن — تابع
+    باید ازشون رد بشه و همچنان ردیف معتبر بعدی رو برگردونه."""
+    path = tmp_path / "archive.jsonl"
+    lines = [
+        "{not valid json",
+        json.dumps({"question": "ناقص", "options": ["الف"]}, ensure_ascii=False),  # فیلد کم
+        json.dumps(
+            {
+                "timestamp": "2026-01-01 00:00:00", "user_id": 1, "model": "m",
+                **_VALID_QUESTION,
+            },
+            ensure_ascii=False,
+        ),
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    monkeypatch.setattr(config, "QUIZ_ARCHIVE_PATH", str(path))
+
+    result = await quiz_archive.get_random_question()
+
+    assert result is not None
+    assert result["question"] == _VALID_QUESTION["question"]
+
+
 # --- معافیت کامل ادمین ---
 
 @pytest.mark.asyncio
@@ -761,3 +829,70 @@ async def test_document_path_respects_daily_limit(monkeypatch):
 
     ask_mock.assert_not_called()
     message.reply_text.assert_awaited_once_with("⚠️ شما از تمام 5 کوییز روزانه‌ی خود استفاده کرده‌اید.")
+
+
+# --- handle_random_quiz_selected ---
+
+def _make_random_quiz_update():
+    message = SimpleNamespace(reply_text=AsyncMock())
+    update = SimpleNamespace(
+        message=message,
+        effective_user=SimpleNamespace(id=4242),
+        effective_chat=SimpleNamespace(id=777),
+    )
+    return update, message
+
+
+@pytest.mark.asyncio
+async def test_random_quiz_sends_empty_archive_message_when_no_questions(monkeypatch):
+    update, message = _make_random_quiz_update()
+    context = _make_context()
+    monkeypatch.setattr(quiz_archive, "get_random_question", AsyncMock(return_value=None))
+
+    await quiz.handle_random_quiz_selected(update, context)
+
+    message.reply_text.assert_awaited_once_with(quiz._EMPTY_ARCHIVE_MESSAGE)
+    context.bot.send_poll.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_random_quiz_sends_poll_and_logs_usage_when_question_exists(monkeypatch):
+    from bme_bot.db import feature_usage_repository
+
+    update, message = _make_random_quiz_update()
+    context = _make_context()
+    monkeypatch.setattr(quiz_archive, "get_random_question", AsyncMock(return_value=dict(_VALID_QUESTION)))
+    log_mock = AsyncMock()
+    monkeypatch.setattr(feature_usage_repository, "log_usage", log_mock)
+
+    await quiz.handle_random_quiz_selected(update, context)
+
+    message.reply_text.assert_not_called()
+    context.bot.send_poll.assert_awaited_once_with(
+        chat_id=777,
+        question=_VALID_QUESTION["question"],
+        options=_VALID_QUESTION["options"],
+        type=Poll.QUIZ,
+        correct_option_id=_VALID_QUESTION["correct_index"],
+        explanation=_VALID_QUESTION["explanation"],
+        is_anonymous=True,
+    )
+    log_mock.assert_awaited_once_with(4242, "quiz_random")
+
+
+@pytest.mark.asyncio
+async def test_random_quiz_never_touches_daily_limit_repository(monkeypatch):
+    """تصمیم عمدی: کوییز تصادفی هیچ بودجه‌ی AI مصرف نمی‌کنه، پس نباید هیچ
+    کاری با quiz_usage_repository (نه چک، نه ثبت) داشته باشه — نه برای
+    ادمین، نه برای کاربر عادی. این تست همون تصمیم رو قفل می‌کنه تا یه
+    تغییر بعدی سهوی سقف روزانه رو اینجا هم اعمال نکنه."""
+    update, message = _make_random_quiz_update()
+    context = _make_context()
+    monkeypatch.setattr(quiz_archive, "get_random_question", AsyncMock(return_value=dict(_VALID_QUESTION)))
+    monkeypatch.setattr(admin_utils, "is_admin", lambda uid: False)
+    check_mock = AsyncMock(side_effect=AssertionError("نباید صدا زده بشه"))
+    monkeypatch.setattr(quiz_usage_repository, "check_quiz_limit", check_mock)
+
+    await quiz.handle_random_quiz_selected(update, context)
+
+    check_mock.assert_not_called()

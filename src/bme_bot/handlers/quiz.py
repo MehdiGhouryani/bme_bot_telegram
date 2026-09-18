@@ -72,6 +72,9 @@ _UNSUPPORTED_FORMAT_MESSAGE = "این فرمت فایل پشتیبانی نمی�
 _LEGACY_DOC_MESSAGE = (
     "فرمت قدیمی Word (.doc) پشتیبانی نمی‌شه. لطفاً فایل رو با فرمت .docx ذخیره کنید و دوباره بفرستید."
 )
+_EMPTY_ARCHIVE_MESSAGE = (
+    "هنوز هیچ کوییزی در آرشیو نیست 🙂 یه کوییز از «🧠 کوییز از متن» بساز تا آرشیو پر بشه!"
+)
 _EXTRACTION_FAILED_MESSAGE = (
     "این فایل قابل‌خوندن نبود. مطمئن شو فایل Word معتبره (خراب یا رمزگذاری‌شده نباشه) و دوباره امتحان کن."
 )
@@ -173,6 +176,29 @@ def _parse_and_validate_quiz(raw_text: str) -> list[dict]:
 
 async def handle_quiz_tool_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(_QUESTION_COUNT_PROMPT, reply_markup=_question_count_markup())
+
+
+async def handle_random_quiz_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """دکمه‌ی «🎲 کوییز تصادفی». برخلاف handle_quiz_tool_selected هیچ AI
+    فراخوانی نمی‌کند و هیچ سقف مصرف روزانه ندارد — فقط یک ردیف تصادفی از
+    آرشیوِ از‌قبل‌تولیدشده (quiz_archive.jsonl) می‌خواند، پس هزینه‌ی
+    بودجه‌ی مشترک AI صفر است و برای ادمین/کاربر عادی فرقی نمی‌کند."""
+    question = await quiz_archive.get_random_question()
+    if question is None:
+        await update.message.reply_text(_EMPTY_ARCHIVE_MESSAGE)
+        return
+
+    user_id = update.effective_user.id
+    await feature_usage_repository.log_usage(user_id, "quiz_random")
+    await context.bot.send_poll(
+        chat_id=update.effective_chat.id,
+        question=question["question"],
+        options=question["options"],
+        type=Poll.QUIZ,
+        correct_option_id=question["correct_index"],
+        explanation=question["explanation"] or None,
+        is_anonymous=True,
+    )
 
 
 async def handle_quiz_count_callback(update: Update, context: ContextTypes.DEFAULT_TYPE, data: str):
