@@ -155,7 +155,7 @@ async def ask_user_question(
     is_private_chat: bool = False,
 ) -> bool:
     """True = تلاش انجام شد (موفق یا ناموفق با پیام نهایی). False = رد شد قبل از تلاش.
-    is_private_chat: برای پیش‌نمایش تدریجی draft لازم است (sendMessageDraft
+    is_private_chat: برای پیش‌نمایش تدریجی draft لازم است (sendRichMessageDraft
     فقط در چت خصوصی کار می‌کند) — رجوع به utils/draft_stream.py."""
     if not await _require_ai_key_configured(context, chat_id, context_label="/ask", user_id=user_id):
         return False

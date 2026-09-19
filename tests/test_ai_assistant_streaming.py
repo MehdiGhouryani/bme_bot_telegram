@@ -43,7 +43,7 @@ def _fake_update_and_context(chat_type, question_text="سوال تست"):
             self.sent_messages = []
 
             async def _do_api_request_side_effect(endpoint, data=None, **kwargs):
-                # این فایل فقط رفتار sendMessageDraft رو تست می‌کنه (رجوع
+                # این فایل فقط رفتار sendRichMessageDraft رو تست می‌کنه (رجوع
                 # به docstring بالای فایل). از این به بعد _send_reply_chunks
                 # هم (مستقل از draft) یه تلاش sendRichMessage برای پیام
                 # نهایی می‌زنه — این‌جا عمداً Exception می‌ندازیم (نه صرفاً
@@ -76,12 +76,12 @@ def _fake_update_and_context(chat_type, question_text="سوال تست"):
 
 
 def _draft_calls(bot):
-    """فقط تماس‌های do_api_request مربوط به sendMessageDraft را برمی‌گرداند —
+    """فقط تماس‌های do_api_request مربوط به sendRichMessageDraft را برمی‌گرداند —
     از وقتی _send_reply_chunks هم (مستقل از draft) یه تلاش sendRichMessage
     برای پیام نهایی می‌زنه، assert_not_called()ی خام روی کل mock دیگه دقیق
     نیست؛ این فیلتر دقیقاً همون چیزی رو چک می‌کنه که این تست‌ها همیشه
     قصدشون بوده: خودِ قابلیت draft، نه هر تماس do_api_request."""
-    return [c for c in bot.do_api_request.await_args_list if c.args[0] == "sendMessageDraft"]
+    return [c for c in bot.do_api_request.await_args_list if c.args[0] == "sendRichMessageDraft"]
 
 
 @pytest.mark.asyncio
@@ -92,7 +92,7 @@ async def test_ask_command_in_private_chat_attempts_draft_streaming():
 
     bot.do_api_request.assert_awaited()
     first_call = bot.do_api_request.await_args_list[0]
-    assert first_call.args[0] == "sendMessageDraft"
+    assert first_call.args[0] == "sendRichMessageDraft"
 
 
 @pytest.mark.asyncio

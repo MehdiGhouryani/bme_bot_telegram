@@ -81,15 +81,18 @@ async def test_stream_preview_success_calls_draft_endpoint_with_growing_text(mon
     assert result is True
     assert bot.do_api_request.await_count == len(draft_stream._reveal_steps(text))
     first_call = bot.do_api_request.await_args_list[0]
-    assert first_call.args[0] == "sendMessageDraft"
+    assert first_call.args[0] == "sendRichMessageDraft"
     assert first_call.args[1]["chat_id"] == 123
     assert first_call.args[1]["draft_id"] == draft_stream._DRAFT_ID
     last_call = bot.do_api_request.await_args_list[-1]
-    assert last_call.args[1]["text"] == text
+    assert last_call.args[1]["rich_message"]["markdown"] == text
 
 
 @pytest.mark.asyncio
-async def test_stream_preview_no_parse_mode_sent_plain_text(monkeypatch):
+async def test_stream_preview_wraps_partial_text_as_rich_message_markdown(monkeypatch):
+    """رجوع به تغییر بند ۴: دیگه plain-text نیستیم — پیلود باید دقیقاً هم‌شکل
+    rich_message.send_rich_message باشه (کلید rich_message.markdown)، نه
+    text خام قدیمی."""
     monkeypatch.setattr(config, "AI_STREAMING_ENABLED", True)
     monkeypatch.setattr(draft_stream, "_STEP_DELAY_SECONDS", 0)
     bot = FakeBot()
@@ -97,8 +100,8 @@ async def test_stream_preview_no_parse_mode_sent_plain_text(monkeypatch):
     await draft_stream.stream_preview(bot, 123, "**نیمه‌کاره", is_private_chat=True)
 
     call_payload = bot.do_api_request.await_args_list[0].args[1]
-    assert "parse_mode" not in call_payload
-    assert "entities" not in call_payload
+    assert call_payload["rich_message"] == {"markdown": "**نیمه‌کاره"}
+    assert "text" not in call_payload
 
 
 @pytest.mark.asyncio

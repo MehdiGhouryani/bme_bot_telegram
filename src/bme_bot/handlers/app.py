@@ -240,6 +240,17 @@ def main():
         MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, ocr.handle_photo_message)
     )
     app.add_handler(
+        MessageHandler(
+            # محدود به همون گروه مشخص‌شده در config.GROUP_CHAT_ID، نه هر
+            # گروهی که بات توش عضو باشه — رجوع به کامنت بالای
+            # ocr.handle_group_ocr_request برای دلیل کامل.
+            filters.Chat(username=config.GROUP_CHAT_ID)
+            & filters.PHOTO
+            & filters.CaptionRegex(ocr.GROUP_OCR_CAPTION_REGEX),
+            ocr.handle_group_ocr_request,
+        )
+    )
+    app.add_handler(
         MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, quiz.handle_quiz_document_message)
     )
     app.add_handler(

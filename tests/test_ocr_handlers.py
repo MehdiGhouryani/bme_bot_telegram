@@ -364,3 +364,146 @@ async def test_admin_does_not_consume_usage_quota(monkeypatch):
 
     ocr_usage_repository.record_attempt.assert_not_called()
     ocr_usage_repository.increment_ocr_usage.assert_not_called()
+
+
+# --- handle_group_ocr_request (بند ۵: Ephemeral Messages) ---
+
+def _make_group_update_and_context():
+    message = SimpleNamespace(
+        photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id="large")],
+        message_id=777,
+        reply_text=AsyncMock(return_value=SimpleNamespace(message_id=888)),
+    )
+    update = SimpleNamespace(
+        message=message,
+        effective_user=SimpleNamespace(id=4242),
+        effective_chat=SimpleNamespace(id=-100999),
+    )
+    telegram_file = SimpleNamespace(download_as_bytearray=AsyncMock(return_value=bytearray(b"fake-bytes")))
+    bot = SimpleNamespace(
+        get_file=AsyncMock(return_value=telegram_file),
+        send_message=AsyncMock(),
+        delete_message=AsyncMock(),
+    )
+    context = SimpleNamespace(bot=bot)
+    return update, message, context
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_caption_regex_matches_command_with_or_without_bot_mention():
+    assert ocr.GROUP_OCR_CAPTION_REGEX.match("/ocr")
+    assert ocr.GROUP_OCR_CAPTION_REGEX.match("/OCR")
+    assert ocr.GROUP_OCR_CAPTION_REGEX.match("/ocr@my_bme_bot")
+    assert ocr.GROUP_OCR_CAPTION_REGEX.match("/ocr این عکس رو بخون")
+    assert not ocr.GROUP_OCR_CAPTION_REGEX.match("این /ocr نیست چون اول کپشن نیومده")
+    assert not ocr.GROUP_OCR_CAPTION_REGEX.match("/ocrsomething")
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_success_sends_result_ephemerally_and_cleans_up_processing_message(monkeypatch):
+    update, message, context = _make_group_update_and_context()
+    monkeypatch.setattr(
+        ocr_service, "extract_text",
+        AsyncMock(return_value=ocr_service.OcrResult(text="سلام دنیا", provider="google")),
+    )
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    # پیام «در حال پردازش» موقت باید حذف شده باشه.
+    context.bot.delete_message.assert_awaited_once_with(chat_id=-100999, message_id=888)
+    # نتیجه باید ephemeral (فقط برای user_id=4242) ارسال شده باشه.
+    context.bot.send_message.assert_awaited_once()
+    _, kwargs = context.bot.send_message.call_args
+    assert kwargs["chat_id"] == -100999
+    assert kwargs["api_kwargs"] == {"receiver_user_id": 4242}
+    assert kwargs["text"] == "سلام دنیا"
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_falls_back_to_visible_message_when_ephemeral_send_fails(monkeypatch):
+    """رجوع به utils/ephemeral.py — قابلیت خیلی تازه‌ست، نباید جواب گم بشه."""
+    update, message, context = _make_group_update_and_context()
+    monkeypatch.setattr(
+        ocr_service, "extract_text",
+        AsyncMock(return_value=ocr_service.OcrResult(text="سلام دنیا", provider="google")),
+    )
+    context.bot.send_message = AsyncMock(side_effect=[Exception("ephemeral rejected"), None])
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    assert context.bot.send_message.await_count == 2
+    second_call = context.bot.send_message.await_args_list[1]
+    assert "api_kwargs" not in second_call.kwargs
+    assert second_call.kwargs["text"] == "سلام دنیا"
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_rejected_when_daily_limit_reached_no_download_attempted(monkeypatch):
+    update, message, context = _make_group_update_and_context()
+    monkeypatch.setattr(
+        ocr_usage_repository, "check_ocr_limit", AsyncMock(return_value=(False, "سقف روزانه تمام شد")),
+    )
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    context.bot.get_file.assert_not_called()
+    context.bot.send_message.assert_awaited_once()
+    _, kwargs = context.bot.send_message.call_args
+    assert "سقف روزانه تمام شد" in kwargs["text"]
+    assert kwargs["api_kwargs"] == {"receiver_user_id": 4242}
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_admin_bypasses_daily_limit_and_usage_increment(monkeypatch):
+    update, message, context = _make_group_update_and_context()
+    monkeypatch.setattr(admin_utils, "is_admin", lambda user_id: True)
+    check_mock = AsyncMock()
+    increment_mock = AsyncMock()
+    monkeypatch.setattr(ocr_usage_repository, "check_ocr_limit", check_mock)
+    monkeypatch.setattr(ocr_usage_repository, "increment_ocr_usage", increment_mock)
+    monkeypatch.setattr(
+        ocr_service, "extract_text",
+        AsyncMock(return_value=ocr_service.OcrResult(text="سلام", provider="google")),
+    )
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    check_mock.assert_not_called()
+    increment_mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_logs_usage_under_distinct_feature_name(monkeypatch):
+    """رجوع به کامنت داخل handle_group_ocr_request: «ocr_group» جدا از
+    «ocr»، فقط برای آمار — سقف روزانه (بالاتر در همین تست فایل تست شده)
+    کاملاً مستقل و مشترکه."""
+    from bme_bot.db import feature_usage_repository
+
+    update, message, context = _make_group_update_and_context()
+    log_mock = AsyncMock()
+    monkeypatch.setattr(feature_usage_repository, "log_usage", log_mock)
+    monkeypatch.setattr(
+        ocr_service, "extract_text",
+        AsyncMock(return_value=ocr_service.OcrResult(text="سلام", provider="azure")),
+    )
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    log_mock.assert_awaited_once_with(4242, "ocr_group", detail="azure")
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_provider_error_reports_and_sends_ephemeral_message(monkeypatch):
+    update, message, context = _make_group_update_and_context()
+    monkeypatch.setattr(
+        ocr_service, "extract_text", AsyncMock(side_effect=ocr_service.OcrProviderError("all failed")),
+    )
+    report_issue_mock = AsyncMock()
+    monkeypatch.setattr(error_reporting, "report_service_issue", report_issue_mock)
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    context.bot.delete_message.assert_awaited_once()
+    report_issue_mock.assert_awaited_once()
+    _, kwargs = context.bot.send_message.call_args
+    assert kwargs["text"] == ocr._PROVIDER_ERROR_MESSAGE

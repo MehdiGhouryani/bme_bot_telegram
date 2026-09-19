@@ -2,20 +2,25 @@
 # هندلر ابزار «تبدیل عکس به متن».
 
 import logging
+import re
 
-from telegram import Update
+from telegram import ReplyParameters, Update
 from telegram.ext import ContextTypes
 
 from ..db import feature_usage_repository, ocr_usage_repository
 from ..keyboards import reply_keyboards
 from ..services import ocr_service
 from ..utils import admin as admin_utils
-from ..utils import error_reporting, messages, persian_text, text_chunking
+from ..utils import ephemeral, error_reporting, messages, persian_text, text_chunking
 from .menus import make_submenu_handler
 
 logger = logging.getLogger(__name__)
 
 _MAX_IMAGE_BYTES = 15 * 1024 * 1024
+
+# کپشن‌های /ocr یا /ocr@نام_بات (case-insensitive)؛ هرچی بعدش بیاد اهمیتی
+# نداره، فقط خودِ کامند به‌عنوان اولین توکن کپشن باید باشه.
+GROUP_OCR_CAPTION_REGEX = re.compile(r"(?i)^/ocr(@\w+)?\b")
 
 _PROCESSING_MESSAGE = "⏳ در حال خواندن متن از عکس... (ممکن است چند ثانیه طول بکشد)"
 _NO_TEXT_FOUND_MESSAGE = "متنی در این عکس پیدا نشد. لطفاً یک عکس واضح‌تر امتحان کنید."
@@ -121,3 +126,115 @@ async def handle_photo_message(update: Update, context: ContextTypes.DEFAULT_TYP
     await processing_message.edit_text(chunks[0])
     for chunk in chunks[1:]:
         await update.message.reply_text(chunk)
+
+
+async def handle_group_ocr_request(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """نسخه‌ی گروهیِ همون OCR — با کپشن /ocr روی یه عکس در گروه فعال
+    می‌شه (رجوع به GROUP_OCR_CAPTION_REGEX و ثبت آن در app.py، محدود به
+    همون گروه مشخص‌شده در config.GROUP_CHAT_ID، نه هر گروهی که بات توش
+    عضو باشه). نتیجه فقط برای همون کاربر (نه کل گروه) با Ephemeral
+    Messages نمایش داده می‌شه — رجوع به utils/ephemeral.py برای جزئیات و
+    محدودیت‌های شناخته‌شده‌ی این قابلیت تازه.
+
+    هیچ منطق OCR جدیدی این‌جا تکرار نشده — همون ocr_service.extract_text
+    و همون سقف روزانه‌ی per-user (چون ocr_usage_repository با user_id کار
+    می‌کنه، نه chat_id، این سقف بین نسخه‌ی خصوصی و گروهی به‌طور کامل
+    مشترکه؛ کاربری که سهمیه‌ی امروزش رو در چت خصوصی مصرف کرده، همون‌جا هم
+    توی گروه به سقف می‌خوره) — فقط مسیر دریافت عکس/ارسال جواب فرق داره.
+    """
+    user_id = update.effective_user.id
+    chat_id = update.effective_chat.id
+    # bot.send_message یه پارامتر typed واقعی می‌خواد (ReplyParameters)، نه
+    # یه دیکشنری خام — برخلاف utils/rich_message.py که چون از do_api_request
+    # خام استفاده می‌کنه، دیکشنری ساده کافیه.
+    reply_params = {"reply_parameters": ReplyParameters(message_id=update.message.message_id)}
+
+    async def reply(text: str):
+        await ephemeral.send_or_fallback(
+            context.bot.send_message, chat_id=chat_id, user_id=user_id, text=text, **reply_params,
+        )
+
+    if not ocr_service.is_configured():
+        await reply(messages.OCR_UNAVAILABLE)
+        await error_reporting.report_service_issue(
+            context, "هیچ OCR provider ای پیکربندی نشده است.",
+            context_label="ocr", failure_feature="ocr", user_id=user_id,
+        )
+        return
+
+    is_admin_user = admin_utils.is_admin(user_id)
+    if not is_admin_user:
+        can_process, limit_message = await ocr_usage_repository.check_ocr_limit(user_id)
+        if not can_process:
+            await reply(f"⚠️ {limit_message}")
+            return
+
+    photo = update.message.photo[-1]
+    telegram_file = await context.bot.get_file(photo.file_id)
+    image_bytes = bytes(await telegram_file.download_as_bytearray())
+
+    if len(image_bytes) > _MAX_IMAGE_BYTES:
+        await reply("حجم این عکس بیش‌ازحد بزرگ است. لطفاً یک عکس کوچک‌تر ارسال کنید.")
+        return
+
+    if not is_admin_user:
+        await ocr_usage_repository.record_attempt(user_id)
+    # برخلاف نسخه‌ی خصوصی، پیام «در حال پردازش» این‌جا عمداً *معمولی*
+    # (نه ephemeral) است — چون فقط چند ثانیه دیده می‌شه و بلافاصله حذف
+    # می‌شه، نیازی به زیرساخت edit/delete مخصوص ephemeral (که این پروژه
+    # هنوز پیاده نکرده، رجوع به utils/ephemeral.py) نیست.
+    processing_message = await update.message.reply_text(_PROCESSING_MESSAGE)
+
+    async def finish(text: str):
+        await context.bot.delete_message(chat_id=chat_id, message_id=processing_message.message_id)
+        await reply(text)
+
+    try:
+        result = await ocr_service.extract_text(image_bytes)
+    except ocr_service.OcrServiceUnavailable as e:
+        await finish(messages.OCR_UNAVAILABLE)
+        await error_reporting.report_service_issue(
+            context, str(e), context_label="ocr", failure_feature="ocr", user_id=user_id,
+        )
+        return
+    except ocr_service.OcrProviderError as e:
+        logger.warning("OCR provider chain failed for user %s (group)", user_id)
+        await finish(_PROVIDER_ERROR_MESSAGE)
+        alert = str(e)
+        if e.__cause__:
+            alert = f"{alert}\nعلت: {e.__cause__}"
+        await error_reporting.report_service_issue(
+            context, alert, context_label="ocr", failure_feature="ocr", user_id=user_id,
+        )
+        return
+    except Exception as e:
+        logger.exception("OCR unexpected error for user %s (group)", user_id)
+        await finish(_GENERIC_ERROR_MESSAGE)
+        await error_reporting.report_error(
+            context, e, context_label="ocr", failure_feature="ocr", user_id=user_id,
+        )
+        return
+
+    if not is_admin_user:
+        await ocr_usage_repository.increment_ocr_usage(user_id)
+    # نام جداگانه‌ی «ocr_group» (نه «ocr») عمداً است — فقط برای آمار
+    # «پربازدیدترین بخش‌ها» تا ادمین بتونه سهم گروه رو از چت خصوصی جدا
+    # ببینه؛ سقف روزانه (بالاتر) کاملاً مستقل از این نام و مشترکه. مثل
+    # «quiz_random»، این نام عمداً به _FEATURE_DISPLAY_NAMES در admin.py
+    # اضافه نشده چون اون دیکشنری هم‌زمان پایه‌ی خلاصه‌ی سقف روزانه‌ی
+    # per-user است و «ocr_group» سقف جداگانه‌ای نداره.
+    await feature_usage_repository.log_usage(user_id, "ocr_group", detail=result.provider)
+
+    if not result.text:
+        await finish(_NO_TEXT_FOUND_MESSAGE)
+        return
+
+    cleaned = persian_text.normalize(result.text)
+    if not cleaned:
+        await finish(_NO_TEXT_FOUND_MESSAGE)
+        return
+
+    chunks = text_chunking.split_into_chunks(cleaned)
+    await context.bot.delete_message(chat_id=chat_id, message_id=processing_message.message_id)
+    for chunk in chunks:
+        await reply(chunk)
