@@ -1,6 +1,7 @@
 # src/bme_bot/app.py
 # ساخت Application، ثبت handlerها، دو دیسپچر سطح‌بالا.
 
+import asyncio
 import datetime
 import logging
 
@@ -287,6 +288,11 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_handler))
     app.add_error_handler(global_error_handler)
 
+    # Python 3.14: دیگر event loop پیش‌فرض ساخته نمی‌شود؛ PTB 21.4 در run_polling
+    # به یک loop فعال نیاز دارد. این loop را صریحاً می‌سازیم و ست می‌کنیم تا
+    # اجرا روی 3.14 هم درست کار کند (روی 3.13 بی‌اثر و بی‌ضرر است).
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     app.run_polling()
 
 
