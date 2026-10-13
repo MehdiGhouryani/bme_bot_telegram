@@ -46,6 +46,7 @@ async def ask(user_question: str, system_prompt: str) -> tuple[str, str]:
                 {"role": "user", "content": user_question},
             ],
             fallbacks=FALLBACK_MODELS,
+            timeout=config.AI_REQUEST_TIMEOUT_SECONDS,
         )
 
     try:
@@ -84,6 +85,7 @@ async def test_all_models() -> list[tuple[str, bool, str]]:
                 model=model,
                 messages=[{"role": "user", "content": "سلام"}],
                 max_tokens=5,
+                timeout=config.AI_HEALTH_CHECK_TIMEOUT_SECONDS,
             )
             results.append((model, True, "OK"))
         except Exception as e:

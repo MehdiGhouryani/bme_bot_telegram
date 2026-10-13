@@ -35,10 +35,11 @@ from .handlers import (
     start,
     stt,
     suggestion,
+    welcome,
 )
 from .keyboards import menu_builder, reply_keyboards
 from .utils import admin as admin_utils
-from .utils import error_reporting, messages, telegram_error_handler
+from .utils import db_backup, error_reporting, messages, telegram_error_handler
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ _BUTTON_HANDLERS = {
     reply_keyboards.OCR_TOOL_TEXT: ocr.handle_ocr_tool_selected,
     reply_keyboards.STT_TOOL_TEXT: stt.handle_stt_tool_selected,
     reply_keyboards.QUIZ_TOOL_TEXT: quiz.handle_quiz_tool_selected,
+    reply_keyboards.RANDOM_QUIZ_TOOL_TEXT: quiz.handle_random_quiz_selected,
     reply_keyboards.JOZVE_TOOL_TEXT: jozve.handle_jozve_tool_selected,
     reply_keyboards.MEDICAL_EQUIPMENT_TEXT: equipment_callbacks.show_main_menu,
     reply_keyboards.SENSORS_COMPONENTS_TEXT: education.handle_sensors_components,
@@ -187,6 +189,14 @@ async def _post_init(application: Application):
         time=datetime.time(hour=9, minute=0, tzinfo=pytz.timezone("Asia/Tehran")),
         name="daily_summary",
     )
+    if config.BACKUP_ENABLED:
+        # بکاپ هفتگی users.db (utils/db_backup.py) — پیش‌فرض جمعه ۰۳:۰۰ تهران.
+        application.job_queue.run_daily(
+            db_backup.run_weekly_backup,
+            time=datetime.time(hour=config.BACKUP_HOUR, minute=0, tzinfo=pytz.timezone("Asia/Tehran")),
+            days=(config.BACKUP_WEEKDAY,),
+            name="weekly_backup",
+        )
 
 
 def main():
@@ -231,12 +241,30 @@ def main():
     app.add_handler(admin.admin_add_conversation)
     app.add_handler(equipment_admin_edit.equipment_edit_conversation)
     app.add_handler(maintenance_admin_edit.maintenance_admin_conversation)
+    app.add_handler(welcome.welcome_edit_conversation)
 
     app.add_handler(
         MessageHandler(filters.ChatType.PRIVATE & filters.TEXT & ~filters.COMMAND, button_click)
     )
     app.add_handler(
         MessageHandler(filters.ChatType.PRIVATE & filters.PHOTO, ocr.handle_photo_message)
+    )
+    app.add_handler(
+        MessageHandler(
+            # محدود به همون گروه مشخص‌شده در config.GROUP_CHAT_ID، نه هر
+            # گروهی که بات توش عضو باشه — رجوع به کامنت بالای
+            # ocr.handle_group_ocr_request برای دلیل کامل.
+            filters.Chat(username=config.GROUP_CHAT_ID)
+            & filters.PHOTO
+            & filters.CaptionRegex(ocr.GROUP_OCR_CAPTION_REGEX),
+            ocr.handle_group_ocr_request,
+        )
+    )
+    app.add_handler(
+        MessageHandler(
+            filters.Chat(username=config.GROUP_CHAT_ID) & filters.StatusUpdate.NEW_CHAT_MEMBERS,
+            welcome.handle_new_chat_members,
+        )
     )
     app.add_handler(
         MessageHandler(filters.ChatType.PRIVATE & filters.Document.ALL, quiz.handle_quiz_document_message)

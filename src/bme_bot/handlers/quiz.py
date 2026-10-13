@@ -36,6 +36,7 @@ from ..db import feature_usage_repository, quiz_usage_repository
 from ..services import ai_service
 from ..utils import admin as admin_utils
 from ..utils import error_reporting, messages, quiz_archive
+from ..utils.typing_indicator import send_typing
 
 logger = logging.getLogger(__name__)
 
@@ -249,6 +250,7 @@ async def _generate_and_send_quiz(
             return
         await quiz_usage_repository.record_attempt(user_id)
     processing_message = await update.message.reply_text(_PROCESSING_MESSAGE)
+    await send_typing(context.bot, chat_id)
 
     try:
         raw_text, model_used = await ai_service.ask(study_text, _format_prompt(question_count))
@@ -293,7 +295,7 @@ async def _generate_and_send_quiz(
     await feature_usage_repository.log_usage(user_id, "quiz", detail=model_used)
     await quiz_archive.archive_quiz(user_id, questions, model_used)
 
-    await processing_message.delete()
+    await processing_message.edit_text(f"✅ {len(questions)} سوال از روی متن شما ساخته شد:")
     for q in questions:
         await context.bot.send_poll(
             chat_id=chat_id,

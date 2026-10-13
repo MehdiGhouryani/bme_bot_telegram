@@ -63,8 +63,23 @@ AI_FALLBACK_MODELS = [
     ).split(",")
     if model.strip()
 ]
+# قبل از این، litellm.acompletion هیچ timeout ای نداشت — یعنی اگه یه
+# provider فقط hang می‌کرد (نه error سریع)، کل درخواست کاربر عملاً تا
+# بی‌نهایت معطل می‌موند، بدون هیچ خطا یا fallback به مدل بعدی. این سقفِ
+# *هر تلاش* است (هر مدل در زنجیره‌ی fallback جدا حساب می‌شه، نه کل
+# زنجیره یک‌جا) — رجوع به services/ai_service.py. ۶۰ ثانیه عمداً سخاوتمندانه
+# انتخاب شده چون jozve (ساختاردهی جزوه از روی یه ترانویسی طولانی) از همون
+# ask() مشترک استفاده می‌کنه و می‌تونه به زمان بیشتری نیاز داشته باشه.
+AI_REQUEST_TIMEOUT_SECONDS = int(os.getenv("AI_REQUEST_TIMEOUT_SECONDS", "60"))
+# جدا از سقف بالا: ai_service.test_all_models() (دکمه‌ی «🩺 تست سرویس‌ها
+# الان») هر مدل رو *پشت‌سرهم*، نه موازی، تست می‌کنه — با همون سقف ۶۰ثانیه‌ای
+# بالا، بدترین حالت (همه‌ی مدل‌ها hang) یعنی تا ۴ دقیقه معطلی برای یه
+# ادمین که فقط می‌خواد سلامت سرویس‌ها رو ببینه. چون این فقط یه پینگِ
+# حداقلی («سلام» با max_tokens=5) است، نه یه درخواست واقعی کاربر، سقف
+# کوتاه‌تری منطقیه.
+AI_HEALTH_CHECK_TIMEOUT_SECONDS = int(os.getenv("AI_HEALTH_CHECK_TIMEOUT_SECONDS", "15"))
 
-# --- استریم پیش‌نمایش /ask با sendMessageDraft (Bot API 9.5+، فقط چت خصوصی) ---
+# --- استریم پیش‌نمایش /ask با sendRichMessageDraft (Bot API 10.1+، فقط چت خصوصی) ---
 # قابلیت کاملاً افزوده با auto-fallback خودکار روی هر خطای واقعی API (رجوع
 # به utils/draft_stream.py) — نیازی به دخالت دستی برای اون حالت نیست. این
 # فلگ فقط برای یه حالت متفاوت است که auto-fallback نمی‌تونه تشخیصش بده: یه
@@ -73,6 +88,9 @@ AI_FALLBACK_MODELS = [
 # «Pinned Message» نمایش داده می‌شن — یه quirk سمت کلاینت که درخواست API
 # خودش با موفقیت برمی‌گرده، پس هیچ exception ای نیست که به‌طور خودکار
 # گرفته بشه. امکان تست مستقیم این پروژه با یه بات/چت واقعی تلگرام نبود؛
+# (این گزارش اصلش برای نسخه‌ی قدیمی‌تر/plain-text این قابلیت بود — برای
+# نسخه‌ی rich-markdown فعلی جداگانه تأیید یا رد نشده، پس همون احتیاط قبلی
+# رو نگه داشتیم.)
 # اگه بعد از استقرار این رفتار رو دیدید، فقط این خط رو False کنید یا
 # AI_STREAMING_ENABLED=false را در محیط ست کنید — بدون نیاز به تغییر کد.
 AI_STREAMING_ENABLED = os.getenv("AI_STREAMING_ENABLED", "true").strip().lower() not in ("false", "0", "no")
@@ -168,12 +186,30 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 # است تا هیچ فایل دیگری مجبور به ساخت دستی مسیر لاگ نباشد.
 LOG_DIR = os.path.join(BASE_DIR, 'logs')
 
-# قابل بازنویسی با متغیر محیطی برای استقرارهای غیرمعمول.
-USERS_DB_PATH = os.getenv('USERS_DB_PATH', 'users.db')
-EQUIPMENT_DB_PATH = os.getenv('EQUIPMENT_DB_PATH', 'medical_device.db')
+# پیش‌فرض عمداً *مطلق* است (نه صرفاً 'users.db')، دقیقاً هم‌الگوی
+# DATA_DIR/LOG_DIR بالا — قبلاً پیش‌فرض یه نام فایل نسبی بود که به CWD
+# لحظه‌ی اجرای پردازه وابسته بود، نه به ریشه‌ی پروژه. تا وقتی بات دقیقاً
+# طبق «راه‌اندازی» در README (از ریشه‌ی پروژه) اجرا بشه فرقی نداشت، ولی
+# هر اجرای دیگه (مثلاً یه cron job یا systemd با WorkingDirectory متفاوت)
+# می‌تونست بی‌سروصدا یه users.db/medical_device.db *تازه و خالی* در یه
+# مسیر کاملاً غلط بسازه — نه خطا، نه هشدار، فقط گم‌شدن بی‌صدای داده‌ی واقعی.
+# قابل بازنویسی با متغیر محیطی برای استقرارهای غیرمعمول، همون‌طور که بود.
+USERS_DB_PATH = os.getenv('USERS_DB_PATH', os.path.join(BASE_DIR, 'users.db'))
+EQUIPMENT_DB_PATH = os.getenv('EQUIPMENT_DB_PATH', os.path.join(BASE_DIR, 'medical_device.db'))
 
 # آرشیو خام سوال‌های تولیدشده‌ی کوییز (utils/quiz_archive.py) — یک فایل
 # JSONL (نه دیتابیس، نه پوشه‌ی data/ که فقط محتوای مرجع فقط-خواندنیه) که
-# فقط انباشته می‌شه؛ فعلاً هیچ فیچری از روش نمی‌خونه، فقط برای استفاده‌ی
-# احتمالی آینده (مثلاً یه کوییز رندم از آرشیو) ذخیره می‌شه.
-QUIZ_ARCHIVE_PATH = os.getenv('QUIZ_ARCHIVE_PATH', 'quiz_archive.jsonl')
+# فقط انباشته می‌شه؛ دیگه فقط write-only نیست — 🎲 کوییز تصادفی هم ازش
+# می‌خونه. پیش‌فرض مطلق، به همون دلیل بالا.
+QUIZ_ARCHIVE_PATH = os.getenv('QUIZ_ARCHIVE_PATH', os.path.join(BASE_DIR, 'quiz_archive.jsonl'))
+
+# --- بکاپ خودکار هفتگی users.db (utils/db_backup.py) ---
+# فقط users.db بکاپ می‌شود (medical_device.db عمداً خارج از این مکانیزم است).
+# هر هفته یک نسخه‌ی سازگار (SQLite backup API) ساخته، gzip و به همه‌ی ادمین‌ها
+# در تلگرام فرستاده می‌شود؛ BACKUP_KEEP نسخه‌ی آخر هم روی سرور می‌ماند.
+# BACKUP_WEEKDAY مطابق run_daily خود PTB است: 0=یکشنبه ... 5=جمعه ... 6=شنبه.
+BACKUP_ENABLED = os.getenv("BACKUP_ENABLED", "true").strip().lower() not in ("false", "0", "no")
+BACKUP_DIR = os.getenv("BACKUP_DIR", os.path.join(BASE_DIR, "backups"))
+BACKUP_KEEP = max(1, int(os.getenv("BACKUP_KEEP", "4")))
+BACKUP_WEEKDAY = int(os.getenv("BACKUP_WEEKDAY", "5")) % 7
+BACKUP_HOUR = int(os.getenv("BACKUP_HOUR", "3")) % 24

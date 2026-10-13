@@ -87,7 +87,10 @@ def test_file_content_after_rollover_is_not_unbounded_history(tmp_path):
     assert "MARKER_49_" in content or "MARKER_4" in content  # آخری‌ها مونده باشن
 
 
-def test_max_bytes_constant_is_ten_megabytes():
+def test_max_bytes_constant_is_five_megabytes():
+    """قبلاً ۱۰MB بود — کاهش داده شد چون الان تکرار خطاها دیگه فایل رو پر
+    نمی‌کنه (رجوع به تصمیم ۲/۴ در logging_setup.py)، پس ۵MB برای محتوای
+    *یکتا* کافیه و فضای دیسک واقعی سرور رو محافظه‌کارانه‌تر مصرف می‌کنه."""
     from bme_bot import logging_setup
 
-    assert logging_setup._MAX_BYTES_PER_FILE == 10 * 1024 * 1024
+    assert logging_setup._MAX_BYTES_PER_FILE == 5 * 1024 * 1024

@@ -17,13 +17,14 @@ import aiosqlite
 from ._connection_factory import make_connection_getter
 from .. import config
 
-get_connection = make_connection_getter(lambda: config.USERS_DB_PATH)
+get_connection = make_connection_getter(lambda: config.USERS_DB_PATH, wal=True)
 
 
 async def setup_users_database():
     """جدول‌های users، ai_usage، ocr_usage، stt_usage، quiz_usage،
-    jozve_usage، feature_limits، feature_usage، admin_actions و admins را
-    در صورت نبود می‌سازد (معادل setup_database قدیمی)."""
+    jozve_usage، feature_limits، feature_usage، admin_actions، admins،
+    bot_settings و error_log را در صورت نبود می‌سازد (معادل
+    setup_database قدیمی)."""
     async with get_connection() as conn:
         await conn.execute('''CREATE TABLE IF NOT EXISTS users
                           (user_id INTEGER PRIMARY KEY,
@@ -123,6 +124,30 @@ async def setup_users_database():
                           (user_id INTEGER PRIMARY KEY,
                            added_by INTEGER NOT NULL,
                            added_at TEXT NOT NULL)''')
+
+        # bot_settings — منبع واحد و عمومی (key→value) برای تنظیمات ساده‌ی
+        # قابل‌تغییر از پنل ادمین بدون نیاز به دیپلوی مجدد (اولین مصرف‌کننده:
+        # فعال/غیرفعال و متن خوشامدگویی اعضای جدید گروه — db/settings_repository.py).
+        # عمداً عمومی (نه یک جدول اختصاصی مثل feature_limits) چون شکل
+        # «فعال/غیرفعال + یک متن» با هیچ جدول موجودی هم‌شکل نیست، و تنظیمات
+        # مشابه بعدی (مثلاً حالت «در حال به‌روزرسانی» که هنوز در تاریخچه‌ی
+        # پروژه تصمیم‌گیری نشده) بدون نیاز به جدول/repository جدید همین‌جا جا
+        # می‌گیرند.
+        await conn.execute('''CREATE TABLE IF NOT EXISTS bot_settings
+                          (key TEXT PRIMARY KEY,
+                           value TEXT NOT NULL)''')
+
+        # error_log — یک ردیف به‌ازای هر باگِ *یکتا* (اثرانگشت)، نه هر
+        # رخداد — رجوع به db/error_log_repository.py و
+        # utils/error_fingerprint.py برای طراحی کامل.
+        await conn.execute('''CREATE TABLE IF NOT EXISTS error_log
+                          (fingerprint TEXT PRIMARY KEY,
+                           exception_type TEXT NOT NULL,
+                           location TEXT NOT NULL,
+                           count INTEGER NOT NULL DEFAULT 1,
+                           first_seen TEXT NOT NULL,
+                           last_seen TEXT NOT NULL,
+                           sample_traceback TEXT NOT NULL)''')
 
         # ستون‌های جدید (اگر قبلاً اضافه نشده) — عیناً همان الگوی last_request_timestamp
         for alter_statement in (

@@ -167,13 +167,19 @@ async def test_successful_quiz_sends_five_native_polls(monkeypatch):
     context = _make_context(user_data={"awaiting_quiz_text": True})
     processing_msg = SimpleNamespace(edit_text=AsyncMock(), delete=AsyncMock())
     message.reply_text = AsyncMock(return_value=processing_msg)
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(quiz, "send_typing", typing_mock)
     monkeypatch.setattr(ai_service, "ask", AsyncMock(return_value=(_valid_quiz_json(), "gemini/gemini-2.5-flash")))
 
     await quiz.handle_quiz_text_message(update, context)
 
+    typing_mock.assert_awaited_once_with(context.bot, 777)
     assert context.bot.send_poll.await_count == 5
     quiz_usage_repository.increment_quiz_usage.assert_awaited_once_with(4242)
-    processing_msg.delete.assert_awaited_once()
+    # پیام موقت دیگه delete نمی‌شه — edit به یه خلاصه‌ی کوتاه می‌شه (بند
+    # «ارتباط بهتر با کاربر»: همون پیام به‌جای ناپدیدشدن، هِدِر کوییزها می‌شه).
+    processing_msg.delete.assert_not_called()
+    processing_msg.edit_text.assert_awaited_once_with("✅ 5 سوال از روی متن شما ساخته شد:")
 
 
 @pytest.mark.asyncio

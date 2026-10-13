@@ -17,6 +17,7 @@ from ..services import ai_service
 from ..utils import error_reporting, messages, rich_message, text_chunking
 from ..utils.admin import is_admin
 from ..utils.draft_stream import stream_preview
+from ..utils.typing_indicator import send_typing
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +172,7 @@ async def ask_user_question(
         processing_message = await context.bot.send_message(
             chat_id=chat_id, text="⏳ در حال پردازش سوال شما...",
         )
+        await send_typing(context.bot, chat_id)
         system_prompt = _public_system_prompt()
 
         try:
@@ -236,21 +238,29 @@ async def ai_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     try:
+        processing_message = await context.bot.send_message(
+            chat_id=admin_id, text="⏳ در حال پردازش...",
+        )
+        await send_typing(context.bot, admin_id)
         system_prompt = _admin_system_prompt()
         try:
             full_text, _model_used = await ai_service.ask(user_question, system_prompt)
         except ai_service.AIResponseEmpty:
+            await _safe_delete(context, admin_id, processing_message.message_id)
             await context.bot.send_message(
                 chat_id=admin_id,
                 text="پاسخی دریافت نشد (احتمالاً فیلتر ایمنی).",
             )
             return
         except ai_service.AIServiceUnavailable as e:
+            await _safe_delete(context, admin_id, processing_message.message_id)
             await context.bot.send_message(chat_id=admin_id, text=messages.AI_UNAVAILABLE)
             await error_reporting.report_service_issue(
                 context, str(e), context_label="/ai", failure_feature="ai", user_id=admin_id,
             )
             return
+
+        await _safe_delete(context, admin_id, processing_message.message_id)
 
         async def send_fn(chunk, parse_mode):
             await original_message.reply_text(text=chunk, parse_mode=parse_mode)

@@ -44,7 +44,9 @@ def _make_update_with_photo():
         photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id="large")],
         reply_text=AsyncMock(),
     )
-    update = SimpleNamespace(message=message, effective_user=SimpleNamespace(id=4242))
+    update = SimpleNamespace(
+        message=message, effective_user=SimpleNamespace(id=4242), effective_chat=SimpleNamespace(id=777),
+    )
     return update, message
 
 
@@ -73,6 +75,22 @@ async def test_photo_clears_awaiting_flag_even_before_processing():
     await ocr.handle_photo_message(update, context)
 
     assert "awaiting_ocr_image" not in context.user_data
+
+
+@pytest.mark.asyncio
+async def test_handle_photo_message_sends_typing_indicator(monkeypatch):
+    update, message = _make_update_with_photo()
+    context = _make_context(user_data={"awaiting_ocr_image": True})
+    message.reply_text = AsyncMock(return_value=SimpleNamespace(edit_text=AsyncMock()))
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(ocr, "send_typing", typing_mock)
+    monkeypatch.setattr(
+        ocr_service, "extract_text", AsyncMock(return_value=ocr_service.OcrResult(text="متن", provider="google")),
+    )
+
+    await ocr.handle_photo_message(update, context)
+
+    typing_mock.assert_awaited_once_with(context.bot, 777)
 
 
 @pytest.mark.asyncio
@@ -397,6 +415,25 @@ async def test_group_ocr_caption_regex_matches_command_with_or_without_bot_menti
     assert ocr.GROUP_OCR_CAPTION_REGEX.match("/ocr این عکس رو بخون")
     assert not ocr.GROUP_OCR_CAPTION_REGEX.match("این /ocr نیست چون اول کپشن نیومده")
     assert not ocr.GROUP_OCR_CAPTION_REGEX.match("/ocrsomething")
+
+
+@pytest.mark.asyncio
+async def test_group_ocr_explains_ephemeral_visibility_and_sends_typing(monkeypatch):
+    """رفع ابهام: کاربری که اولین‌بار /ocr می‌زنه باید از همون پیام موقت
+    بفهمه که نتیجه فقط برای خودشه، نه کل گروه."""
+    update, message, context = _make_group_update_and_context()
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(ocr, "send_typing", typing_mock)
+    monkeypatch.setattr(
+        ocr_service, "extract_text",
+        AsyncMock(return_value=ocr_service.OcrResult(text="سلام", provider="google")),
+    )
+
+    await ocr.handle_group_ocr_request(update, context)
+
+    message.reply_text.assert_awaited_once_with(ocr._GROUP_PROCESSING_MESSAGE)
+    assert "فقط برای شما" in ocr._GROUP_PROCESSING_MESSAGE
+    typing_mock.assert_awaited_once_with(context.bot, -100999)
 
 
 @pytest.mark.asyncio

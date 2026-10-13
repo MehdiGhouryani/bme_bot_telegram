@@ -19,6 +19,7 @@ from ..services import ai_service, stt_service
 from ..utils import admin as admin_utils
 from ..utils import error_reporting, messages
 from ..utils.rich_message import send_rich_message
+from ..utils.typing_indicator import send_typing
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,10 @@ _STT_ERROR_MESSAGE = "مشکلی در تبدیل ویس به متن پیش او�
 _STRUCTURING_ERROR_MESSAGE = "متن پیاده شد ولی مشکلی در ساخت جزوه پیش اومد. لطفاً دوباره امتحان کنید."
 _GENERIC_ERROR_MESSAGE = "متاسفانه در پردازش فایل مشکلی پیش اومد. لطفاً دوباره امتحان کنید."
 _PROCESSING_MESSAGE = "⏳ در حال پردازش فایل صوتی... (ممکنه چند دقیقه طول بکشه)"
+# بین تبدیل صدا و ساختاردهی، processing_message یه‌بار ویرایش می‌شه تا
+# کاربر (که ممکنه چند دقیقه منتظر باشه) بفهمه کار هنوز ادامه داره، نه
+# گیر کرده — بدون این، سکوت طولانی می‌تونه با یه کرش اشتباه گرفته بشه.
+_STRUCTURING_MESSAGE = "📝 صدا با موفقیت تبدیل شد. در حال ساختاردهی به جزوه..."
 
 
 def _load_prompt() -> str:
@@ -136,6 +141,7 @@ async def handle_jozve_audio_message(update: Update, context: ContextTypes.DEFAU
     if not is_admin_user:
         await jozve_usage_repository.record_attempt(user_id)
     processing_message = await message.reply_text(_PROCESSING_MESSAGE)
+    await send_typing(context.bot, update.effective_chat.id)
 
     try:
         stt_result = await stt_service.transcribe(audio_bytes, filename=filename)
@@ -170,6 +176,8 @@ async def handle_jozve_audio_message(update: Update, context: ContextTypes.DEFAU
         return
 
     try:
+        await processing_message.edit_text(_STRUCTURING_MESSAGE)
+        await send_typing(context.bot, update.effective_chat.id)
         structured_md, model_used = await ai_service.ask(stt_result.text, _load_prompt())
     except ai_service.AIResponseEmpty as e:
         if not is_admin_user:

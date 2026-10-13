@@ -69,6 +69,8 @@ async def test_daily_limit_enforced_via_shared_helper(temp_users_db):
     can_process, message = await usage_limit_helper.check_limit("quiz_usage", "quiz", user_id)
     assert can_process is False
     assert "3" in message
+    # ارتباط بهتر با کاربر: باید بگه کِی دوباره در دسترسه، نه فقط اینکه رد شده.
+    assert "فردا" in message
 
 
 def test_disallowed_table_name_raises_value_error():

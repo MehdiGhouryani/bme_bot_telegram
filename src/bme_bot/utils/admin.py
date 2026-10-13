@@ -63,6 +63,12 @@ async def remove_dynamic_admin(user_id: int) -> bool:
     return removed
 
 
+def get_all_admin_ids() -> list:
+    """همه‌ی ادمین‌ها (استاتیک .env + دینامیک)، بدون تکرار و با حفظ ترتیب."""
+    static_ids = config.ADMIN_CHAT_ID if isinstance(config.ADMIN_CHAT_ID, (list, tuple)) else []
+    return list(dict.fromkeys([*static_ids, *_dynamic_admin_ids]))
+
+
 async def notify_admins(context: ContextTypes.DEFAULT_TYPE, text: str, parse_mode=None) -> None:
     """پیامی را به همه‌ی ادمین‌ها می‌فرستد — هم فهرست استاتیک ADMIN_CHAT_ID
     (از .env)، هم ادمین‌های دینامیک (اضافه‌شده از پنل). یک user_id که به هر

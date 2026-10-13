@@ -36,6 +36,7 @@ from .. import config
 from ..db import (
     admin_actions_repository,
     admins_repository,
+    error_log_repository,
     feature_limits_repository,
     feature_usage_repository,
     stt_usage_repository,
@@ -47,6 +48,7 @@ from ..utils import admin as admin_utils
 from ..utils.admin import is_admin, is_main_admin, notify_admins
 from ..utils.button_style import DANGER, SUCCESS, styled_button
 from ..utils.date_time_entity import date_time_entity
+from . import welcome
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +124,7 @@ def _main_menu_markup(is_main: bool = False) -> InlineKeyboardMarkup:
         [InlineKeyboardButton("🩺 سلامت سیستم", callback_data="admin_menu:health")],
         [InlineKeyboardButton("📢 ارسال همگانی", callback_data="admin_menu:broadcast")],
         [InlineKeyboardButton("🎚 محدودیت‌ها", callback_data="admin_menu:limits")],
+        [InlineKeyboardButton("⚙️ تنظیمات بات", callback_data="admin_menu:settings")],
     ]
     # تنها دکمه‌ای که فقط برای ادمین اصلی (MAIN_ADMIN_CHAT_ID) رندر می‌شه —
     # بقیه‌ی ادمین‌ها (چه از .env چه اضافه‌شده از همین پنل) به همه‌ی دکمه‌های
@@ -335,6 +338,7 @@ def _health_markup() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("📈 جزئیات کامل (۳۰ روز + شکست‌ها)", callback_data="admin_menu:health_details")],
         [InlineKeyboardButton("🩺 تست سرویس‌ها الان", callback_data="admin_menu:health_test")],
+        [InlineKeyboardButton("🪲 خطاهای اخیر (فشرده)", callback_data="admin_menu:recent_errors")],
         [InlineKeyboardButton("🔙 بازگشت", callback_data="admin_menu:main")],
     ])
 
@@ -381,6 +385,30 @@ async def _format_health_details_message() -> str:
                 lines.append("")
                 lines += _format_breakdown_section(f"{display} — شکست‌ها ({days_fa} روز اخیر)", failure)
             lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+async def _format_recent_errors_message() -> str:
+    """نمای فشرده‌ی خطاهای غیرمنتظره — یک خط به‌ازای هر باگِ *یکتا*
+    (رجوع به db/error_log_repository.py/utils/error_fingerprint.py)، نه
+    هر رخداد. تعداد و آخرین‌بارِ دیده‌شدن هست، ولی خودِ traceback کامل
+    عمداً این‌جا نیست — این نما برای یه‌نگاهِ سریع طراحی شده، نه دیباگ
+    عمیق (اگه لازم شد، traceback نمونه‌ی هر اثرانگشت همین الان هم در خودِ
+    فایل لاگ سرور موجوده، از همون سرچ با متن اثرانگشت)."""
+    errors = await error_log_repository.get_recent_errors(limit=15)
+    if not errors:
+        return "🪲 خطاهای اخیر\n\nهیچ خطای غیرمنتظره‌ای ثبت نشده. 🎉"
+    lines = ["🪲 خطاهای اخیر (فشرده — جدیدترین اول)", ""]
+    for e in errors:
+        last_line = (e["sample_traceback"].strip().splitlines() or [""])[-1][:120]
+        # last_seen به دقت میکروثانیه ذخیره می‌شه (برای مرتب‌سازی درست —
+        # رجوع به کامنت db/error_log_repository.record_error)، ولی برای
+        # نمایش فشرده فقط تا دقیقه لازمه.
+        last_seen_display = e["last_seen"][:16].replace("T", " ")
+        lines.append(f"🔴 {e['exception_type']} — {e['count']}× (آخرین: {last_seen_display})")
+        lines.append(f"   📍 {e['location']}")
+        lines.append(f"   {last_line}")
+        lines.append("")
     return "\n".join(lines).rstrip()
 
 
@@ -435,6 +463,8 @@ async def handle_admin_menu_callback(update: Update, context: ContextTypes.DEFAU
         await query.edit_message_text(await _format_health_message(), reply_markup=_health_markup())
     elif data == "admin_menu:health_details":
         await query.edit_message_text(await _format_health_details_message(), reply_markup=_health_details_markup())
+    elif data == "admin_menu:recent_errors":
+        await query.edit_message_text(await _format_recent_errors_message(), reply_markup=_health_details_markup())
     elif data == "admin_menu:health_test":
         # این تست تا ~۲۰ درخواست واقعی شبکه می‌زنه (هر مدل/provider جدا)،
         # ممکنه چند ثانیه طول بکشه — یه پیام میانی می‌ذاریم تا ادمین فکر
@@ -448,6 +478,11 @@ async def handle_admin_menu_callback(update: Update, context: ContextTypes.DEFAU
     elif data == "admin_menu:limits":
         limits = await feature_limits_repository.get_all_limits()
         await query.edit_message_text(_format_limits_message(limits), reply_markup=_limits_submenu_markup(limits))
+    elif data == "admin_menu:settings":
+        text, markup = welcome.render_settings_menu(await welcome.is_welcome_enabled())
+        await query.edit_message_text(text, reply_markup=markup)
+    elif data == "admin_settings_welcome_toggle":
+        await welcome.handle_settings_toggle(update, context)
     elif data == "admin_menu:admins":
         # دکمه فقط برای ادمین اصلی رندر می‌شه، ولی callback_data خودش
         # مخفی نیست — دفاع در عمق: سمت سرور هم صریح چک می‌کنیم، نه فقط

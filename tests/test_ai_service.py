@@ -100,6 +100,21 @@ async def test_ask_passes_configured_chain_to_litellm(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_ask_passes_configured_timeout_to_litellm(monkeypatch):
+    """قبلاً هیچ timeout ای نبود — یعنی یه provider که فقط hang می‌کرد (نه
+    error سریع) می‌تونست کل درخواست کاربر رو تا بی‌نهایت معطل نگه داره."""
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "fake-key-for-test")
+    monkeypatch.setattr(config, "AI_REQUEST_TIMEOUT_SECONDS", 42)
+    mock_completion = AsyncMock(return_value=_fake_litellm_response(content="ok"))
+    monkeypatch.setattr(ai_service.litellm, "acompletion", mock_completion)
+
+    await ai_service.ask("سوال", "پرامپت سیستمی")
+
+    _, kwargs = mock_completion.call_args
+    assert kwargs["timeout"] == 42
+
+
+@pytest.mark.asyncio
 async def test_ask_keeps_raw_question_separate_from_system_prompt(monkeypatch):
     """سوال خام کاربر باید دقیقاً در نقش user برود، بدون هیچ فرمت/ترکیب با
     متن سیستمی — حتی اگر سوال کاربر حاوی کاراکترهایی باشد که در یک رشته‌ی
@@ -209,6 +224,23 @@ async def test_test_all_models_checks_primary_and_every_fallback_independently(m
         ("groq/model-a", True, "OK"),
         ("groq/model-b", True, "OK"),
     ]
+
+
+@pytest.mark.asyncio
+async def test_test_all_models_uses_the_shorter_health_check_timeout(monkeypatch):
+    """عمداً سقف کوتاه‌تری از ask() داره — این‌جا فقط یه پینگ حداقلیه، پشت‌سرهم
+    روی چند مدل، نه یه درخواست واقعی کاربر؛ سقف ۶۰ثانیه‌ای ask() برای هر
+    مدل یعنی بدترین حالت تا ۴ دقیقه معطلی برای ادمین."""
+    monkeypatch.setattr(ai_service, "PRIMARY_MODEL", "gemini/gemini-3.6-flash")
+    monkeypatch.setattr(ai_service, "FALLBACK_MODELS", [])
+    monkeypatch.setattr(config, "AI_HEALTH_CHECK_TIMEOUT_SECONDS", 7)
+    mock_completion = AsyncMock(return_value=_fake_litellm_response(content="سلام"))
+    monkeypatch.setattr(ai_service.litellm, "acompletion", mock_completion)
+
+    await ai_service.test_all_models()
+
+    _, kwargs = mock_completion.call_args
+    assert kwargs["timeout"] == 7
 
 
 @pytest.mark.asyncio

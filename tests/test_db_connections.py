@@ -98,3 +98,136 @@ async def test_setup_users_database_is_idempotent(tmp_path, monkeypatch):
 
     await setup_users_database()  # اجرای اول: ستون جدید ساخته می‌شود
     await setup_users_database()  # اجرای دوم: ALTER TABLE با OperationalError مواجه می‌شود (باید بی‌صدا نادیده گرفته شود)
+
+
+# --------------------------- WAL / busy timeout ---------------------------
+
+async def _journal_mode(path):
+    async with aiosqlite.connect(str(path)) as raw:
+        async with raw.execute("PRAGMA journal_mode") as cur:
+            return (await cur.fetchone())[0].lower()
+
+
+@pytest.mark.asyncio
+async def test_wal_enabled_when_requested(tmp_path):
+    db_path = tmp_path / "wal_on.db"
+    get_connection = make_connection_getter(lambda: str(db_path), wal=True)
+
+    async with get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.commit()
+
+    assert await _journal_mode(db_path) == "wal"
+
+
+@pytest.mark.asyncio
+async def test_wal_not_enabled_by_default(tmp_path):
+    db_path = tmp_path / "wal_off.db"
+    get_connection = make_connection_getter(lambda: str(db_path))
+
+    async with get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.commit()
+
+    assert await _journal_mode(db_path) == "delete"
+
+
+@pytest.mark.asyncio
+async def test_wal_pragma_runs_once_per_path(tmp_path, monkeypatch):
+    from bme_bot.db import _connection_factory as factory
+
+    db_path = tmp_path / "once.db"
+    monkeypatch.setattr(factory, "_wal_enabled_paths", set())
+    get_connection = make_connection_getter(lambda: str(db_path), wal=True)
+
+    executed = []
+    real_connect = aiosqlite.connect
+
+    async def spy_connect(*args, **kwargs):
+        conn = await real_connect(*args, **kwargs)
+        real_execute = conn.execute
+
+        def spy_execute(sql, *a, **k):
+            executed.append(sql)
+            return real_execute(sql, *a, **k)
+
+        conn.execute = spy_execute
+        return conn
+
+    monkeypatch.setattr(factory.aiosqlite, "connect", spy_connect)
+
+    for _ in range(3):
+        async with get_connection():
+            pass
+
+    assert executed.count("PRAGMA journal_mode=WAL") == 1
+
+
+@pytest.mark.asyncio
+async def test_wal_failure_is_swallowed_and_connection_still_works(tmp_path, monkeypatch):
+    from bme_bot.db import _connection_factory as factory
+
+    monkeypatch.setattr(factory, "_wal_enabled_paths", set())
+    db_path = tmp_path / "fail.db"
+    real_connect = aiosqlite.connect
+
+    async def failing_connect(*args, **kwargs):
+        conn = await real_connect(*args, **kwargs)
+        real_execute = conn.execute
+
+        def execute(sql, *a, **k):
+            if "journal_mode" in sql:
+                raise aiosqlite.OperationalError("no shm")
+            return real_execute(sql, *a, **k)
+
+        conn.execute = execute
+        return conn
+
+    monkeypatch.setattr(factory.aiosqlite, "connect", failing_connect)
+    get_connection = make_connection_getter(lambda: str(db_path), wal=True)
+
+    async with get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.commit()
+
+    assert str(db_path) not in factory._wal_enabled_paths
+
+
+@pytest.mark.asyncio
+async def test_users_db_uses_wal_and_equipment_db_does_not(tmp_path, monkeypatch):
+    from bme_bot.db import _connection_factory as factory
+
+    monkeypatch.setattr(factory, "_wal_enabled_paths", set())
+    monkeypatch.setattr(config, "USERS_DB_PATH", str(tmp_path / "u.db"))
+    monkeypatch.setattr(config, "EQUIPMENT_DB_PATH", str(tmp_path / "e.db"))
+
+    async with app_connection.get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.commit()
+    async with equipment_connection.get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.commit()
+
+    assert await _journal_mode(tmp_path / "u.db") == "wal"
+    assert await _journal_mode(tmp_path / "e.db") == "delete"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_reader_does_not_block_writer_in_wal(tmp_path):
+    db_path = tmp_path / "conc.db"
+    get_connection = make_connection_getter(lambda: str(db_path), wal=True)
+
+    async with get_connection() as conn:
+        await conn.execute("CREATE TABLE t (x INTEGER)")
+        await conn.execute("INSERT INTO t VALUES (1)")
+        await conn.commit()
+
+    async with get_connection() as reader:
+        await reader.execute("BEGIN")
+        async with reader.execute("SELECT COUNT(*) FROM t") as cur:
+            assert (await cur.fetchone())[0] == 1
+        # خواننده‌ی باز، نویسنده‌ی هم‌زمان را (برخلاف حالت DELETE) بلاک نمی‌کند
+        async with get_connection() as writer:
+            await writer.execute("INSERT INTO t VALUES (2)")
+            await writer.commit()
+        await reader.rollback()

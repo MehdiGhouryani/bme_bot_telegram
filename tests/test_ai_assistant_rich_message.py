@@ -51,6 +51,7 @@ def _fake_update_and_context(*, rich_message_ok, question_text="سوال تست"
     class FakeBot:
         def __init__(self):
             self.rich_message_calls = []
+            self.deleted_message_ids = []
 
             async def _do_api_request_side_effect(endpoint, data=None, **kwargs):
                 if endpoint == "sendRichMessage":
@@ -67,7 +68,7 @@ def _fake_update_and_context(*, rich_message_ok, question_text="سوال تست"
             return SimpleNamespace(message_id=1)
 
         async def delete_message(self, chat_id, message_id):
-            pass
+            self.deleted_message_ids.append(message_id)
 
     bot = FakeBot()
     update = SimpleNamespace(
@@ -107,6 +108,36 @@ async def test_ask_falls_back_to_markdown_when_rich_message_raises():
     matching = [m for m in sent_messages if "پاسخ حاوی" in m[1]]
     assert len(matching) == 1
     assert matching[0][2] is not None  # parse_mode=MARKDOWN_V2 (مسیر قدیمی دست‌نخورده)
+
+
+@pytest.mark.asyncio
+async def test_ask_sends_typing_indicator(monkeypatch):
+    update, context, bot, _ = _fake_update_and_context(rich_message_ok=True)
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(ai_assistant, "send_typing", typing_mock)
+
+    await ai_assistant.ask_command(update, context)
+
+    typing_mock.assert_awaited_once_with(bot, 555)
+
+
+@pytest.mark.asyncio
+async def test_ai_command_sends_processing_message_and_typing_then_deletes_it(monkeypatch):
+    """رفع ناهماهنگی: قبلاً /ai هیچ فیدبکی قبل از جواب نداشت، برخلاف /ask."""
+    monkeypatch.setattr(ai_assistant, "is_admin", lambda user_id: True)
+    update, context, bot, sent_messages = _fake_update_and_context(rich_message_ok=True)
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(ai_assistant, "send_typing", typing_mock)
+    original_message = SimpleNamespace(message_id=999, text="متن اصلی", reply_text=AsyncMock())
+    update.message = SimpleNamespace(
+        from_user=SimpleNamespace(id=4242), reply_to_message=original_message,
+    )
+
+    await ai_assistant.ai_command(update, context)
+
+    assert any("در حال پردازش" in text for _, text, _ in sent_messages)
+    typing_mock.assert_awaited_once_with(bot, 4242)
+    assert bot.deleted_message_ids == [1]  # FakeBot.send_message همیشه message_id=1 برمی‌گردونه
 
 
 @pytest.mark.asyncio

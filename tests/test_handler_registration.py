@@ -86,6 +86,13 @@ def _first_matching_handler_name(built_app, update, group=0):
         # ندارد — باید به دیسپچر عمومی برسد (که خودش data.startswith
         # ("maint_view_") را داخل app.callback_handler چک می‌کند).
         ("maint_view_open:xray", "CallbackQueryHandler"),
+        # بند ۶ (خوشامدگویی): باید admin_welcome_edit را بگیرد، نه دیسپچر
+        # عمومی — همان کلاس باگی که admin_edit_field بالا برایش تست دارد.
+        ("admin_settings_welcome_edit_start", "admin_welcome_edit"),
+        # admin_menu:settings هیچ ConversationHandler ای ندارد (فقط
+        # زیرمنو/toggle، عیناً مثل admin_menu:health) — باید به دیسپچر
+        # عمومی برسد.
+        ("admin_menu:settings", "CallbackQueryHandler"),
     ],
 )
 def test_callback_routes_to_expected_handler(built_app, callback_data, expected_handler_name):
@@ -94,16 +101,16 @@ def test_callback_routes_to_expected_handler(built_app, callback_data, expected_
 
 
 def test_group_0_registration_order_matches_documented_requirement():
-    """هر شش ConversationHandler (admin.py ×۴ + equipment_admin_edit ×۱ +
-    maintenance_admin_edit ×۱) باید *قبل* از CallbackQueryHandler عمومی ثبت
-    شده باشند — این خودِ الزامی است که در سربرگ‌های admin.py/
-    equipment_admin_edit.py/maintenance_admin_edit.py/app.py مستند شده؛ این
-    تست تضمین می‌کند یک refactor آینده این ترتیب را خراب نکند.
+    """هر هفت ConversationHandler (admin.py ×۴ + equipment_admin_edit ×۱ +
+    maintenance_admin_edit ×۱ + welcome ×۱) باید *قبل* از CallbackQueryHandler
+    عمومی ثبت شده باشند — این خودِ الزامی است که در سربرگ‌های admin.py/
+    equipment_admin_edit.py/maintenance_admin_edit.py/welcome.py/app.py
+    مستند شده؛ این تست تضمین می‌کند یک refactor آینده این ترتیب را خراب نکند.
 
-    شش ConversationHandler همین الان ثبت شده‌اند: admin.py ×۴
+    هفت ConversationHandler همین الان ثبت شده‌اند: admin.py ×۴
     (user_search/broadcast/limits_edit/admin_add) + equipment_admin_edit ×۱ +
-    maintenance_admin_edit ×۱. اگر یک ConversationHandler جدید اضافه شد،
-    این عدد باید همراهش به‌روز شود."""
+    maintenance_admin_edit ×۱ + welcome ×۱ (بند ۶، ویرایش متن خوشامدگویی).
+    اگر یک ConversationHandler جدید اضافه شد، این عدد باید همراهش به‌روز شود."""
     from telegram.ext import CallbackQueryHandler, ConversationHandler
 
     monkeypatch_token = "123456789:AAFakeTokenForRegistrationTestOnly"
@@ -123,7 +130,7 @@ def test_group_0_registration_order_matches_documented_requirement():
             i for i, h in enumerate(group0)
             if isinstance(h, CallbackQueryHandler) and not isinstance(h, ConversationHandler)
         ]
-        assert len(conversation_indices) == 6
+        assert len(conversation_indices) == 7
         assert len(generic_callback_indices) == 1
         assert max(conversation_indices) < generic_callback_indices[0]
     finally:

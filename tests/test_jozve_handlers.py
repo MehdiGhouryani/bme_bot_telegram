@@ -163,6 +163,27 @@ async def test_clears_awaiting_flag_even_when_rejected():
 # ------------------------------- مسیر موفق کامل -------------------------------
 
 @pytest.mark.asyncio
+async def test_full_success_path_sends_typing_indicator_twice(monkeypatch):
+    """یه‌بار قبل از STT (ممکنه چند دقیقه طول بکشه)، یه‌بار قبل از AI —
+    هردو، نه فقط اولی، چون فاصله‌ی بین این دو مرحله هم می‌تونه طولانی باشه."""
+    update, message = _make_audio_update()
+    context = _make_context(user_data={"awaiting_jozve_audio": True})
+    processing_msg = SimpleNamespace(edit_text=AsyncMock(), delete=AsyncMock())
+    message.reply_text = AsyncMock(return_value=processing_msg)
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(jozve, "send_typing", typing_mock)
+    monkeypatch.setattr(
+        stt_service, "transcribe", AsyncMock(return_value=stt_service.SttResult(text="متن", provider="groq")),
+    )
+    monkeypatch.setattr(ai_service, "ask", AsyncMock(return_value=("## جزوه", "gemini/gemini-3.6-flash")))
+
+    await jozve.handle_jozve_audio_message(update, context)
+
+    assert typing_mock.await_count == 2
+    assert all(call.args == (context.bot, 777) for call in typing_mock.await_args_list)
+
+
+@pytest.mark.asyncio
 async def test_full_success_path_sends_md_document(monkeypatch):
     update, message = _make_audio_update()
     context = _make_context(user_data={"awaiting_jozve_audio": True})
@@ -313,7 +334,10 @@ async def test_structuring_service_unavailable_reports_with_jozve_structuring_la
 
     await jozve.handle_jozve_audio_message(update, context)
 
-    processing_msg.edit_text.assert_awaited_once_with(jozve._AI_UNAVAILABLE_MESSAGE)
+    # دو تا edit: یکی پیام میانیِ «در حال ساختاردهی» (رجوع به _STRUCTURING_MESSAGE)
+    # قبل از فراخوانی AI، یکی پیام خطای نهایی — نه فقط یکی.
+    assert processing_msg.edit_text.await_args_list[0].args == (jozve._STRUCTURING_MESSAGE,)
+    assert processing_msg.edit_text.await_args_list[-1].args == (jozve._AI_UNAVAILABLE_MESSAGE,)
     _, kwargs = report_mock.call_args
     assert kwargs["context_label"] == "jozve.structuring"
     context.bot.send_document.assert_not_called()

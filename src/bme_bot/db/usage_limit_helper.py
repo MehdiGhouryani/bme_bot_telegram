@@ -61,7 +61,14 @@ async def check_limit(table_name: str, feature_name: str, user_id: int) -> Tuple
 
             if count >= daily_limit:
                 await conn.commit()
-                return False, f"شما از تمام {daily_limit} استفاده‌ی روزانه‌ی خود استفاده کرده‌اید."
+                # عمداً «فردا» (نه ساعت دقیق نیمه‌شب) — چون این تابع از
+                # date.today() ساعت محلی *سرور* استفاده می‌کنه و منطقه‌زمانی
+                # دقیق سرور این‌جا تأیید‌شده نیست؛ «فردا» درست و بدون ریسک
+                # off-by-one می‌مونه، فارغ از این‌که سرور UTC باشه یا تهران.
+                return False, (
+                    f"شما از تمام {daily_limit} استفاده‌ی روزانه‌ی خود استفاده کرده‌اید. "
+                    "دوباره از فردا در دسترس خواهد بود."
+                )
         else:
             await conn.execute(
                 f"INSERT INTO {table_name} (user_id, last_request_date, last_request_timestamp) "

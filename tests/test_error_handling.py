@@ -225,6 +225,112 @@ async def test_report_service_issue_also_throttles(monkeypatch):
     assert len(admin_msgs) == 1
 
 
+# --- بند ۷: dedup فشرده‌ی خطاهای غیرمنتظره (error_log/fingerprint) ---
+
+@pytest.mark.asyncio
+async def test_report_error_records_error_log_even_without_failure_feature(monkeypatch):
+    """برخلاف _log_persistent_failure (که فقط با failure_feature صریح کار
+    می‌کنه)، ثبت در error_log باید *همیشه* اتفاق بیفته — این دقیقاً همون
+    چیزیه که یه باگ کاملاً تازه/بدون-wiring رو هم قابل‌ردیابی می‌کنه."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["999"])
+    record_mock = AsyncMock(return_value=1)
+    monkeypatch.setattr(error_reporting.error_log_repository, "record_error", record_mock)
+    context = SimpleNamespace(bot=FakeBot())
+
+    await error_reporting.report_error(context, RuntimeError("بدون failure_feature"), context_label="جایی")
+
+    record_mock.assert_awaited_once()
+    assert record_mock.call_args.kwargs["exception_type"] == "RuntimeError"
+
+
+@pytest.mark.asyncio
+async def test_report_error_first_occurrence_sends_full_traceback(monkeypatch):
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["999"])
+    monkeypatch.setattr(error_reporting.error_log_repository, "record_error", AsyncMock(return_value=1))
+    bot = FakeBot()
+    context = SimpleNamespace(bot=bot)
+
+    await error_reporting.report_error(context, RuntimeError("اولین بار"), context_label="ocr")
+
+    admin_msgs = [m for c, m in bot.sent_messages if c == "999"]
+    assert "```" in admin_msgs[0]  # بلوک traceback (حتی بدون فریم واقعی، مثل بقیه‌ی تست‌های این فایل)
+    assert "تکراری" not in admin_msgs[0]
+
+
+@pytest.mark.asyncio
+async def test_report_error_repeat_occurrence_sends_compact_message_without_traceback(monkeypatch):
+    """رجوع به بند ۷: تکرار یه باگِ *قبلاً دیده‌شده* نباید دوباره یه دیوار
+    کامل traceback بفرسته — فقط تعداد و اثرانگشت، فشرده."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["999"])
+    monkeypatch.setattr(error_reporting.error_log_repository, "record_error", AsyncMock(return_value=7))
+    bot = FakeBot()
+    context = SimpleNamespace(bot=bot)
+
+    await error_reporting.report_error(context, RuntimeError("هفتمین بار"), context_label="ocr")
+
+    admin_msgs = [m for c, m in bot.sent_messages if c == "999"]
+    assert "تکراری" in admin_msgs[0]
+    assert "۷" in admin_msgs[0] or "7" in admin_msgs[0]
+    assert "```" not in admin_msgs[0]  # بدون بلوک traceback خام
+
+
+@pytest.mark.asyncio
+async def test_report_error_does_not_crash_when_error_log_write_fails(monkeypatch):
+    """رجوع به error_reporting._record_error_log: یه خطای دیتابیس در خودِ
+    ثبت لاگ نباید کل مسیر گزارش خطای واقعی رو با خودش پایین بکشه."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", ["999"])
+    monkeypatch.setattr(
+        error_reporting.error_log_repository, "record_error",
+        AsyncMock(side_effect=Exception("DB is down")),
+    )
+    bot = FakeBot()
+    context = SimpleNamespace(bot=bot)
+
+    await error_reporting.report_error(context, RuntimeError("باگ واقعی"), context_label="ocr")
+
+    admin_msgs = [m for c, m in bot.sent_messages if c == "999"]
+    assert len(admin_msgs) == 1  # گزارش خطای واقعی همچنان رسید
+
+
+@pytest.mark.asyncio
+async def test_report_error_first_occurrence_writes_full_traceback_to_file_log(monkeypatch, caplog):
+    """رجوع به تصمیم ۲/۴ در logging_setup.py: اولین بار باید exc_info
+    داشته باشه (traceback کامل توی فایل)."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", [])  # آلارم رو کاملاً غیرفعال کن، فقط فایل لاگ مهمه اینجا
+    monkeypatch.setattr(error_reporting.error_log_repository, "record_error", AsyncMock(return_value=1))
+    context = SimpleNamespace(bot=FakeBot())
+
+    with caplog.at_level("INFO", logger="bme_bot.utils.error_reporting"):
+        await error_reporting.report_error(context, RuntimeError("اولین بار"), context_label="ocr")
+
+    own_records = [r for r in caplog.records if r.name == "bme_bot.utils.error_reporting"]
+    error_records = [r for r in own_records if r.levelname == "ERROR"]
+    assert len(error_records) == 1
+    assert error_records[0].exc_info is not None
+    assert not any("DEDUP" in r.message for r in own_records)
+
+
+@pytest.mark.asyncio
+async def test_report_error_repeat_occurrence_writes_one_compact_line_to_file_log(monkeypatch, caplog):
+    """رجوع به تصمیم ۲/۴ در logging_setup.py: تکرار نباید دوباره یه
+    traceback کامل (با exc_info) توی فایل بنویسه — فقط یه خط WARNING
+    فشرده با اثرانگشت، نه ERROR با exc_info."""
+    monkeypatch.setattr(config, "ADMIN_CHAT_ID", [])
+    monkeypatch.setattr(error_reporting.error_log_repository, "record_error", AsyncMock(return_value=5))
+    context = SimpleNamespace(bot=FakeBot())
+
+    with caplog.at_level("INFO", logger="bme_bot.utils.error_reporting"):
+        await error_reporting.report_error(context, RuntimeError("پنجمین بار"), context_label="ocr")
+
+    own_records = [r for r in caplog.records if r.name == "bme_bot.utils.error_reporting"]
+    assert not any(r.levelname == "ERROR" for r in own_records)
+    warning_records = [r for r in own_records if r.levelname == "WARNING"]
+    assert len(warning_records) == 1
+    assert warning_records[0].exc_info is None
+    assert "DEDUP" in warning_records[0].message
+    assert "#5" in warning_records[0].message
+
+
 # --- membership_required try/except scope fix ---
 
 @pytest.mark.asyncio

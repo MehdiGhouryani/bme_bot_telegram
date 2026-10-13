@@ -41,7 +41,9 @@ def _make_update_with_voice(duration=_DEFAULT_DURATION):
         voice=SimpleNamespace(file_id="voice-file-id", duration=duration),
         reply_text=AsyncMock(),
     )
-    update = SimpleNamespace(message=message, effective_user=SimpleNamespace(id=4242))
+    update = SimpleNamespace(
+        message=message, effective_user=SimpleNamespace(id=4242), effective_chat=SimpleNamespace(id=777),
+    )
     return update, message
 
 
@@ -70,6 +72,22 @@ async def test_voice_clears_awaiting_flag_even_before_processing():
     await stt.handle_voice_message(update, context)
 
     assert "awaiting_stt_voice" not in context.user_data
+
+
+@pytest.mark.asyncio
+async def test_voice_sends_typing_indicator(monkeypatch):
+    update, message = _make_update_with_voice()
+    context = _make_context(user_data={"awaiting_stt_voice": True})
+    message.reply_text = AsyncMock(return_value=SimpleNamespace(edit_text=AsyncMock()))
+    typing_mock = AsyncMock()
+    monkeypatch.setattr(stt, "send_typing", typing_mock)
+    monkeypatch.setattr(
+        stt_service, "transcribe", AsyncMock(return_value=stt_service.SttResult(text="سلام", provider="groq"))
+    )
+
+    await stt.handle_voice_message(update, context)
+
+    typing_mock.assert_awaited_once_with(context.bot, 777)
 
 
 @pytest.mark.asyncio

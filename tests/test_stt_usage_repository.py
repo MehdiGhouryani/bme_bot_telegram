@@ -113,6 +113,8 @@ async def test_daily_limit_enforced_when_cumulative_seconds_exceed_seed(temp_use
     can_process, message = await stt_usage_repository.check_stt_limit(user_id, duration_seconds=1)
     assert can_process is False
     assert "دقیقه" in message
+    # ارتباط بهتر با کاربر: سقف روزانه واقعاً تمام شده، پس گفتنِ «فردا» درسته.
+    assert "فردا" in message
 
 
 @pytest.mark.asyncio
@@ -124,6 +126,9 @@ async def test_single_file_longer_than_daily_limit_rejected_for_new_user(temp_us
     )
     assert can_process is False
     assert "دقیقه" in message
+    # برخلاف تست بالا: این‌جا خودِ فایل از کل سقف روزانه بیشتره، پس فردا هم
+    # همین فایل رد می‌شه — گفتنِ «فردا دوباره در دسترسه» این‌جا گمراه‌کننده‌ست.
+    assert "فردا" not in message
 
 
 @pytest.mark.asyncio

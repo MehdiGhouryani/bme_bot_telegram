@@ -12,6 +12,7 @@ from ..keyboards import reply_keyboards
 from ..services import ocr_service
 from ..utils import admin as admin_utils
 from ..utils import ephemeral, error_reporting, messages, persian_text, text_chunking
+from ..utils.typing_indicator import send_typing
 from .menus import make_submenu_handler
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,14 @@ _MAX_IMAGE_BYTES = 15 * 1024 * 1024
 GROUP_OCR_CAPTION_REGEX = re.compile(r"(?i)^/ocr(@\w+)?\b")
 
 _PROCESSING_MESSAGE = "⏳ در حال خواندن متن از عکس... (ممکن است چند ثانیه طول بکشد)"
+# برخلاف نسخه‌ی خصوصی، این‌جا باید صریح بگیم نتیجه فقط برای خودِ فرستنده
+# دیده می‌شه — چون Ephemeral Messages یه رفتار غیرعادی و تازه‌ست (رجوع به
+# utils/ephemeral.py) و بدونش کاربر ممکنه فکر کنه چیزی اشتباه پیش رفته
+# وقتی هیچی توی گروه (برای بقیه) ظاهر نمی‌شه.
+_GROUP_PROCESSING_MESSAGE = (
+    "⏳ در حال خواندن متن از عکس... (ممکن است چند ثانیه طول بکشد)\n"
+    "نتیجه فقط برای شما ارسال می‌شه، نه کل گروه."
+)
 _NO_TEXT_FOUND_MESSAGE = "متنی در این عکس پیدا نشد. لطفاً یک عکس واضح‌تر امتحان کنید."
 _PROVIDER_ERROR_MESSAGE = "مشکلی در سرویس تبدیل عکس به متن پیش آمد. لطفاً کمی بعد دوباره امتحان کنید."
 _GENERIC_ERROR_MESSAGE = "متاسفانه در پردازش عکس مشکلی پیش آمد. لطفاً دوباره امتحان کنید."
@@ -82,6 +91,7 @@ async def handle_photo_message(update: Update, context: ContextTypes.DEFAULT_TYP
     if not is_admin_user:
         await ocr_usage_repository.record_attempt(user_id)
     processing_message = await update.message.reply_text(_PROCESSING_MESSAGE)
+    await send_typing(context.bot, update.effective_chat.id)
 
     try:
         result = await ocr_service.extract_text(image_bytes)
@@ -183,7 +193,8 @@ async def handle_group_ocr_request(update: Update, context: ContextTypes.DEFAULT
     # (نه ephemeral) است — چون فقط چند ثانیه دیده می‌شه و بلافاصله حذف
     # می‌شه، نیازی به زیرساخت edit/delete مخصوص ephemeral (که این پروژه
     # هنوز پیاده نکرده، رجوع به utils/ephemeral.py) نیست.
-    processing_message = await update.message.reply_text(_PROCESSING_MESSAGE)
+    processing_message = await update.message.reply_text(_GROUP_PROCESSING_MESSAGE)
+    await send_typing(context.bot, chat_id)
 
     async def finish(text: str):
         await context.bot.delete_message(chat_id=chat_id, message_id=processing_message.message_id)

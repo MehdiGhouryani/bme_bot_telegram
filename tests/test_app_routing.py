@@ -78,8 +78,37 @@ async def test_post_init_schedules_daily_summary_job(monkeypatch):
 
     await app._post_init(fake_application)
 
-    run_daily_mock.assert_called_once()
-    args, kwargs = run_daily_mock.call_args
-    assert args[0] is admin.send_daily_summary
+    calls = {c.args[0]: c for c in run_daily_mock.call_args_list}
+    kwargs = calls[admin.send_daily_summary].kwargs
     assert kwargs["time"].hour == 9
     assert str(kwargs["time"].tzinfo) == "Asia/Tehran"
+
+
+@pytest.mark.asyncio
+async def test_post_init_schedules_weekly_backup_job(monkeypatch):
+    monkeypatch.setattr(app, "setup_users_database", AsyncMock())
+    monkeypatch.setattr(app.config, "BACKUP_ENABLED", True)
+
+    run_daily_mock = Mock()
+    fake_application = SimpleNamespace(job_queue=SimpleNamespace(run_daily=run_daily_mock))
+
+    await app._post_init(fake_application)
+
+    calls = {c.args[0]: c for c in run_daily_mock.call_args_list}
+    kwargs = calls[app.db_backup.run_weekly_backup].kwargs
+    assert kwargs["days"] == (app.config.BACKUP_WEEKDAY,)
+    assert kwargs["time"].hour == app.config.BACKUP_HOUR
+    assert str(kwargs["time"].tzinfo) == "Asia/Tehran"
+
+
+@pytest.mark.asyncio
+async def test_post_init_skips_weekly_backup_when_disabled(monkeypatch):
+    monkeypatch.setattr(app, "setup_users_database", AsyncMock())
+    monkeypatch.setattr(app.config, "BACKUP_ENABLED", False)
+
+    run_daily_mock = Mock()
+    fake_application = SimpleNamespace(job_queue=SimpleNamespace(run_daily=run_daily_mock))
+
+    await app._post_init(fake_application)
+
+    assert app.db_backup.run_weekly_backup not in [c.args[0] for c in run_daily_mock.call_args_list]

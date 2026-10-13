@@ -52,7 +52,8 @@ async def check_stt_limit(user_id: int, duration_seconds: int) -> Tuple[bool, st
                 remaining_minutes = max(0, daily_limit_seconds - used_seconds) // 60
                 return False, (
                     f"سقف روزانه‌ی {daily_limit_seconds // 60} دقیقه صدا پر شده "
-                    f"(فقط حدود {remaining_minutes} دقیقه باقی مانده)."
+                    f"(این فایل جا نمی‌شه؛ حدود {remaining_minutes} دقیقه برای یه فایل کوتاه‌تر باقی مونده). "
+                    "سقف کامل از فردا دوباره در دسترسه."
                 )
         else:
             await conn.execute(

@@ -15,6 +15,7 @@ from ..db import feature_usage_repository, stt_usage_repository
 from ..services import stt_service
 from ..utils import admin as admin_utils
 from ..utils import error_reporting, messages, persian_text, text_chunking
+from ..utils.typing_indicator import send_typing
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +76,7 @@ async def handle_voice_message(update: Update, context: ContextTypes.DEFAULT_TYP
     if not is_admin_user:
         await stt_usage_repository.record_attempt(user_id)
     processing_message = await update.message.reply_text(_PROCESSING_MESSAGE)
+    await send_typing(context.bot, update.effective_chat.id)
 
     try:
         result = await stt_service.transcribe(audio_bytes)
